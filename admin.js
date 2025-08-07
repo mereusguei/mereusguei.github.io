@@ -22,16 +22,17 @@ function renderAdminPanel(adminMainContainer, eventData, allPicks) {
                     </select>
                 </td>
                 <td>
-                    <select class="custom-select method-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="KO/TKO">KO/TKO</option>
-                        <option value="Submission">Finalização</option>
-                        <option value="Decision">Decisão</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" class="custom-select details-input" placeholder="Ex: Round 3 ou Unanimous">
-                </td>
+    <select class="custom-select method-select" onchange="handleMethodChange(this)">
+        <option value="">-- Selecione --</option>
+        <option value="KO/TKO">KO/TKO</option>
+        <option value="Submission">Finalização</option>
+        <option value="Decision">Decisão</option>
+    </select>
+</td>
+<td>
+    <!-- Deixamos a coluna de detalhes vazia inicialmente -->
+    <input type="text" class="custom-select details-input" placeholder="Selecione um método...">
+</td>
                 <td><button class="btn btn-primary submit-result-btn">Apurar</button></td>
             </tr>
         `;
@@ -100,6 +101,35 @@ function addSubmitResultListeners(token) {
             }
         });
     });
+}
+
+function handleMethodChange(methodSelect) {
+    const row = methodSelect.closest('tr');
+    const detailsContainer = row.querySelector('td:nth-child(4)'); // A 4ª coluna (td)
+
+    const method = methodSelect.value;
+
+    if (method === 'Decision') {
+        detailsContainer.innerHTML = `
+            <select class="custom-select details-input">
+                <option value="Unanimous">Unânime</option>
+                <option value="Split">Dividida</option>
+            </select>
+        `;
+    } else if (method === 'KO/TKO' || method === 'Submission') {
+        detailsContainer.innerHTML = `
+            <select class="custom-select details-input">
+                <option value="Round 1">Round 1</option>
+                <option value="Round 2">Round 2</option>
+                <option value="Round 3">Round 3</option>
+                <option value="Round 4">Round 4</option>
+                <option value="Round 5">Round 5</option>
+            </select>
+        `;
+    } else {
+        // Se nada for selecionado, volta para o campo de texto
+        detailsContainer.innerHTML = `<input type="text" class="custom-select details-input" placeholder="Selecione um método...">`;
+    }
 }
 
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
