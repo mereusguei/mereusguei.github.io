@@ -1,8 +1,10 @@
-const API_URL = 'https://site-palpites-pagos.vercel.app'; // Sua API na Vercel
+// =================== CÓDIGO FINAL E COMPLETO PARA admin.js ===================
 
-// --- FUNÇÕES DE RENDERIZAÇÃO ---
-function renderAdminPanel(adminMainContainer, allData, eventList) {
-    // Constrói a seção de Apuração de Resultados
+const API_URL = 'https://site-palpites-pagos.vercel.app';
+
+// --- FUNÇÃO PARA RENDERIZAR O PAINEL DE ADMIN ---
+function renderAdminPanel(adminMainContainer, allData, eventFights) {
+    // --- Constrói a seção de Apuração de Resultados ---
     let resultsHtml = `
         <div class="admin-section">
             <h2>Apuração de Resultados</h2>
@@ -10,7 +12,7 @@ function renderAdminPanel(adminMainContainer, allData, eventList) {
                 <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
                 <tbody>`;
     
-    eventData.fights.forEach(fight => {
+    eventFights.forEach(fight => {
         resultsHtml += `
             <tr data-fight-id="${fight.id}">
                 <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
@@ -22,36 +24,31 @@ function renderAdminPanel(adminMainContainer, allData, eventList) {
                     </select>
                 </td>
                 <td>
-    <select class="custom-select method-select" onchange="handleMethodChange(this)">
-        <option value="">-- Selecione --</option>
-        <option value="KO/TKO">KO/TKO</option>
-        <option value="Submission">Finalização</option>
-        <option value="Decision">Decisão</option>
-    </select>
-</td>
-<td>
-    <!-- Deixamos a coluna de detalhes vazia inicialmente -->
-    <input type="text" class="custom-select details-input" placeholder="Selecione um método...">
-</td>
+                    <select class="custom-select method-select" onchange="handleMethodChange(this)">
+                        <option value="">-- Selecione --</option>
+                        <option value="KO/TKO">KO/TKO</option>
+                        <option value="Submission">Finalização</option>
+                        <option value="Decision">Decisão</option>
+                    </select>
+                </td>
+                <td class="details-container">
+                    <input type="text" class="custom-select details-input" placeholder="Selecione um método..." disabled>
+                </td>
                 <td><button class="btn btn-primary submit-result-btn">Apurar</button></td>
             </tr>
         `;
     });
     resultsHtml += '</tbody></table></div>';
 
-    // Constrói a seção de Palpites dos Usuários (com Accordion)
+    // --- Constrói a seção de Palpites dos Usuários (com Accordion) ---
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
-
     for (const eventId in allData) {
         const event = allData[eventId];
-        picksAccordionHtml += `
-            <details class="accordion-event">
-                <summary>${event.eventName}</summary>`;
+        picksAccordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary>`;
         
         for (const userId in event.users) {
             const userData = event.users[userId];
             const stats = userData.stats;
-            // Calcula as porcentagens
             const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
             
             picksAccordionHtml += `
@@ -69,21 +66,42 @@ function renderAdminPanel(adminMainContainer, allData, eventList) {
                 const methodDisplay = pick.predicted_method === 'Decision' ? 
                     `Decisão ${pick.predicted_details}` : 
                     `${pick.predicted_method} no ${pick.predicted_details}`;
-                
                 picksAccordionHtml += `
                     <tr>
                         <td>${pick.fight_id}</td>
                         <td>${pick.predicted_winner_name} por ${methodDisplay}</td>
-                        <td>${pick.points_awarded}</td>
+                        <td><b>${pick.points_awarded}</b></td>
                     </tr>`;
             });
-            picksAccordionHtml += `</tbody></table></details>`; // Fecha accordion do usuário
+            picksAccordionHtml += `</tbody></table></details>`;
         }
-        picksAccordionHtml += `</details>`; // Fecha accordion do evento
+        picksAccordionHtml += `</details>`;
     }
     picksAccordionHtml += `</div>`;
     
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml;
+}
+
+// --- FUNÇÃO PARA TORNAR O CAMPO "DETALHE" INTELIGENTE ---
+function handleMethodChange(methodSelect) {
+    const row = methodSelect.closest('tr');
+    const detailsContainer = row.querySelector('.details-container');
+    const method = methodSelect.value;
+
+    if (method === 'Decision') {
+        detailsContainer.innerHTML = `<select class="custom-select details-input">
+            <option value="Unanimous">Unânime</option>
+            <option value="Split">Dividida</option>
+        </select>`;
+    } else if (method === 'KO/TKO' || method === 'Submission') {
+        detailsContainer.innerHTML = `<select class="custom-select details-input">
+            <option value="Round 1">Round 1</option><option value="Round 2">Round 2</option>
+            <option value="Round 3">Round 3</option><option value="Round 4">Round 4</option>
+            <option value="Round 5">Round 5</option>
+        </select>`;
+    } else {
+        detailsContainer.innerHTML = `<input type="text" class="custom-select details-input" placeholder="Selecione um método..." disabled>`;
+    }
 }
 
 // --- FUNÇÃO PARA ADICIONAR LISTENERS AOS BOTÕES DE APURAR ---
@@ -99,58 +117,24 @@ function addSubmitResultListeners(token) {
             if (!winnerName || !resultMethod || !resultDetails) {
                 return alert('Por favor, preencha todos os campos do resultado.');
             }
-
             if (!confirm(`Confirmar apuração para a luta ID ${fightId}? Esta ação é irreversível.`)) return;
 
             try {
                 const response = await fetch(`${API_URL}/api/admin/results`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ fightId, winnerName, resultMethod, resultDetails })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
                 alert(data.message);
-                // Recarrega a página inteira para garantir que todos os dados sejam atualizados.
                 window.location.reload(); 
             } catch(error) {
                 alert(`Erro: ${error.message}`);
             }
         });
     });
-}
-
-function handleMethodChange(methodSelect) {
-    const row = methodSelect.closest('tr');
-    const detailsContainer = row.querySelector('td:nth-child(4)'); // A 4ª coluna (td)
-
-    const method = methodSelect.value;
-
-    if (method === 'Decision') {
-        detailsContainer.innerHTML = `
-            <select class="custom-select details-input">
-                <option value="Unanimous">Unânime</option>
-                <option value="Split">Dividida</option>
-            </select>
-        `;
-    } else if (method === 'KO/TKO' || method === 'Submission') {
-        detailsContainer.innerHTML = `
-            <select class="custom-select details-input">
-                <option value="Round 1">Round 1</option>
-                <option value="Round 2">Round 2</option>
-                <option value="Round 3">Round 3</option>
-                <option value="Round 4">Round 4</option>
-                <option value="Round 5">Round 5</option>
-            </select>
-        `;
-    } else {
-        // Se nada for selecionado, volta para o campo de texto
-        detailsContainer.innerHTML = `<input type="text" class="custom-select details-input" placeholder="Selecione um método...">`;
-    }
 }
 
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
@@ -163,30 +147,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const eventId = 1;
+    const eventId = 1; // Evento que estamos administrando
 
     try {
         adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        // Buscamos os dados do evento e os palpites de todos os usuários em paralelo
+        
+        // Buscamos os dados do evento (para a tabela de apuração) e os palpites de todos os usuários (para a tabela de visualização)
         const [eventResponse, allPicksResponse] = await Promise.all([
-            fetch(`${API_URL}/api/events/1`, { headers: { 'Authorization': `Bearer ${token}` } }), // Usamos a rota antiga para a apuração
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }) // Nova rota para a lista de palpites
+            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
         
-        if (eventResponse.status === 403 || picksResponse.status === 403) {
+        if (eventResponse.status === 403 || allPicksResponse.status === 403) {
              throw new Error('Acesso negado. Você não tem permissão de administrador.');
         }
-        if (!eventResponse.ok || !picksResponse.ok) {
-            throw new Error('Falha ao carregar dados do painel.');
+        if (!eventResponse.ok || !allPicksResponse.ok) {
+            throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
         }
 
         const eventData = await eventResponse.json();
-        const allPicks = await allPicksResponse.json();
-        renderAdminPanel(adminMainContainer, allPicks, eventData.fights); // Passa os dados para a função de renderizar
+        const allPicksData = await allPicksResponse.json();
+        
+        renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
         addSubmitResultListeners(token);
 
     } catch (error) {
-        console.error('Erro:', error);
-        adminMainContainer.innerHTML = `<h2 style="color:red;">Erro</h2><p>${error.message}</p>`;
+        console.error('Erro ao carregar painel de admin:', error);
+        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
     }
 });
