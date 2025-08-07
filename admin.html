@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Admin - Octagon Oracle</title>
+    <!-- Reutilizando o mesmo estilo base -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos específicos para o painel de admin */
+        .admin-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+        .admin-section { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .admin-section h2 { font-family: var(--font-primary); color: var(--primary-color); margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { font-family: var(--font-primary); }
+        .custom-select { width: 100%; background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <a href="index.html" style="text-decoration: none;"><h1 class="logo">ADMIN <span>PANEL</span></h1></a>
+    </header>
+
+    <main class="admin-container" id="admin-main">
+        <!-- O conteúdo será carregado aqui pelo JavaScript -->
+        <p>Carregando dados do evento...</p>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
