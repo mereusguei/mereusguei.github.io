@@ -1,5 +1,5 @@
 // No admin.js
-const API_URL = 'https://site-palites-pagos.vercel.app'; // Sua API na Vercel
+const API_URL = 'https://site-palpites-pagos.vercel.app'; // Sua API na Vercel
 
 document.addEventListener('DOMContentLoaded', () => {
     const adminMainContainer = document.getElementById('admin-main');
