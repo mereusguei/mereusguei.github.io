@@ -1,11 +1,11 @@
 const API_URL = 'https://site-palpites-pagos.vercel.app'; // Sua API na Vercel
 
-// --- FUNÇÃO PARA RENDERIZAR O PAINEL ---
-function renderAdminPanel(adminMainContainer, eventData, allPicks) {
+// --- FUNÇÕES DE RENDERIZAÇÃO ---
+function renderAdminPanel(adminMainContainer, allData, eventList) {
     // Constrói a seção de Apuração de Resultados
     let resultsHtml = `
         <div class="admin-section">
-            <h2>Apuração de Resultados - ${eventData.eventName}</h2>
+            <h2>Apuração de Resultados</h2>
             <table>
                 <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
                 <tbody>`;
@@ -39,30 +39,51 @@ function renderAdminPanel(adminMainContainer, eventData, allPicks) {
     });
     resultsHtml += '</tbody></table></div>';
 
-    // Constrói a seção de Visualização de Palpites
-    let picksHtml = `
-        <div class="admin-section">
-            <h2>Palpites de Todos os Usuários</h2>
-            <table>
-                <thead><tr><th>Usuário</th><th>Luta ID</th><th>Palpite Vencedor</th><th>Palpite Método</th><th>Palpite Detalhe</th><th>Pontos</th></tr></thead>
-                <tbody>`;
-    
-    allPicks.forEach(pick => {
-        picksHtml += `
-            <tr>
-                <td>${pick.username}</td>
-                <td>${pick.fight_id}</td>
-                <td>${pick.predicted_winner_name}</td>
-                <td>${pick.predicted_method}</td>
-                <td>${pick.predicted_details}</td>
-                <td><b>${pick.points_awarded}</b></td>
-            </tr>
-        `;
-    });
-    picksHtml += '</tbody></table></div>';
+    // Constrói a seção de Palpites dos Usuários (com Accordion)
+    let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
 
-    // Insere o HTML construído na página
-    adminMainContainer.innerHTML = resultsHtml + picksHtml;
+    for (const eventId in allData) {
+        const event = allData[eventId];
+        picksAccordionHtml += `
+            <details class="accordion-event">
+                <summary>${event.eventName}</summary>`;
+        
+        for (const userId in event.users) {
+            const userData = event.users[userId];
+            const stats = userData.stats;
+            // Calcula as porcentagens
+            const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
+            
+            picksAccordionHtml += `
+                <details class="accordion-user">
+                    <summary>
+                        <strong>${userData.username}</strong> - 
+                        Pontos: ${stats.totalPoints} | 
+                        Vencedores: ${stats.correctWinners}/${stats.totalPicks} (${winnerPct}%)
+                    </summary>
+                    <table>
+                        <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
+                        <tbody>`;
+            
+            userData.picks.forEach(pick => {
+                const methodDisplay = pick.predicted_method === 'Decision' ? 
+                    `Decisão ${pick.predicted_details}` : 
+                    `${pick.predicted_method} no ${pick.predicted_details}`;
+                
+                picksAccordionHtml += `
+                    <tr>
+                        <td>${pick.fight_id}</td>
+                        <td>${pick.predicted_winner_name} por ${methodDisplay}</td>
+                        <td>${pick.points_awarded}</td>
+                    </tr>`;
+            });
+            picksAccordionHtml += `</tbody></table></details>`; // Fecha accordion do usuário
+        }
+        picksAccordionHtml += `</details>`; // Fecha accordion do evento
+    }
+    picksAccordionHtml += `</div>`;
+    
+    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml;
 }
 
 // --- FUNÇÃO PARA ADICIONAR LISTENERS AOS BOTÕES DE APURAR ---
@@ -147,9 +168,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
         // Buscamos os dados do evento e os palpites de todos os usuários em paralelo
-        const [eventResponse, picksResponse] = await Promise.all([
-            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/event-picks/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+        const [eventResponse, allPicksResponse] = await Promise.all([
+            fetch(`${API_URL}/api/events/1`, { headers: { 'Authorization': `Bearer ${token}` } }), // Usamos a rota antiga para a apuração
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }) // Nova rota para a lista de palpites
         ]);
         
         if (eventResponse.status === 403 || picksResponse.status === 403) {
@@ -160,9 +181,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const eventData = await eventResponse.json();
-        const allPicks = await picksResponse.json();
-        
-        renderAdminPanel(adminMainContainer, eventData, allPicks);
+        const allPicks = await allPicksResponse.json();
+        renderAdminPanel(adminMainContainer, allPicks, eventData.fights); // Passa os dados para a função de renderizar
         addSubmitResultListeners(token);
 
     } catch (error) {

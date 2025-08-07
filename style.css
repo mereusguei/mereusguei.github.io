@@ -382,3 +382,9 @@ body {
     width: 80%; /* Opcional: define uma largura para o botão não ficar tão pequeno */
     max-width: 300px; /* Opcional: um limite para a largura */
 }
+
+/* Estilos para o Accordion do Admin */
+.accordion-event > summary { font-size: 1.5rem; font-family: var(--font-primary); cursor: pointer; padding: 10px; border-bottom: 1px solid var(--border-color); }
+.accordion-user { border-left: 3px solid var(--primary-color); margin-left: 20px; margin-top: 10px; }
+.accordion-user > summary { font-size: 1.1rem; cursor: pointer; padding: 8px; background: rgba(0,0,0,0.2); }
+.accordion-user > table { margin: 10px 0; }
