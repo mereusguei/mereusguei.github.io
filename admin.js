@@ -1,15 +1,23 @@
 // =================== CÓDIGO FINAL E CORRIGIDO PARA admin.js ===================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
-function renderAdminPanel(adminMainContainer, allData, eventFights) {
-    let resultsHtml = `
-        <div class="admin-section">
-            <h2>Apuração de Resultados</h2>
-            <div id="results-table-container">`;
-    resultsHtml += buildResultsTable(eventFights);
-    resultsHtml += `</div></div>`;
+function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
+    // Apaga a mensagem de "Carregando..."
+    adminMainContainer.innerHTML = ''; 
 
-    let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
+    // --- Cria a seção de Apuração ---
+    const resultsSection = document.createElement('div');
+    resultsSection.className = 'admin-section';
+    resultsSection.innerHTML = `
+        <h2>Apuração de Resultados</h2>
+        <div id="results-table-container">${buildResultsTable(eventFights)}</div>
+    `;
+    adminMainContainer.appendChild(resultsSection);
+
+    // --- Cria a seção do Accordion de Palpites ---
+    const picksAccordionSection = document.createElement('div');
+    picksAccordionSection.className = 'admin-section';
+    let picksAccordionHtml = `<h2>Palpites por Evento</h2>`;
     for (const eventId in allData) {
         const event = allData[eventId];
         if (Object.keys(event.users).length === 0) {
@@ -48,6 +56,23 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
     }
     picksAccordionHtml += `</div>`;
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml;
+
+    // --- Cria a seção de Rankings Detalhados ---
+    const rankingSection = document.createElement('div');
+    rankingSection.className = 'admin-section';
+    rankingSection.innerHTML = `
+        <h2>Rankings Detalhados</h2>
+        <div class="tabs">
+            <button class="tab-button active" data-ranking="general">Pontuação Geral</button>
+            <button class="tab-button" data-ranking="winners">Acerto de Vencedores</button>
+            <button class="tab-button" data-ranking="methods">Acerto de Métodos</button>
+            <button class="tab-button" data-ranking="details">Acerto de Detalhes</button>
+        </div>
+        <div id="admin-ranking-content">
+            <!-- As tabelas serão inseridas aqui -->
+        </div>
+    `;
+    adminMainContainer.appendChild(rankingSection);
 }
 
 function buildResultsTable(eventFights) {
@@ -161,28 +186,43 @@ function renderRankingTable(container, data, type) {
     container.innerHTML = tableHtml;
 }
 
+// --- FUNÇÃO PRINCIPAL ---
 document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
     const token = localStorage.getItem('token');
+
     if (!token) {
         adminMainContainer.innerHTML = '<h2>Acesso Negado</h2><p>Você precisa estar logado como administrador. <a href="login.html">Faça login</a></p>';
         return;
     }
+
     const eventId = 1;
+
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
         const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
             fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
-        if (eventResponse.status === 403 || allPicksResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+
+        if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
+            throw new Error('Acesso negado. Você não tem permissão de administrador.');
+        }
+        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
+            throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+        }
+
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
         const accuracyData = await accuracyResponse.json();
+
+        // 1. Renderiza toda a estrutura do painel
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
+        
+        // 2. Adiciona a interatividade à tabela de apuração
         addAdminActionListeners(token, eventData.fights);
+
+        // 3. Renderiza o ranking inicial e adiciona a interatividade das abas
         const adminRankingContainer = document.getElementById('admin-ranking-content');
         if (adminRankingContainer) {
             renderRankingTable(adminRankingContainer, accuracyData, 'general');
