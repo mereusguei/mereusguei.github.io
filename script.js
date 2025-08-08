@@ -3,46 +3,7 @@ const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 // 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // --- SEÇÃO DE AUTENTICAÇÃO E NAVEGAÇÃO ---
-    const userNavigation = document.getElementById('user-navigation');
-    const mainContent = document.querySelector('.container');
-
-    const user = JSON.parse(localStorage.getItem('user'));
-    const token = localStorage.getItem('token');
-
-    // Esta lógica só roda se estivermos na página principal (index.html)
-    if (userNavigation) { 
-        if (user && token) {
-            // Cenário: Usuário está LOGADO
-            userNavigation.innerHTML = `
-                <div class="user-profile">
-                    <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
-                    <span>Olá, ${user.username}</span>
-                </div>
-                <button id="logout-btn" class="btn btn-logout">Sair</button>
-            `;
-            
-            // Adiciona funcionalidade ao botão de sair
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-                alert('Você saiu.');
-                window.location.reload();
-            });
-
-        } else {
-            // Cenário: Usuário está DESLOGADO
-            userNavigation.innerHTML = `
-                <div class="auth-buttons">
-                    <a href="login.html" class="btn">Login</a>
-                    <a href="register.html" class="btn btn-primary">Cadastro</a>
-                </div>
-            `;
-        }
-    }
-
-// --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
+    // --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
 // Esta lógica só roda se o elemento .container existir na página
 if (mainContent) {
     if (user && token) {
