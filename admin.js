@@ -1,60 +1,49 @@
+// =================== CÓDIGO FINAL, COMPLETO E CORRIGIDO PARA admin.js ===================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
-    let tableHtml = `
-        <table>
-            <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
-            <tbody>`;
+    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
     eventFights.forEach(fight => {
         const isApured = !!fight.winner_name;
         const disabled = isApured ? 'disabled' : '';
         tableHtml += `
             <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
                 <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
-                <td><select class="custom-select winner-select" ${disabled}>...</select></td>
-                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>...</select></td>
-                <td class="details-container"><input type="text" ... ${disabled}></td>
-                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`}</td>
+                <td>
+                    <select class="custom-select winner-select" ${disabled}>
+                        <option value="">-- Selecione --</option>
+                        <option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option>
+                        <option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>
+                        <option value="">-- Selecione --</option>
+                        <option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option>
+                        <option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option>
+                        <option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option>
+                    </select>
+                </td>
+                <td class="details-container">
+                    <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
+                </td>
+                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}</td>
             </tr>`;
     });
-    tableHtml += `</tbody></table>`;
-
-    // --- ADICIONA OS CAMPOS DE RESULTADOS BÔNUS AQUI ---
-    tableHtml += `
+    tableHtml += `</tbody></table>
         <div class="bonus-results" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
             <h3>Resultados Bônus</h3>
-            <div class="form-group">
-                <label for="real-fotn">Luta da Noite Real:</label>
-                <select id="real-fotn" class="custom-select">
-                    <option value="">-- Selecione a Luta --</option>
-                    <!-- As opções serão populadas pelo JavaScript -->
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="real-potn">Performance da Noite Real:</label>
-                <select id="real-potn" class="custom-select">
-                    <option value="">-- Selecione o Lutador --</option>
-                    <!-- As opções serão populadas pelo JavaScript -->
-                </select>
-            </div>
-        </div>`;
-    
-    tableHtml += `
+            <div class="form-group"><label for="real-fotn">Luta da Noite Real:</label><select id="real-fotn" class="custom-select"><option value="">-- Selecione a Luta --</option></select></div>
+            <div class="form-group"><label for="real-potn">Performance da Noite Real:</label><select id="real-potn" class="custom-select"><option value="">-- Selecione o Lutador --</option></select></div>
+        </div>
         <div class="actions-footer" id="admin-actions">
             <button type="button" id="save-all-btn" class="btn btn-primary">Salvar Todas as Apurações</button>
-            <button type="button" id="cancel-btn" class="btn" style="display: none;">Cancelar Edição</button>
         </div>`;
-        
     return tableHtml;
 }
 
 function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
-    let resultsHtml = `
-        <div class="admin-section">
-            <h2>Apuração de Resultados</h2>
-            <div id="results-table-container">${buildResultsTable(eventFights)}</div>
-        </div>`;
-
+    let resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><form id="results-form">${buildResultsTable(eventFights)}</form></div>`;
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
     for (const eventId in allPicksData) {
         const event = allPicksData[eventId];
@@ -82,45 +71,8 @@ function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
         picksAccordionHtml += `</details>`;
     }
     picksAccordionHtml += `</div>`;
-
-    let rankingsHtml = `
-        <section class="admin-section">
-            <h2>Rankings Detalhados</h2>
-            <div class="tabs">
-                <button class="tab-button active" data-ranking="general">Pontuação Geral</button>
-                <button class="tab-button" data-ranking="winners">Acerto de Vencedores</button>
-                <button class="tab-button" data-ranking="methods">Acerto de Métodos</button>
-                <button class="tab-button" data-ranking="details">Acerto de Detalhes</button>
-            </div>
-            <div id="admin-ranking-content"><p>Carregando rankings...</p></div>
-        </section>`;
-    
+    let rankingsHtml = `<section class="admin-section"><h2>Rankings Detalhados</h2><div class="tabs"><button class="tab-button active" data-ranking="general">Pontuação Geral</button><button class="tab-button" data-ranking="winners">Acerto de Vencedores</button><button class="tab-button" data-ranking="methods">Acerto de Métodos</button><button class="tab-button" data-ranking="details">Acerto de Detalhes</button></div><div id="admin-ranking-content"><p>Carregando rankings...</p></div></section>`;
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
-
-    // --- LÓGICA PARA POPULAR OS DROPDOWNS DE BÔNUS ---
-    const fotnSelect = document.getElementById('real-fotn');
-    const potnSelect = document.getElementById('real-potn');
-    const allFighters = new Set();
-
-    eventFights.forEach(fight => {
-        // Popula Luta da Noite
-        const fotnOption = document.createElement('option');
-        fotnOption.value = fight.id;
-        fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
-        fotnSelect.appendChild(fotnOption);
-
-        // Coleta todos os lutadores
-        allFighters.add(fight.fighter1_name);
-        allFighters.add(fight.fighter2_name);
-    });
-
-    allFighters.forEach(fighter => {
-        // Popula Performance da Noite
-        const potnOption = document.createElement('option');
-        potnOption.value = fighter;
-        potnOption.textContent = fighter;
-        potnSelect.appendChild(potnOption);
-    });
 }
 
 function handleMethodChange(methodSelect) {
@@ -136,40 +88,27 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-async function handleApuration(button, token) {
-    const row = button.closest('tr');
-    const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
-    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos do resultado.');
-    if (!confirm(`Confirmar apuração para a luta ID ${fightId}?`)) return;
-    try {
-        const response = await fetch(`${API_URL}/api/admin/results`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ fightId, winnerName, resultMethod, resultDetails })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        alert(data.message);
-        window.location.reload();
-    } catch (error) {
-        alert(`Erro: ${error.message}`);
-    }
-}
+function addAdminActionListeners(token) {
+    const resultsForm = document.getElementById('results-form');
+    if (!resultsForm) return;
 
-function addAdminActionListeners(token, eventFights) {
-    const saveAllBtn = document.getElementById('save-all-btn');
-    if (!saveAllBtn) return;
+    resultsForm.addEventListener('click', (e) => { // Listener no formulário para 'Corrigir'
+        if (e.target.matches('.btn-edit-result')) {
+            const row = e.target.closest('tr');
+            row.classList.remove('apured');
+            row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+            e.target.textContent = 'Apurar';
+            e.target.classList.replace('btn-edit-result', 'submit-result-btn');
+        }
+    });
 
-    saveAllBtn.addEventListener('click', async () => {
+    resultsForm.addEventListener('submit', async (e) => { // Listener para o submit do formulário
+        e.preventDefault();
         const resultsArray = [];
-        const rows = document.querySelectorAll('#results-table-container tr[data-fight-id]');
-
+        const rows = resultsForm.querySelectorAll('tr[data-fight-id]');
         rows.forEach(row => {
-            const fightId = row.dataset.fightId;
-            const winnerName = row.querySelector('.winner-select').value;
-            const resultMethod = row.querySelector('.method-select').value;
-            const resultDetails = row.querySelector('.details-input').value;
-
+            if (row.querySelector('select:disabled')) return; // Pula lutas já apuradas e não corrigidas
+            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
             if (winnerName && resultMethod && resultDetails) {
                 resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
             }
@@ -177,17 +116,14 @@ function addAdminActionListeners(token, eventFights) {
 
         const realFightOfTheNightId = document.getElementById('real-fotn').value;
         const realPerformanceOfTheNightFighter = document.getElementById('real-potn').value;
-
-        if (resultsArray.length === 0) {
-            return alert('Nenhuma luta foi preenchida para apuração.');
-        }
-        if (!confirm(`Confirmar a apuração de ${resultsArray.length} luta(s)?`)) return;
+        if (resultsArray.length === 0) return alert('Nenhuma luta foi preenchida ou alterada para apuração.');
+        if (!confirm(`Confirmar a apuração/correção de ${resultsArray.length} luta(s)?`)) return;
 
         try {
             const response = await fetch(`${API_URL}/api/admin/results`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter }) // Envia tudo de uma vez
+                body: JSON.stringify({ resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
@@ -201,38 +137,16 @@ function addAdminActionListeners(token, eventFights) {
 
 function renderRankingTable(container, data, type) {
     let tableHtml = '<table><thead><tr><th>Pos.</th><th>Usuário</th>';
-    let sortKey = '';
-    let valueKey = ''; // Corrigido de VeloK para valueKey na declaração
-
+    let sortKey = '', valueKey = '';
     switch (type) {
-        case 'general':
-            sortKey = 'total_points';
-            valueKey = 'total_points'; // Corrigido de VeloK para valueKey
-            break;
-        case 'winners':
-            sortKey = 'correct_winners';
-            valueKey = 'correct_winners'; // Corrigido de VeloK para valueKey
-            break;
-        case 'methods':
-            sortKey = 'correct_methods';
-            valueKey = 'correct_methods'; // Corrigido de VeloK para valueKey
-            break;
-        case 'details':
-            sortKey = 'correct_details';
-            valueKey = 'correct_details'; // Corrigido de VeloK para valueKey
-            break;
+        case 'general': sortKey = 'total_points'; valueKey = 'total_points'; break;
+        case 'winners': sortKey = 'correct_winners'; valueKey = 'correct_winners'; break;
+        case 'methods': sortKey = 'correct_methods'; valueKey = 'correct_methods'; break;
+        case 'details': sortKey = 'correct_details'; valueKey = 'correct_details'; break;
     }
-
-    tableHtml += `<th>${valueKey.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`; // Deixa o cabeçalho mais bonito
-
-    // Ordena os dados com base na chave correta
+    tableHtml += `<th>${valueKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`;
     data.sort((a, b) => b[sortKey] - a[sortKey]);
-
-    data.forEach((row, index) => {
-        // A CORREÇÃO PRINCIPAL ESTÁ AQUI
-        tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
-    });
-
+    data.forEach((row, index) => { tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`; });
     tableHtml += `</tbody></table>`;
     container.innerHTML = tableHtml;
 }
@@ -246,48 +160,57 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const eventId = 1;
     try {
-    adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-    
-    // Faz as 3 chamadas à API em paralelo
-    const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
-        fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-    ]);
-
-    if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
-        throw new Error('Acesso negado. Você não tem permissão de administrador.');
-    }
-    if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
-        throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
-    }
-
-    const eventData = await eventResponse.json();
-    const allPicksData = await allPicksResponse.json();
-    const accuracyData = await accuracyResponse.json();
-    
-    // 1. Renderiza o painel de apuração e o accordion de palpites
-    renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
-    
-    // 2. Adiciona a interatividade à tabela de apuração
-    addAdminActionListeners(token, eventData.fights);
-
-    // 3. Renderiza o ranking inicial e adiciona a interatividade das abas
-    const adminRankingContainer = document.getElementById('admin-ranking-content');
-    if (adminRankingContainer) {
-        // Usa a 'accuracyData' para o ranking de pontos também, pois ela já contém o total_points.
-        renderRankingTable(adminRankingContainer, accuracyData, 'general'); 
+        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
+            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
+            throw new Error('Acesso negado. Você não tem permissão de administrador.');
+        }
+        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
+            throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+        }
+        const eventData = await eventResponse.json();
+        const allPicksData = await allPicksResponse.json();
+        const accuracyData = await accuracyResponse.json();
         
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelector('.tab-button.active').classList.remove('active');
-                button.classList.add('active');
-                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
-            });
+        renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
+
+        const fotnSelect = document.getElementById('real-fotn');
+        const potnSelect = document.getElementById('real-potn');
+        const allFighters = new Set();
+        eventData.fights.forEach(fight => {
+            const fotnOption = document.createElement('option');
+            fotnOption.value = fight.id;
+            fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
+            fotnSelect.appendChild(fotnOption);
+            allFighters.add(fight.fighter1_name);
+            allFighters.add(fight.fighter2_name);
         });
+        allFighters.forEach(fighter => {
+            const potnOption = document.createElement('option');
+            potnOption.value = fighter;
+            potnOption.textContent = fighter;
+            potnSelect.appendChild(potnOption);
+        });
+        
+        addAdminActionListeners(token);
+        
+        const adminRankingContainer = document.getElementById('admin-ranking-content');
+        if (adminRankingContainer) {
+            renderRankingTable(adminRankingContainer, accuracyData, 'general');
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    button.classList.add('active');
+                    renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar painel de admin:', error);
+        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
     }
-} catch (error) {
-    console.error('Erro ao carregar painel de admin:', error);
-    adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
-}
 });
