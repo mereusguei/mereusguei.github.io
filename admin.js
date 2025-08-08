@@ -1,20 +1,50 @@
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
-    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
+    let tableHtml = `
+        <table>
+            <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
+            <tbody>`;
     eventFights.forEach(fight => {
         const isApured = !!fight.winner_name;
         const disabled = isApured ? 'disabled' : '';
         tableHtml += `
             <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
                 <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
-                <td><select class="custom-select winner-select" ${disabled}><option value="">-- Selecione --</option><option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option><option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option></select></td>
-                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}><option value="">-- Selecione --</option><option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option><option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option><option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option></select></td>
-                <td class="details-container"><input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}></td>
+                <td><select class="custom-select winner-select" ${disabled}>...</select></td>
+                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>...</select></td>
+                <td class="details-container"><input type="text" ... ${disabled}></td>
                 <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`}</td>
             </tr>`;
     });
-    tableHtml += `</tbody></table><div class="actions-footer" id="admin-actions" style="display: none;"><button type="button" id="save-all-corrections-btn" class="btn btn-primary">Salvar Todas as Alterações</button><button type="button" id="cancel-corrections-btn" class="btn">Cancelar Edição</button></div>`;
+    tableHtml += `</tbody></table>`;
+
+    // --- ADICIONA OS CAMPOS DE RESULTADOS BÔNUS AQUI ---
+    tableHtml += `
+        <div class="bonus-results" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <h3>Resultados Bônus</h3>
+            <div class="form-group">
+                <label for="real-fotn">Luta da Noite Real:</label>
+                <select id="real-fotn" class="custom-select">
+                    <option value="">-- Selecione a Luta --</option>
+                    <!-- As opções serão populadas pelo JavaScript -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="real-potn">Performance da Noite Real:</label>
+                <select id="real-potn" class="custom-select">
+                    <option value="">-- Selecione o Lutador --</option>
+                    <!-- As opções serão populadas pelo JavaScript -->
+                </select>
+            </div>
+        </div>`;
+    
+    tableHtml += `
+        <div class="actions-footer" id="admin-actions">
+            <button type="button" id="save-all-btn" class="btn btn-primary">Salvar Todas as Apurações</button>
+            <button type="button" id="cancel-btn" class="btn" style="display: none;">Cancelar Edição</button>
+        </div>`;
+        
     return tableHtml;
 }
 
@@ -66,6 +96,31 @@ function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
         </section>`;
     
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
+
+    // --- LÓGICA PARA POPULAR OS DROPDOWNS DE BÔNUS ---
+    const fotnSelect = document.getElementById('real-fotn');
+    const potnSelect = document.getElementById('real-potn');
+    const allFighters = new Set();
+
+    eventFights.forEach(fight => {
+        // Popula Luta da Noite
+        const fotnOption = document.createElement('option');
+        fotnOption.value = fight.id;
+        fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
+        fotnSelect.appendChild(fotnOption);
+
+        // Coleta todos os lutadores
+        allFighters.add(fight.fighter1_name);
+        allFighters.add(fight.fighter2_name);
+    });
+
+    allFighters.forEach(fighter => {
+        // Popula Performance da Noite
+        const potnOption = document.createElement('option');
+        potnOption.value = fighter;
+        potnOption.textContent = fighter;
+        potnSelect.appendChild(potnOption);
+    });
 }
 
 function handleMethodChange(methodSelect) {
@@ -102,41 +157,44 @@ async function handleApuration(button, token) {
 }
 
 function addAdminActionListeners(token, eventFights) {
-    const tableContainer = document.getElementById('results-table-container');
-    const adminActions = document.getElementById('admin-actions');
-    if (!tableContainer || !adminActions) return;
-    tableContainer.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.matches('.submit-result-btn')) { handleApuration(target, token); }
-        if (target.matches('.btn-edit-result')) {
-            adminActions.style.display = 'flex';
-            target.closest('tr').classList.remove('apured');
-            target.closest('tr').querySelectorAll('select, input').forEach(el => el.disabled = false);
-            target.style.display = 'none';
-        }
-    });
-    adminActions.querySelector('#cancel-corrections-btn').addEventListener('click', () => window.location.reload());
-    adminActions.querySelector('#save-all-corrections-btn').addEventListener('click', async () => {
-        const promises = [];
-        tableContainer.querySelectorAll('tr[data-fight-id]').forEach(row => {
-            if (row.querySelector('select:disabled')) return;
-            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
+    const saveAllBtn = document.getElementById('save-all-btn');
+    if (!saveAllBtn) return;
+
+    saveAllBtn.addEventListener('click', async () => {
+        const resultsArray = [];
+        const rows = document.querySelectorAll('#results-table-container tr[data-fight-id]');
+
+        rows.forEach(row => {
+            const fightId = row.dataset.fightId;
+            const winnerName = row.querySelector('.winner-select').value;
+            const resultMethod = row.querySelector('.method-select').value;
+            const resultDetails = row.querySelector('.details-input').value;
+
             if (winnerName && resultMethod && resultDetails) {
-                promises.push(fetch(`${API_URL}/api/admin/results`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ fightId, winnerName, resultMethod, resultDetails })
-                }));
+                resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
             }
         });
-        if (promises.length === 0) return alert('Nenhuma alteração para salvar.');
-        if (!confirm(`Confirmar a apuração/correção de ${promises.length} luta(s)?`)) return;
+
+        const realFightOfTheNightId = document.getElementById('real-fotn').value;
+        const realPerformanceOfTheNightFighter = document.getElementById('real-potn').value;
+
+        if (resultsArray.length === 0) {
+            return alert('Nenhuma luta foi preenchida para apuração.');
+        }
+        if (!confirm(`Confirmar a apuração de ${resultsArray.length} luta(s)?`)) return;
+
         try {
-            await Promise.all(promises);
-            alert(`${promises.length} luta(s) processada(s) com sucesso!`);
+            const response = await fetch(`${API_URL}/api/admin/results`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter }) // Envia tudo de uma vez
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            alert(data.message);
             window.location.reload();
         } catch (error) {
-            alert(`Ocorreu um erro: ${error.message}`);
+            alert(`Ocorreu um erro ao apurar: ${error.message}`);
         }
     });
 }

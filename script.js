@@ -177,7 +177,13 @@ async function loadEventPageContent(eventId, token, hasPaid) {
             loadFights();
             populateBonusPicks(eventData.fights);
             const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
-            if (saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
+if (saveBonusBtnContainer) {
+    saveBonusBtnContainer.style.display = 'block';
+    // ADICIONA O EVENT LISTENER
+    document.getElementById('save-bonus-picks-btn').addEventListener('click', () => {
+        handleSaveBonusPicks(eventId, token);
+    });
+}
         } else {
             const paymentSection = document.getElementById('payment-section');
             if (paymentSection) {
@@ -191,6 +197,38 @@ async function loadEventPageContent(eventId, token, hasPaid) {
         }
     } catch (error) {
         if(mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
+    }
+}
+
+async function handleSaveBonusPicks(eventId, token) {
+    const fightOfTheNight = document.getElementById('fight-of-night').value;
+    const performanceOfTheNight = document.getElementById('performance-of-night').value;
+
+    if (!fightOfTheNight || !performanceOfTheNight) {
+        return alert('Por favor, selecione a Luta e a Performance da Noite.');
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/bonus-picks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ eventId, fightOfTheNight, performanceOfTheNight })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Não foi possível salvar os palpites bônus.');
+        }
+
+        alert('Palpites bônus salvos com sucesso!');
+
+    } catch (error) {
+        console.error('Erro ao salvar palpites bônus:', error);
+        alert(`Erro: ${error.message}`);
     }
 }
 
