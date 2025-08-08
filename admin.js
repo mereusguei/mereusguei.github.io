@@ -64,6 +64,9 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
         for (const userId in event.users) {
             const userData = event.users[userId];
             const stats = userData.stats;
+            const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
+            const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
+            const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
             const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
             const methodText = stats.correctWinners > 0 ? `${stats.correctMethods}/${stats.correctWinners}` : `0/${stats.totalPicks}`;
             const detailText = stats.correctMethods > 0 ? `${stats.correctDetails}/${stats.correctMethods}` : `0/${stats.totalPicks}`;
