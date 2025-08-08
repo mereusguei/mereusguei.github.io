@@ -170,6 +170,19 @@ async function loadEventPageContent(eventId, token, hasPaid) {
         const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
         eventData = await response.json();
+        // --- NOVA LÓGICA PARA PREENCHER PALPITES BÔNUS ---
+if (eventData.userBonusPicks) {
+    const fotnSelect = document.getElementById('fight-of-night');
+    const potnSelect = document.getElementById('performance-of-night');
+    const saveBonusBtn = document.getElementById('save-bonus-picks-btn');
+    
+    // Se o usuário já fez um palpite, preenche os selects com os valores salvos
+    if (eventData.userBonusPicks.fight_of_the_night_fight_id) {
+        fotnSelect.value = eventData.userBonusPicks.fight_of_the_night_fight_id;
+        potnSelect.value = eventData.userBonusPicks.performance_of_the_night_fighter_name;
+        saveBonusBtn.textContent = 'Editar Palpites Bônus'; // Muda o texto do botão
+    }
+}
         const eventHeader = document.querySelector('.event-header h2');
         if (eventHeader) eventHeader.textContent = eventData.eventName;
         startCountdown(eventData.picksDeadline);
