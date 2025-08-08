@@ -178,28 +178,93 @@ function addAdminActionListeners(token, eventFights) {
     });
 }
 
+// --- NOVA FUNÇÃO PARA RENDERIZAR AS TABELAS DE RANKING ---
+function renderRankingTable(container, data, type) {
+    let tableHtml = '<table><thead><tr><th>Pos.</th><th>Usuário</th>';
+    let sortKey = '';
+    let valueHeader = '';
+
+    switch (type) {
+        case 'general':
+            sortKey = 'total_points';
+            valueHeader = 'Pontuação Total';
+            break;
+        case 'winners':
+            sortKey = 'correct_winners';
+            valueHeader = 'Vencedores Corretos';
+            break;
+        case 'methods':
+            sortKey = 'correct_methods';
+            valueHeader = 'Métodos Corretos';
+            break;
+        case 'details':
+            sortKey = 'correct_details';
+            valueHeader = 'Detalhes Corretos';
+            break;
+    }
+
+    tableHtml += `<th>${valueHeader}</th></tr></thead><tbody>`;
+
+    // Ordena os dados com base na chave correta
+    data.sort((a, b) => b[sortKey] - a[sortKey]);
+
+    data.forEach((row, index) => {
+        tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[sortKey]}</td></tr>`;
+    });
+
+    tableHtml += `</tbody></table>`;
+    container.innerHTML = tableHtml;
+}
+
+// --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
 document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
+    const adminRankingContainer = document.getElementById('admin-ranking-content');
     const token = localStorage.getItem('token');
+
     if (!token) {
         adminMainContainer.innerHTML = '<h2>Acesso Negado</h2><p>Você precisa estar logado como administrador. <a href="login.html">Faça login</a></p>';
         return;
     }
+
     const eventId = 1;
+
     try {
         adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        const [eventResponse, allPicksResponse] = await Promise.all([
+        
+        // Busca todos os dados necessários em paralelo
+        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
             fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
+
         if (eventResponse.status === 403 || allPicksResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        if (!eventResponse.ok || !allPicksResponse.ok) throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados do painel.');
+
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
+        const accuracyData = await accuracyResponse.json();
+        
+        // Renderiza a parte superior (apuração e accordion de palpites)
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
         addAdminActionListeners(token, eventData.fights);
+
+        // Renderiza o ranking inicial (Pontuação Geral)
+        renderRankingTable(adminRankingContainer, accuracyData, 'general');
+
+        // Adiciona a lógica para as abas do ranking
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelector('.tab-button.active').classList.remove('active');
+                button.classList.add('active');
+                // Renderiza a tabela correspondente ao clicar na aba
+                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+            });
+        });
+
     } catch (error) {
         console.error('Erro ao carregar painel de admin:', error);
-        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
+        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro</h2><p>${error.message}</p></div>`;
     }
 });
