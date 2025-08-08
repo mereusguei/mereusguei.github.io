@@ -21,7 +21,48 @@
     </header>
 
     <main class="container">
-    <p style="text-align: center; padding: 50px;">Carregando...</p>
+    <section class="event-header">
+        <h2>Carregando Evento...</h2> <!-- Placeholder inicial -->
+        <p>Faça seus palpites e concorra a prêmios incríveis!</p>
+        <div class="timer">
+            <span>Tempo restante para palpites:</span>
+            <strong id="countdown">--:--:--</strong>
+        </div>
+    </section>
+
+    <section class="fight-card-section">
+        <h3>Card Principal</h3>
+        <div class="fight-card-grid" id="fight-card-grid">
+            <!-- As lutas serão inseridas aqui pelo JavaScript -->
+        </div>
+    </section>
+
+    <section class="bonus-picks-section">
+        <h3>Palpites Bônus</h3>
+        <div class="bonus-grid">
+            <div class="bonus-pick-card">
+                <label for="fight-of-night">Luta da Noite:</label>
+                <select id="fight-of-night" class="custom-select">
+                    <option value="">Carregando...</option>
+                </select>
+            </div>
+            <div class="bonus-pick-card">
+                <label for="performance-of-night">Performance da Noite:</label>
+                <select id="performance-of-night" class="custom-select">
+                     <option value="">Carregando...</option>
+                </select>
+            </div>
+        </div>
+        <!-- Container para o botão de salvar bônus -->
+        <div id="save-bonus-btn-container" class="actions-footer" style="display: none;">
+            <button id="save-bonus-picks-btn" class="btn">Salvar Palpites Bônus</button>
+        </div>
+    </section>
+
+    <!-- Container para o botão de pagamento -->
+    <div class="actions-footer" id="payment-section">
+        <!-- Conteúdo inserido dinamicamente -->
+    </div>
 </main>
 
     <!-- Modal para Palpites -->
