@@ -138,6 +138,16 @@ function renderRankingTable(container, data, type) {
         case 'winners': sortKey = 'correct_winners'; valueKey = 'correct_winners'; break;
         case 'methods': sortKey = 'correct_methods'; valueKey = 'correct_methods'; break;
         case 'details': sortKey = 'correct_details'; valueKey = 'correct_details'; break;
+        case 'fotn':
+        sortKey = 'correct_fotn';
+        valueKey = 'correct_fotn';
+        valueHeader = 'Lutas da Noite Corretas';
+        break;
+    case 'potn':
+        sortKey = 'correct_potn';
+        valueKey = 'correct_potn';
+        valueHeader = 'Performances Corretas';
+        break;
     }
     tableHtml += `<th>${valueKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`;
     data.sort((a, b) => b[sortKey] - a[sortKey]);
