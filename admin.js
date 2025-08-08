@@ -2,10 +2,7 @@
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
-    let tableHtml = `
-        <table>
-            <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
-            <tbody>`;
+    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
     eventFights.forEach(fight => {
         const isApured = !!fight.winner_name;
         const disabled = isApured ? 'disabled' : '';
@@ -31,8 +28,8 @@ function buildResultsTable(eventFights) {
                     <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
                 </td>
                 <td>
-                    ${isApured ?
-                        `<button type="button" class="btn btn-edit-result">Corrigir</button>` :
+                    ${isApured ? 
+                        `<button type="button" class="btn btn-edit-result">Corrigir</button>` : 
                         `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`
                     }
                 </td>
@@ -46,37 +43,23 @@ function buildResultsTable(eventFights) {
     return tableHtml;
 }
 
-function renderAdminPanel(adminMainContainer, allData, eventFights) {
-    let resultsHtml = `
-        <div class="admin-section">
-            <h2>Apuração de Resultados</h2>
-            <div id="results-table-container">${buildResultsTable(eventFights)}</div>
-        </div>`;
-
+function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
+    let resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><div id="results-table-container">${buildResultsTable(eventFights)}</div></div>`;
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
-    for (const eventId in allData) {
-        const event = allData[eventId];
+    for (const eventId in allPicksData) {
+        const event = allPicksData[eventId];
         if (Object.keys(event.users).length === 0) {
             picksAccordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary><p>Nenhum palpite para este evento ainda.</p></details>`;
             continue;
         }
         picksAccordionHtml += `<details class="accordion-event" open><summary>${event.eventName}</summary>`;
         for (const userId in event.users) {
-    const userData = event.users[userId];
-    const stats = userData.stats;
-
-    // CORREÇÃO DOS TEXTOS DE ESTATÍSTICAS
-    const winnerText = `${stats.correctWinners}/${stats.totalPicks}`; // Ex: 2/4
-    const methodText = `${stats.correctMethods}/${stats.correctWinners}`; // Certo: 1/2 (só pode acertar método se acertou vencedor)
-    const detailText = `${stats.correctDetails}/${stats.correctMethods}`; // Certo: 1/1 (só pode acertar detalhe se acertou método)
-
-    // CORREÇÃO DAS PORCENTAGENS
-    const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
-    const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
-    const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
-
-    picksAccordionHtml += `
-        <details class="accordion-user">
+            const userData = event.users[userId];
+            const stats = userData.stats;
+            const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
+            const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
+            picksAccordionHtml += `
+                <details class="accordion-user">
             <summary>
                 <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
                 Vencedores: ${winnerText} (${winnerPct}%) | 
@@ -219,52 +202,31 @@ function renderRankingTable(container, data, type) {
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
 document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
-    const adminRankingContainer = document.getElementById('admin-ranking-content');
     const token = localStorage.getItem('token');
-
     if (!token) {
-        adminMainContainer.innerHTML = '<h2>Acesso Negado</h2><p>Você precisa estar logado como administrador. <a href="login.html">Faça login</a></p>';
+        adminMainContainer.innerHTML = '<h2>Acesso Negado...</h2>';
         return;
     }
-
     const eventId = 1;
-
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+        adminMainContainer.innerHTML = '<p>Carregando dados...</p>';
         
-        // Busca todos os dados necessários em paralelo
-        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
+        const [eventResponse, allPicksResponse] = await Promise.all([
             fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         if (eventResponse.status === 403 || allPicksResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados do painel.');
+        if (!eventResponse.ok || !allPicksResponse.ok) throw new Error('Falha ao carregar dados do painel.');
 
         const eventData = await eventResponse.json();
-        const allPicksData = await allPicksResponse.json();
-        const accuracyData = await accuracyResponse.json();
+        const allPicksData = await allPicksResponse.json(); // A variável que faltava
         
-        // Renderiza a parte superior (apuração e accordion de palpites)
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
         addAdminActionListeners(token, eventData.fights);
 
-        // Renderiza o ranking inicial (Pontuação Geral)
-        renderRankingTable(adminRankingContainer, accuracyData, 'general');
-
-        // Adiciona a lógica para as abas do ranking
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelector('.tab-button.active').classList.remove('active');
-                button.classList.add('active');
-                // Renderiza a tabela correspondente ao clicar na aba
-                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
-            });
-        });
-
     } catch (error) {
-        console.error('Erro ao carregar painel de admin:', error);
-        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro</h2><p>${error.message}</p></div>`;
+        console.error('Erro:', error);
+        adminMainContainer.innerHTML = `<h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p>`;
     }
 });
