@@ -153,7 +153,7 @@ function renderRankingTable(container, data, type) {
     tableHtml += `<th>${valueHeader}</th></tr></thead><tbody>`;
     data.sort((a, b) => b[sortKey] - a[sortKey]);
     data.forEach((row, index) => {
-        tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[sortKey]}</td></tr>`;
+        tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
     });
     tableHtml += `</tbody></table>`;
     container.innerHTML = tableHtml;
