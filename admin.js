@@ -246,34 +246,46 @@ function renderRankingTable(container, data, type) {
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
 document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
+    const adminRankingContainer = document.getElementById('admin-ranking-content');
     const token = localStorage.getItem('token');
+
     if (!token) {
         adminMainContainer.innerHTML = '<h2>Acesso Negado</h2><p>Você precisa estar logado como administrador. <a href="login.html">Faça login</a></p>';
         return;
     }
 
     const eventId = 1;
-    try {
-        adminMainContainer.innerHTML = '<p>Carregando dados...</p>';
-        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
-            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
 
-        if (eventResponse.status === 403) throw new Error('Acesso negado. Você não é admin.');
-        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados do painel.');
+    try {
+        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+        
+        // 1. Busca todos os dados necessários em paralelo
+        const [eventResponse, allPicksResponse] = await Promise.all([
+            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        
+        if (eventResponse.status === 403 || allPicksResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
+        if (!eventResponse.ok || !allPicksResponse.ok) throw new Error('Falha ao carregar dados do painel.');
 
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
-        const accuracyData = await accuracyResponse.json();
-
+        
+        // 2. Renderiza o painel completo na tela
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
-        addAdminActionListeners(token, eventData.fights);
 
+        // 3. SOMENTE DEPOIS que a renderização estiver concluída, adiciona os listeners
+        addAdminActionListeners(token, eventData.fights);
+        
+        // 4. Renderiza o ranking inicial (apenas se estivermos na página de ranking do admin)
         const adminRankingContainer = document.getElementById('admin-ranking-content');
-        if (adminRankingContainer) {
-            renderRankingTable(adminRankingContainer, accuracyData, 'general');
+        if (adminRankingContainer && accuracyResponse.ok) { // A rota de accuracy não foi chamada aqui, vamos corrigir.
+             // Precisamos de uma terceira chamada para o ranking de precisão.
+             const accuracyResponse = await fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } });
+             const accuracyData = await accuracyResponse.json();
+             renderRankingTable(adminRankingContainer, accuracyData, 'general');
+
+             // Adiciona a lógica para as abas do ranking
             document.querySelectorAll('.tab-button').forEach(button => {
                 button.addEventListener('click', () => {
                     document.querySelector('.tab-button.active').classList.remove('active');
@@ -282,7 +294,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             });
         }
+
     } catch (error) {
-        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro</h2><p>${error.message}</p></div>`;
+        console.error('Erro ao carregar painel de admin:', error);
+        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
     }
 });
