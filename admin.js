@@ -168,38 +168,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const eventId = 1;
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
-            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-        if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
-            throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        }
-        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
-            throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
-        }
-        const eventData = await eventResponse.json();
-        const allPicksData = await allPicksResponse.json();
-        const accuracyData = await accuracyResponse.json();
-        
-        renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
-        addAdminActionListeners(token, eventData.fights);
+    adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+    
+    // Faz as 3 chamadas à API em paralelo
+    const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
+        fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+    ]);
 
-        const adminRankingContainer = document.getElementById('admin-ranking-content');
-        if (adminRankingContainer) {
-            renderRankingTable(adminRankingContainer, accuracyData, 'general');
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelector('.tab-button.active').classList.remove('active');
-                    button.classList.add('active');
-                    renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
-                });
-            });
-        }
-    } catch (error) {
-        console.error('Erro ao carregar painel de admin:', error);
-        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
+    if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
+        throw new Error('Acesso negado. Você não tem permissão de administrador.');
     }
+    if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
+        throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+    }
+
+    const eventData = await eventResponse.json();
+    const allPicksData = await allPicksResponse.json();
+    const accuracyData = await accuracyResponse.json();
+    
+    // 1. Renderiza o painel de apuração e o accordion de palpites
+    renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
+    
+    // 2. Adiciona a interatividade à tabela de apuração
+    addAdminActionListeners(token, eventData.fights);
+
+    // 3. Renderiza o ranking inicial e adiciona a interatividade das abas
+    const adminRankingContainer = document.getElementById('admin-ranking-content');
+    if (adminRankingContainer) {
+        // Usa a 'accuracyData' para o ranking de pontos também, pois ela já contém o total_points.
+        renderRankingTable(adminRankingContainer, accuracyData, 'general'); 
+        
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelector('.tab-button.active').classList.remove('active');
+                button.classList.add('active');
+                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+            });
+        });
+    }
+} catch (error) {
+    console.error('Erro ao carregar painel de admin:', error);
+    adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
+}
 });
