@@ -16,12 +16,21 @@
     </header>
 
     <main class="container">
-        <section class="admin-section"> <!-- Reutilizando estilo do admin para consistência -->
-            <h2>Ranking Geral (Pontuação Total)</h2>
-            <div id="ranking-table-container">
-                <p>Carregando ranking...</p>
-            </div>
-        </section>
+        <section class="admin-section">
+    <h2>Rankings</h2>
+    <div class="tabs">
+        <button class="tab-button active" data-ranking="general">Geral (All-Time)</button>
+        <button class="tab-button" data-ranking="event">Por Evento</button>
+    </div>
+    <!-- Adiciona um seletor para os eventos -->
+    <div id="event-selector-container" style="display: none; margin-bottom: 20px;">
+        <label for="event-select">Selecione o Evento:</label>
+        <select id="event-select" class="custom-select"></select>
+    </div>
+    <div id="ranking-table-container">
+        <p>Carregando ranking...</p>
+    </div>
+</section>
     </main>
     
 
