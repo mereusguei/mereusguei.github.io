@@ -68,11 +68,13 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
             const methodText = stats.correctWinners > 0 ? `${stats.correctMethods}/${stats.correctWinners}` : `0/${stats.totalPicks}`;
             const detailText = stats.correctMethods > 0 ? `${stats.correctDetails}/${stats.correctMethods}` : `0/${stats.totalPicks}`;
             picksAccordionHtml += `
-                <details class="accordion-user">
-                    <summary>
-                        <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
-                        Vencedores: ${winnerText} | Métodos: ${methodText} | Detalhes: ${detailText}
-                    </summary>
+    <details class="accordion-user">
+        <summary>
+            <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
+            Vencedores: ${winnerText} (${winnerPct}%) | 
+            Métodos: ${methodText} (${methodPct}%) | 
+            Detalhes: ${detailText} (${detailPct}%)
+        </summary>
                     <table>
                          <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
                         <tbody>`;
