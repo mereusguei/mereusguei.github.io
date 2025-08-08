@@ -4,69 +4,47 @@ const API_URL = 'https://site-palpites-pagos.vercel.app';
 // 
 document.addEventListener('DOMContentLoaded', () => {
 // --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
-if (mainContent) {
-    // A lógica só roda se o elemento .container existir na página
-    if (user && token) {
-        // Se o container existe E o usuário está logado...
-        const eventId = 1;
+    // --- DADOS GLOBAIS ---
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    // --- LÓGICA ESPECÍFICA PARA CADA PÁGINA ---
+    // Usamos IDs no <body> para saber em que página estamos
+    const pageId = document.body.id; 
 
-        checkPaymentStatus(eventId, token).then(hasPaid => {
-            // Primeiro, sempre buscamos os dados básicos do evento para o cabeçalho e o timer
-            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(res => res.json())
-            .then(eventDataFromServer => {
-                
-                // Atualiza os dados locais com o que veio do servidor
-                eventData = eventDataFromServer;
+    if (pageId === 'event-page') {
+        // --- CÓDIGO DA PÁGINA PRINCIPAL (INDEX.HTML) ---
+        const mainContent = document.querySelector('.container');
 
-                const eventHeader = document.querySelector('.event-header h2');
-                if (eventHeader) eventHeader.textContent = eventData.eventName;
-                
-                // Inicia o timer com a data correta
-                startCountdown(eventData.picksDeadline);
-
-                if (hasPaid) {
-                    // Se JÁ PAGOU, exibe as lutas e os bônus
-                    populateBonusPicks(eventData.fights);
-                    loadFights();
-                    // Mostra o botão de salvar bônus
-                    const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
-                    if(saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
-
-                } else {
-                    // Se NÃO PAGOU, mostra o botão de pagamento
-                    const paymentSection = document.getElementById('payment-section');
-                    if (paymentSection) {
-                        paymentSection.innerHTML = `
-                            <button id="pay-btn" class="btn btn-primary btn-save-all">
-                                Liberar Palpites para "${eventData.eventName}" (R$ 5,00)
-                            </button>
-                        `;
-                        document.getElementById('pay-btn').addEventListener('click', () => {
-                            handlePayment(eventId, eventData.eventName, token);
-                        });
-                    }
-                    const fightGrid = document.getElementById('fight-card-grid');
-                    if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
-                    const bonusSection = document.querySelector('.bonus-picks-section');
-                    if (bonusSection) bonusSection.style.display = 'none';
-                }
-            })
-            .catch(error => {
-                console.error("Erro ao buscar dados do evento:", error);
-                if(mainContent) mainContent.innerHTML = `<h2 style="color:red; text-align:center;">Não foi possível carregar os dados do evento. Tente novamente mais tarde.</h2>`;
+        if (!user || !token) {
+            // Se não estiver logado, bloqueia a página de eventos
+            if(mainContent) {
+                mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo ao Octagon Oracle!</h2><p>Por favor, faça login ou cadastre-se para ver os eventos e fazer seus palpites.</p></div>`;
+            }
+        } else {
+            // Se estiver logado, inicia o fluxo da página de eventos
+            const eventId = 1;
+            checkPaymentStatus(eventId, token).then(hasPaid => {
+                loadEventPage(eventId, token, hasPaid);
             });
-        });
-    } else {
-        // Se o container existe E o usuário NÃO está logado, mostra a mensagem de bloqueio.
-        mainContent.innerHTML = `
-            <div class="auth-container" style="text-align: center;">
-                <h2>Bem-vindo ao Octagon Oracle!</h2>
-                <p>Por favor, faça login ou cadastre-se para ver os eventos e fazer seus palpites.</p>
-            </div>
-        `;
+        }
+    } else if (pageId === 'ranking-page') {
+        // --- CÓDIGO DA PÁGINA DE RANKING (RANKING.HTML) ---
+        if (!user || !token) {
+            window.location.href = 'login.html'; // Protege a página, redireciona se não logado
+        } else {
+            loadRanking('general', token); // Carrega o ranking geral por padrão
+
+            // Adiciona listeners aos botões das abas do ranking
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    button.classList.add('active');
+                    loadRanking(button.dataset.target, token);
+                });
+            });
+        }
     }
-}
 
 
     // --- SEÇÃO DE FUNÇÕES GLOBAIS ---
@@ -77,46 +55,70 @@ if (mainContent) {
         userPicks: {}
     };
 
-// definição da função fetchEventData
-async function fetchEventData(eventId) {
-    // Pega o token para enviar na requisição
-    const token = localStorage.getItem('token');
-    if (!token) return; // Se não tem token, não faz nada
+// ================== ADICIONE ESTAS DUAS FUNÇÕES ==================
 
+async function loadEventPage(eventId, token, hasPaid) {
+    const mainContent = document.querySelector('.container');
     try {
-        const response = await fetch(`${API_URL}/api/events/${eventId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}` // Adiciona o cabeçalho de autorização
-            }
-        });
+        const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
+        
+        const eventDataFromServer = await response.json();
+        eventData = eventDataFromServer; // Atualiza a variável global
 
-        if (!response.ok) {
-            // Se o token for inválido, por exemplo, desloga o usuário
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-                window.location.reload();
-            }
-            throw new Error('Não foi possível carregar os dados do evento.');
-        }
-        const data = await response.json();
-        
-        // Armazena os dados recebidos, incluindo os palpites do usuário
-        eventData.fights = data.fights;
-        eventData.userPicks = data.userPicks; // Armazena os palpites!
-        
-        // ... resto da função como antes (startCountdown, populateBonusPicks, etc) ...
         const eventHeader = document.querySelector('.event-header h2');
-        if(eventHeader) eventHeader.textContent = data.eventName;
-        startCountdown(data.picksDeadline);
-        populateBonusPicks(data.fights);
-        loadFights(); // Chama a função para renderizar os cards
+        if (eventHeader) eventHeader.textContent = eventData.eventName;
+        
+        startCountdown(eventData.picksDeadline);
 
+        if (hasPaid) {
+            loadFights();
+            populateBonusPicks(eventData.fights);
+            const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
+            if(saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
+        } else {
+            const paymentSection = document.getElementById('payment-section');
+            if (paymentSection) {
+                paymentSection.innerHTML = `<button id="pay-btn" class="btn btn-primary btn-save-all">Liberar Palpites para "${eventData.eventName}" (R$ 5,00)</button>`;
+                document.getElementById('pay-btn').addEventListener('click', () => handlePayment(eventId, eventData.eventName, token));
+            }
+            const fightGrid = document.getElementById('fight-card-grid');
+            if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center;">Pague a taxa para visualizar e fazer seus palpites.</p>';
+            const bonusSection = document.querySelector('.bonus-picks-section');
+            if (bonusSection) bonusSection.style.display = 'none';
+        }
     } catch (error) {
         console.error(error);
-        if (mainContent) {
-             mainContent.innerHTML = `<h2 style="color:red; text-align:center;">${error.message}</h2>`;
-        }
+        if(mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
+    }
+}
+
+async function loadRanking(type, token, eventId = 1) {
+    const rankingContent = document.getElementById('ranking-table-container');
+    if (!rankingContent) return;
+
+    let url = `${API_URL}/api/rankings/${type}`;
+    if (type === 'event') url += `/${eventId}`;
+
+    try {
+        rankingContent.innerHTML = '<p>Carregando ranking...</p>';
+        const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!response.ok) throw new Error('Falha ao carregar o ranking.');
+        const data = await response.json();
+        
+        // Lógica para construir as tabelas de ranking...
+        let tableHtml = '<table>';
+        if (type === 'general') {
+            tableHtml += '<thead><tr><th>Pos.</th><th>Usuário</th><th>Pontuação Total</th></tr></thead><tbody>';
+            data.forEach((row, index) => {
+                tableHtml += `<tr><td>${index + 1}º</td><td>${row.username}</td><td>${row.total_points}</td></tr>`;
+            });
+        } // Adicionar lógica para 'event' e 'accuracy' aqui depois
+        tableHtml += '</tbody></table>';
+        rankingContent.innerHTML = tableHtml;
+    } catch (error) {
+        console.error(error);
+        rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
     }
 }
 
