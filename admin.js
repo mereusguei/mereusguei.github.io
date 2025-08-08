@@ -246,52 +246,43 @@ function renderRankingTable(container, data, type) {
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
 document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
-    const adminRankingContainer = document.getElementById('admin-ranking-content');
     const token = localStorage.getItem('token');
-
     if (!token) {
         adminMainContainer.innerHTML = '<h2>Acesso Negado</h2><p>Você precisa estar logado como administrador. <a href="login.html">Faça login</a></p>';
         return;
     }
 
     const eventId = 1;
-
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        
-        // Busca todos os dados necessários em paralelo
+        adminMainContainer.innerHTML = '<p>Carregando dados...</p>';
         const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
             fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
-        if (eventResponse.status === 403 || allPicksResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
+        if (eventResponse.status === 403) throw new Error('Acesso negado. Você não é admin.');
         if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados do painel.');
 
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
         const accuracyData = await accuracyResponse.json();
-        
-        // Renderiza a parte superior (apuração e accordion de palpites)
+
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
         addAdminActionListeners(token, eventData.fights);
 
-        // Renderiza o ranking inicial (Pontuação Geral)
-        renderRankingTable(adminRankingContainer, accuracyData, 'general');
-
-        // Adiciona a lógica para as abas do ranking
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelector('.tab-button.active').classList.remove('active');
-                button.classList.add('active');
-                // Renderiza a tabela correspondente ao clicar na aba
-                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+        const adminRankingContainer = document.getElementById('admin-ranking-content');
+        if (adminRankingContainer) {
+            renderRankingTable(adminRankingContainer, accuracyData, 'general');
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    button.classList.add('active');
+                    renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+                });
             });
-        });
-
+        }
     } catch (error) {
-        console.error('Erro ao carregar painel de admin:', error);
         adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro</h2><p>${error.message}</p></div>`;
     }
 });
