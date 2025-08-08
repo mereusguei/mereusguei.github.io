@@ -1,13 +1,14 @@
 // =================== CÓDIGO FINAL E COMPLETO PARA admin.js ===================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
+// --- FUNÇÃO PARA RENDERIZAR O PAINEL DE ADMIN ---
 function renderAdminPanel(adminMainContainer, allData, eventFights) {
     let resultsHtml = `
         <div class="admin-section">
             <h2>Apuração de Resultados</h2>
             <form id="results-form">
                 <table>
-                    <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th></tr></thead>
+                    <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
                     <tbody>`;
     eventFights.forEach(fight => {
         const isApured = fight.winner_name;
@@ -33,9 +34,15 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
                 <td class="details-container">
                     <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
                 </td>
+                <td>
+                    ${isApured ? 
+                        `<button type="button" class="btn btn-edit-result">Corrigir</button>` : 
+                        `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`
+                    }
+                </td>
             </tr>`;
     });
-    resultsHtml += `</tbody></table><div class="actions-footer"><button type="submit" class="btn btn-primary">Apurar Lutas Preenchidas</button></div></form></div>`;
+    resultsHtml += `</tbody></table></form></div>`;
 
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
     for (const eventId in allData) {
@@ -44,14 +51,14 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
         for (const userId in event.users) {
             const userData = event.users[userId];
             const stats = userData.stats;
-            const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
-            const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
-            const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
+            const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
+            const methodText = stats.correctWinners > 0 ? `${stats.correctMethods}/${stats.correctWinners}` : `0/${stats.totalPicks}`;
+            const detailText = stats.correctMethods > 0 ? `${stats.correctDetails}/${stats.correctMethods}` : `0/${stats.totalPicks}`;
             picksAccordionHtml += `
                 <details class="accordion-user">
                     <summary>
-                        <strong>${userData.username}</strong> | Pontos: ${stats.totalPoints} | 
-                        Vencedores: ${winnerPct}% | Métodos: ${methodPct}% | Detalhes: ${detailPct}%
+                        <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
+                        Vencedores: ${winnerText} | Métodos: ${methodText} | Detalhes: ${detailText}
                     </summary>
                     <table>
                         <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
@@ -81,33 +88,45 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-function addResultsFormListener(token) {
-    const resultsForm = document.getElementById('results-form');
-    if (!resultsForm) return;
-    resultsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const promises = [];
-        const rowsToApure = resultsForm.querySelectorAll('tr[data-fight-id]:not(.apured)');
-        if (rowsToApure.length === 0) return alert('Todas as lutas já foram apuradas.');
-        rowsToApure.forEach(row => {
-            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
-            if (winnerName && resultMethod && resultDetails) {
-                promises.push(fetch(`${API_URL}/api/admin/results`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ fightId, winnerName, resultMethod, resultDetails })
-                }));
+async function handleApuration(button, token) {
+    const row = button.closest('tr');
+    const fightId = row.dataset.fightId;
+    const winnerName = row.querySelector('.winner-select').value;
+    const resultMethod = row.querySelector('.method-select').value;
+    const resultDetails = row.querySelector('.details-input').value;
+    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos do resultado.');
+    if (!confirm(`Confirmar apuração para a luta ID ${fightId}?`)) return;
+    try {
+        const response = await fetch(`${API_URL}/api/admin/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ fightId, winnerName, resultMethod, resultDetails })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        alert(data.message);
+        window.location.reload();
+    } catch (error) {
+        alert(`Erro: ${error.message}`);
+    }
+}
+
+function addAdminActionListeners(token) {
+    document.querySelectorAll('.submit-result-btn').forEach(button => {
+        button.addEventListener('click', () => handleApuration(button, token));
+    });
+    document.querySelectorAll('.btn-edit-result').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (button.textContent === 'Corrigir') {
+                row.classList.remove('apured');
+                row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+                button.textContent = 'Salvar Correção';
+                button.classList.remove('btn-edit-result');
+                button.classList.add('btn-primary');
+                button.onclick = () => handleApuration(button, token);
             }
         });
-        if (promises.length === 0) return alert('Nenhuma luta foi preenchida para apuração.');
-        if (!confirm(`Confirmar apuração para ${promises.length} luta(s)?`)) return;
-        try {
-            await Promise.all(promises);
-            alert(`${promises.length} luta(s) apurada(s) com sucesso!`);
-            window.location.reload();
-        } catch (error) {
-            alert(`Ocorreu um erro ao apurar: ${error.message}`);
-        }
     });
 }
 
@@ -130,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
-        addResultsFormListener(token);
+        addAdminActionListeners(token);
     } catch (error) {
         console.error('Erro ao carregar painel de admin:', error);
         adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
