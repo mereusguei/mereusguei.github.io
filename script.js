@@ -3,32 +3,38 @@ const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 // 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
-// Esta lógica só roda se o elemento .container existir na página
+// --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
 if (mainContent) {
+    // A lógica só roda se o elemento .container existir na página
     if (user && token) {
-        // Se estamos na página principal E o usuário está logado...
-        const eventId = 1; // ID do evento atual
-        
-        // 1. Verificamos se ele já pagou por este evento
-        checkPaymentStatus(eventId, token).then(hasPaid => {
-            if (hasPaid) {
-                // 2.A. Se JÁ PAGOU, carrega os dados do evento normalmente para ele palpitar
-                fetchEventData(eventId);
-            } else {
-                // 2.B. Se NÃO PAGOU, primeiro busca os dados para mostrar o timer e o botão
-                fetch(`${API_URL}/api/events/${eventId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Evento não encontrado para pagamento.');
-                    return res.json();
-                })
-                .then(eventData => {
-                    // AGORA que temos os dados, podemos iniciar o timer com a data correta
-                    startCountdown(eventData.picksDeadline);
+        // Se o container existe E o usuário está logado...
+        const eventId = 1;
 
-                    // E TAMBÉM mostrar o botão de pagamento com o nome correto do evento
+        checkPaymentStatus(eventId, token).then(hasPaid => {
+            // Primeiro, sempre buscamos os dados básicos do evento para o cabeçalho e o timer
+            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(eventDataFromServer => {
+                
+                // Atualiza os dados locais com o que veio do servidor
+                eventData = eventDataFromServer;
+
+                const eventHeader = document.querySelector('.event-header h2');
+                if (eventHeader) eventHeader.textContent = eventData.eventName;
+                
+                // Inicia o timer com a data correta
+                startCountdown(eventData.picksDeadline);
+
+                if (hasPaid) {
+                    // Se JÁ PAGOU, exibe as lutas e os bônus
+                    populateBonusPicks(eventData.fights);
+                    loadFights();
+                    // Mostra o botão de salvar bônus
+                    const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
+                    if(saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
+
+                } else {
+                    // Se NÃO PAGOU, mostra o botão de pagamento
                     const paymentSection = document.getElementById('payment-section');
                     if (paymentSection) {
                         paymentSection.innerHTML = `
@@ -36,29 +42,23 @@ if (mainContent) {
                                 Liberar Palpites para "${eventData.eventName}" (R$ 5,00)
                             </button>
                         `;
-                        
                         document.getElementById('pay-btn').addEventListener('click', () => {
                             handlePayment(eventId, eventData.eventName, token);
                         });
                     }
-
-                    // E por fim, a mensagem de bloqueio
                     const fightGrid = document.getElementById('fight-card-grid');
-                    if (fightGrid) {
-                        fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
-                    }
+                    if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
                     const bonusSection = document.querySelector('.bonus-picks-section');
                     if (bonusSection) bonusSection.style.display = 'none';
-                })
-                .catch(error => {
-                    console.error("Erro ao buscar dados do evento para pagamento:", error);
-                    // Mostra uma mensagem de erro genérica se não conseguir buscar o evento
-                    if(mainContent) mainContent.innerHTML = `<h2 style="color:red; text-align:center;">Não foi possível carregar os dados do evento. Tente novamente mais tarde.</h2>`;
-                });
-            }
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao buscar dados do evento:", error);
+                if(mainContent) mainContent.innerHTML = `<h2 style="color:red; text-align:center;">Não foi possível carregar os dados do evento. Tente novamente mais tarde.</h2>`;
+            });
         });
-    } else if (mainContent && !user) {
-        // Se estamos na página principal E o usuário NÃO está logado, mostra a mensagem de bloqueio.
+    } else {
+        // Se o container existe E o usuário NÃO está logado, mostra a mensagem de bloqueio.
         mainContent.innerHTML = `
             <div class="auth-container" style="text-align: center;">
                 <h2>Bem-vindo ao Octagon Oracle!</h2>
