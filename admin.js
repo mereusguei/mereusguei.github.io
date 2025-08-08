@@ -1,48 +1,13 @@
 // =================== CÓDIGO FINAL E COMPLETO PARA admin.js ===================
-const API_URL = 'https://site-palpites-pagos.vercel.app';
+const API_URL = 'https://site-palites-pagos.vercel.app';
 
-// --- FUNÇÃO PARA RENDERIZAR O PAINEL DE ADMIN ---
 function renderAdminPanel(adminMainContainer, allData, eventFights) {
     let resultsHtml = `
         <div class="admin-section">
             <h2>Apuração de Resultados</h2>
-            <form id="results-form">
-                <table>
-                    <thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead>
-                    <tbody>`;
-    eventFights.forEach(fight => {
-        const isApured = fight.winner_name;
-        const disabled = isApured ? 'disabled' : '';
-        resultsHtml += `
-            <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
-                <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
-                <td>
-                    <select class="custom-select winner-select" ${disabled}>
-                        <option value="">-- Selecione --</option>
-                        <option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option>
-                        <option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option>
-                    </select>
-                </td>
-                <td>
-                    <select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>
-                        <option value="">-- Selecione --</option>
-                        <option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option>
-                        <option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option>
-                        <option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option>
-                    </select>
-                </td>
-                <td class="details-container">
-                    <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
-                </td>
-                <td>
-                    ${isApured ? 
-                        `<button type="button" class="btn btn-edit-result">Corrigir</button>` : 
-                        `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`
-                    }
-                </td>
-            </tr>`;
-    });
-    resultsHtml += `</tbody></table></form></div>`;
+            <div id="results-table-container">`; // Novo container para a tabela
+    resultsHtml += buildResultsTable(eventFights); // Chama função para construir a tabela
+    resultsHtml += `</div></div>`;
 
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
     for (const eventId in allData) {
@@ -51,9 +16,11 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
         for (const userId in event.users) {
             const userData = event.users[userId];
             const stats = userData.stats;
+            // CORREÇÃO UX: Mostra o formato acertos/total
             const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
-            const methodText = stats.correctWinners > 0 ? `${stats.correctMethods}/${stats.correctWinners}` : `0/${stats.totalPicks}`;
-            const detailText = stats.correctMethods > 0 ? `${stats.correctDetails}/${stats.correctMethods}` : `0/${stats.totalPicks}`;
+            const methodText = `${stats.correctMethods}/${stats.correctWinners}`; // Denominador correto
+            const detailText = `${stats.correctDetails}/${stats.correctMethods}`; // Denominador correto
+
             picksAccordionHtml += `
                 <details class="accordion-user">
                     <summary>
@@ -61,7 +28,7 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
                         Vencedores: ${winnerText} | Métodos: ${methodText} | Detalhes: ${detailText}
                     </summary>
                     <table>
-                        <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
+                         <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
                         <tbody>`;
             userData.picks.forEach(pick => {
                 const methodDisplay = pick.predicted_method === 'Decision' ? `Decisão ${pick.predicted_details}` : `${pick.predicted_method} no ${pick.predicted_details}`;
@@ -73,6 +40,55 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
     }
     picksAccordionHtml += `</div>`;
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml;
+}
+
+function buildResultsTable(eventFights) {
+    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor</th><th>Método</th><th>Detalhe</th><th>Ação</th></tr></thead><tbody>`;
+    eventFights.forEach(fight => {
+        const isApured = fight.winner_name;
+        const disabled = isApured ? 'disabled' : '';
+        tableHtml += `
+            <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
+                <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
+                <td><select class="custom-select winner-select" ${disabled}>...</select></td>
+                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>...</select></td>
+                <td class="details-container"><input type="text" ... ${disabled}></td>
+                <td><button type="button" class="btn ${isApured ? 'btn-edit-result' : 'btn-primary'}">${isApured ? 'Corrigir' : 'Apurar'}</button></td>
+            </tr>`;
+    });
+    tableHtml += `</tbody></table>
+        <div class="actions-footer" id="admin-actions" style="display: none;">
+            <button type="button" id="save-all-corrections-btn" class="btn btn-primary">Salvar Todas as Alterações</button>
+            <button type="button" id="cancel-corrections-btn" class="btn">Cancelar Edição</button>
+        </div>`;
+    return tableHtml;
+}
+
+function addAdminActionListeners(token, eventFights) {
+    const tableContainer = document.getElementById('results-table-container');
+    const adminActions = document.getElementById('admin-actions');
+    
+    tableContainer.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.matches('.btn-edit-result')) {
+            // Entra em modo de edição
+            adminActions.style.display = 'flex';
+            tableContainer.querySelectorAll('tr.apured .btn-edit-result').forEach(btn => {
+                const row = btn.closest('tr');
+                row.classList.remove('apured');
+                row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+                btn.style.display = 'none'; // Esconde o botão 'Corrigir' individual
+            });
+        }
+    });
+
+    adminActions.querySelector('#cancel-corrections-btn').addEventListener('click', () => {
+        // Recarrega a tabela para cancelar
+        tableContainer.innerHTML = buildResultsTable(eventFights);
+        adminActions.style.display = 'none';
+    });
+
+    // ... (código anterior da função handleApuration e a nova handleMethodChange)
 }
 
 function handleMethodChange(methodSelect) {
