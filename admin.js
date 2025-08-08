@@ -19,7 +19,12 @@ function buildResultsTable(eventFights) {
 }
 
 function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
-    let resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><div id="results-table-container">${buildResultsTable(eventFights)}</div></div>`;
+    let resultsHtml = `
+        <div class="admin-section">
+            <h2>Apuração de Resultados</h2>
+            <div id="results-table-container">${buildResultsTable(eventFights)}</div>
+        </div>`;
+
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
     for (const eventId in allPicksData) {
         const event = allPicksData[eventId];
@@ -47,7 +52,20 @@ function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
         picksAccordionHtml += `</details>`;
     }
     picksAccordionHtml += `</div>`;
-    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml;
+
+    let rankingsHtml = `
+        <section class="admin-section">
+            <h2>Rankings Detalhados</h2>
+            <div class="tabs">
+                <button class="tab-button active" data-ranking="general">Pontuação Geral</button>
+                <button class="tab-button" data-ranking="winners">Acerto de Vencedores</button>
+                <button class="tab-button" data-ranking="methods">Acerto de Métodos</button>
+                <button class="tab-button" data-ranking="details">Acerto de Detalhes</button>
+            </div>
+            <div id="admin-ranking-content"><p>Carregando rankings...</p></div>
+        </section>`;
+    
+    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
 }
 
 function handleMethodChange(methodSelect) {
@@ -165,8 +183,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eventData = await eventResponse.json();
         const allPicksData = await allPicksResponse.json();
         const accuracyData = await accuracyResponse.json();
+        
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
         addAdminActionListeners(token, eventData.fights);
+
         const adminRankingContainer = document.getElementById('admin-ranking-content');
         if (adminRankingContainer) {
             renderRankingTable(adminRankingContainer, accuracyData, 'general');
