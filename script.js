@@ -1,50 +1,55 @@
 // URL da sua API (quando estiver rodando localmente)
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
-// 
+// FUNÇÃO PRINCIPAL QUE RODA QUANDO UMA PÁGINA É CARREGADA
 document.addEventListener('DOMContentLoaded', () => {
-// --- SEÇÃO DE PROTEÇÃO DE CONTEÚDO E LÓGICA DE PAGAMENTO ---
-    // --- DADOS GLOBAIS ---
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
     
-    // --- LÓGICA ESPECÍFICA PARA CADA PÁGINA ---
-    // Usamos IDs no <body> para saber em que página estamos
-    const pageId = document.body.id; 
+    // --- LÓGICA DE NAVEGAÇÃO (Roda em todas as páginas que têm a barra de navegação) ---
+    const userNavigation = document.getElementById('user-navigation');
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
 
-    if (pageId === 'event-page') {
-        // --- CÓDIGO DA PÁGINA PRINCIPAL (INDEX.HTML) ---
-        const mainContent = document.querySelector('.container');
-
-        if (!user || !token) {
-            // Se não estiver logado, bloqueia a página de eventos
-            if(mainContent) {
-                mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo ao Octagon Oracle!</h2><p>Por favor, faça login ou cadastre-se para ver os eventos e fazer seus palpites.</p></div>`;
+    if (userNavigation) {
+        if (user && token) {
+            // Se o usuário está LOGADO, monta a navegação completa
+            userNavigation.innerHTML = `
+                <div class="nav-links">
+                    <a href="index.html" class="btn">Eventos</a>
+                    <a href="ranking.html" class="btn">Ranking</a>
+                </div>
+                <div class="user-profile">
+                    <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
+                    <span>Olá, ${user.username}</span>
+                </div>
+                <button id="logout-btn" class="btn btn-logout">Sair</button>
+            `;
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                });
             }
         } else {
-            // Se estiver logado, inicia o fluxo da página de eventos
-            const eventId = 1;
-            checkPaymentStatus(eventId, token).then(hasPaid => {
-                loadEventPage(eventId, token, hasPaid);
-            });
-        }
-    } else if (pageId === 'ranking-page') {
-        // --- CÓDIGO DA PÁGINA DE RANKING (RANKING.HTML) ---
-        if (!user || !token) {
-            window.location.href = 'login.html'; // Protege a página, redireciona se não logado
-        } else {
-            loadRanking('general', token); // Carrega o ranking geral por padrão
-
-            // Adiciona listeners aos botões das abas do ranking
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelector('.tab-button.active').classList.remove('active');
-                    button.classList.add('active');
-                    loadRanking(button.dataset.target, token);
-                });
-            });
+            // Se o usuário está DESLOGADO, monta os botões de login/cadastro
+            userNavigation.innerHTML = `
+                <div class="auth-buttons">
+                    <a href="login.html" class="btn">Login</a>
+                    <a href="register.html" class="btn btn-primary">Cadastro</a>
+                </div>
+            `;
         }
     }
+
+    // --- LÓGICA ESPECÍFICA PARA CADA PÁGINA ---
+    const pageId = document.body.id;
+
+    if (pageId === 'event-page') {
+        initializeEventPage(user, token);
+    } else if (pageId === 'ranking-page') {
+        initializeRankingPage(token);
+    }
+});
 
 
     // --- SEÇÃO DE FUNÇÕES GLOBAIS ---
@@ -156,6 +161,36 @@ async function handlePayment(eventId, eventName, token) {
         }
     } catch (error) {
         alert(`Erro ao iniciar pagamento: ${error.message}`);
+    }
+}
+
+async function loadEventPageContent(eventId, token, hasPaid) {
+    const mainContent = document.querySelector('.container');
+    try {
+        const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
+        eventData = await response.json();
+        const eventHeader = document.querySelector('.event-header h2');
+        if (eventHeader) eventHeader.textContent = eventData.eventName;
+        startCountdown(eventData.picksDeadline);
+        if (hasPaid) {
+            loadFights();
+            populateBonusPicks(eventData.fights);
+            const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
+            if (saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
+        } else {
+            const paymentSection = document.getElementById('payment-section');
+            if (paymentSection) {
+                paymentSection.innerHTML = `<button id="pay-btn" class="btn btn-primary btn-save-all">Liberar Palpites para "${eventData.eventName}" (R$ 5,00)</button>`;
+                document.getElementById('pay-btn').addEventListener('click', () => handlePayment(eventId, eventData.eventName, token));
+            }
+            const fightGrid = document.getElementById('fight-card-grid');
+            if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
+            const bonusSection = document.querySelector('.bonus-picks-section');
+            if (bonusSection) bonusSection.style.display = 'none';
+        }
+    } catch (error) {
+        if(mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
     }
 }
 
@@ -482,5 +517,37 @@ if(pickForm){
         });
     }
 
+    // --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE EVENTOS (INDEX.HTML) ---
+function initializeEventPage(user, token) {
+    const mainContent = document.querySelector('.container');
+    if (!mainContent) return;
 
-});
+    if (!user || !token) {
+        // Se deslogado, mostra o bloqueio e PARA a execução
+        mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo ao Octagon Oracle!</h2><p>Por favor, faça login ou cadastre-se para ver os eventos e fazer seus palpites.</p></div>`;
+        return;
+    }
+
+    // Se logado, continua o fluxo normal
+    const eventId = 1;
+    checkPaymentStatus(eventId, token).then(hasPaid => {
+        loadEventPageContent(eventId, token, hasPaid);
+    });
+}
+
+// --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE RANKING (RANKING.HTML) ---
+function initializeRankingPage(token) {
+    if (!token) {
+        window.location.href = 'login.html'; // Protege a página
+        return;
+    }
+    loadRanking('general', token); // Carrega ranking geral
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelector('.tab-button.active').classList.remove('active');
+            button.classList.add('active');
+            loadRanking(button.dataset.target, token);
+        });
+    });
+}
