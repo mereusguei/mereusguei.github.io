@@ -62,22 +62,27 @@ function renderAdminPanel(adminMainContainer, allData, eventFights) {
         }
         picksAccordionHtml += `<details class="accordion-event" open><summary>${event.eventName}</summary>`;
         for (const userId in event.users) {
-            const userData = event.users[userId];
-            const stats = userData.stats;
-            const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
-            const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
-            const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
-            const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
-            const methodText = stats.correctWinners > 0 ? `${stats.correctMethods}/${stats.correctWinners}` : `0/${stats.totalPicks}`;
-            const detailText = stats.correctMethods > 0 ? `${stats.correctDetails}/${stats.correctMethods}` : `0/${stats.totalPicks}`;
-            picksAccordionHtml += `
-    <details class="accordion-user">
-        <summary>
-            <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
-            Vencedores: ${winnerText} (${winnerPct}%) | 
-            Métodos: ${methodText} (${methodPct}%) | 
-            Detalhes: ${detailText} (${detailPct}%)
-        </summary>
+    const userData = event.users[userId];
+    const stats = userData.stats;
+
+    // CORREÇÃO DOS TEXTOS DE ESTATÍSTICAS
+    const winnerText = `${stats.correctWinners}/${stats.totalPicks}`; // Ex: 2/4
+    const methodText = `${stats.correctMethods}/${stats.correctWinners}`; // Certo: 1/2 (só pode acertar método se acertou vencedor)
+    const detailText = `${stats.correctDetails}/${stats.correctMethods}`; // Certo: 1/1 (só pode acertar detalhe se acertou método)
+
+    // CORREÇÃO DAS PORCENTAGENS
+    const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
+    const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
+    const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
+
+    picksAccordionHtml += `
+        <details class="accordion-user">
+            <summary>
+                <strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | 
+                Vencedores: ${winnerText} (${winnerPct}%) | 
+                Métodos: ${methodText} (${methodPct}%) | 
+                Detalhes: ${detailText} (${detailPct}%)
+            </summary>
                     <table>
                          <thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead>
                         <tbody>`;
