@@ -143,18 +143,38 @@ function addAdminActionListeners(token, eventFights) {
 
 function renderRankingTable(container, data, type) {
     let tableHtml = '<table><thead><tr><th>Pos.</th><th>Usuário</th>';
-    let sortKey = '', valueHeader = '';
+    let sortKey = '';
+    let valueKey = ''; // Corrigido de VeloK para valueKey na declaração
+
     switch (type) {
-        case 'general': sortKey = 'total_points'; valueHeader = 'Pontuação Total'; break;
-        case 'winners': sortKey = 'correct_winners'; valueHeader = 'Vencedores Corretos'; break;
-        case 'methods': sortKey = 'correct_methods'; valueHeader = 'Métodos Corretos'; break;
-        case 'details': sortKey = 'correct_details'; valueHeader = 'Detalhes Corretos'; break;
+        case 'general':
+            sortKey = 'total_points';
+            valueKey = 'total_points'; // Corrigido de VeloK para valueKey
+            break;
+        case 'winners':
+            sortKey = 'correct_winners';
+            valueKey = 'correct_winners'; // Corrigido de VeloK para valueKey
+            break;
+        case 'methods':
+            sortKey = 'correct_methods';
+            valueKey = 'correct_methods'; // Corrigido de VeloK para valueKey
+            break;
+        case 'details':
+            sortKey = 'correct_details';
+            valueKey = 'correct_details'; // Corrigido de VeloK para valueKey
+            break;
     }
-    tableHtml += `<th>${valueHeader}</th></tr></thead><tbody>`;
+
+    tableHtml += `<th>${valueKey.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`; // Deixa o cabeçalho mais bonito
+
+    // Ordena os dados com base na chave correta
     data.sort((a, b) => b[sortKey] - a[sortKey]);
+
     data.forEach((row, index) => {
+        // A CORREÇÃO PRINCIPAL ESTÁ AQUI
         tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
     });
+
     tableHtml += `</tbody></table>`;
     container.innerHTML = tableHtml;
 }
