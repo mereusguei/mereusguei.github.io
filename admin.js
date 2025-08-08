@@ -118,48 +118,15 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-// --- FUNÇÃO DE APURAÇÃO CORRIGIDA ---
-async function handleApuration(body, token) {
-    if (!confirm(`Confirmar a apuração? Esta ação é irreversível e irá recalcular os pontos.`)) return;
-    try {
-        const response = await fetch(`${API_URL}/api/admin/results`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(body)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        alert(data.message);
-        window.location.reload();
-    } catch (error) {
-        alert(`Erro: ${error.message}`);
-    }
-}
-
 function addAdminActionListeners(token) {
     const resultsForm = document.getElementById('results-form');
     if (!resultsForm) return;
 
     resultsForm.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.matches('.btn-edit-result')) { // Botão 'Corrigir'
-            const row = target.closest('tr');
+        if (e.target.matches('.btn-edit-result')) {
+            const row = e.target.closest('tr');
             row.classList.remove('apured');
             row.querySelectorAll('select, input').forEach(el => el.disabled = false);
-        }
-        if (target.matches('.submit-result-btn')) { // Botão 'Apurar' individual
-             const row = target.closest('tr');
-             const fightId = row.dataset.fightId;
-             const winnerName = row.querySelector('.winner-select').value;
-             const resultMethod = row.querySelector('.method-select').value;
-             const resultDetails = row.querySelector('.details-input').value;
-             
-             const body = {
-                 resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
-                 realFightOfTheNightId: document.getElementById('real-fotn').value,
-                 realPerformanceOfTheNightFighter: document.getElementById('real-potn').value
-             };
-             handleApuration(body, token);
         }
     });
 
@@ -167,33 +134,18 @@ function addAdminActionListeners(token) {
         e.preventDefault();
         const resultsArray = [];
         const rows = resultsForm.querySelectorAll('tr[data-fight-id]');
-
         rows.forEach(row => {
-            // Apenas coleta dados de linhas que NÃO estão travadas
-            if (!row.classList.contains('apured')) {
-                const fightId = row.dataset.fightId;
-                const winnerName = row.querySelector('.winner-select').value;
-                const resultMethod = row.querySelector('.method-select').value;
-                const resultDetails = row.querySelector('.details-input').value;
-                
-                // Só adiciona se a linha estiver completamente preenchida
-                if (winnerName && resultMethod && resultDetails) {
-                    resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
-                }
+            if (row.querySelector('select:disabled')) return;
+            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
+            if (winnerName && resultMethod && resultDetails) {
+                resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
             }
         });
-
         const realFightOfTheNightId = document.getElementById('real-fotn').value;
         const realPerformanceOfTheNightFighter = document.getElementById('real-potn').value;
-        
-        const hasBonusToSubmit = realFightOfTheNightId !== "NONE" && realPerformanceOfTheNightFighter !== "NONE";
-
-        if (resultsArray.length === 0 && !hasBonusToSubmit) {
-            return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
-        }
-
-        if (!confirm(`Confirmar a apuração de ${resultsArray.length} luta(s) e dos bônus?`)) return;
-
+        const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
+        if (resultsArray.length === 0 && !hasBonusToSubmit) return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
+        if (!confirm(`Confirmar a apuração?`)) return;
         try {
             const response = await fetch(`${API_URL}/api/admin/results`, {
                 method: 'POST',
@@ -204,8 +156,7 @@ function addAdminActionListeners(token) {
             if (!response.ok) throw new Error(data.error);
             alert(data.message);
             window.location.reload();
-        } catch (error)
-        {
+        } catch (error) {
             alert(`Ocorreu um erro ao apurar: ${error.message}`);
         }
     });
