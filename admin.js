@@ -51,7 +51,20 @@ function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
                 const methodDisplay = pick.predicted_method === 'Decision' ? `Decisão ${pick.predicted_details}` : `${pick.predicted_method} no ${pick.predicted_details}`;
                 picksAccordionHtml += `<tr><td>${pick.fight_id}</td><td>${pick.predicted_winner_name} por ${methodDisplay}</td><td><b>${pick.points_awarded}</b></td></tr>`;
             });
-            picksAccordionHtml += `</tbody></table></details>`;
+            picksAccordionHtml += `</tbody></table></details>`; 
+            // --- NOVO BLOCO PARA EXIBIR PALPITES BÔNUS ---
+        if (userData.bonus_picks && userData.bonus_picks.fotn_fight_id) {
+            // Encontra o nome da luta correspondente
+            const fotnFight = eventFights.find(f => f.id == userData.bonus_picks.fotn_fight_id);
+            const fotnText = fotnFight ? `${fotnFight.fighter1_name} vs ${fotnFight.fighter2_name}` : 'Luta inválida';
+
+            picksAccordionHtml += `
+                <div class="bonus-picks-display" style="padding: 8px; font-size: 0.9rem;">
+                    <p><strong>Bônus - Luta da Noite:</strong> ${fotnText}</p>
+                    <p><strong>Bônus - Performance:</strong> ${userData.bonus_picks.potn_fighter}</p>
+                </div>
+            `;
+        }
         }
         picksAccordionHtml += `</details>`;
     }
