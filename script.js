@@ -171,18 +171,30 @@ async function loadEventPageContent(eventId, token, hasPaid) {
         if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
         eventData = await response.json();
         // --- NOVA LÓGICA PARA PREENCHER PALPITES BÔNUS ---
-if (eventData.userBonusPicks) {
-    const fotnSelect = document.getElementById('fight-of-night');
-    const potnSelect = document.getElementById('performance-of-night');
-    const saveBonusBtn = document.getElementById('save-bonus-picks-btn');
-    
-    // Se o usuário já fez um palpite, preenche os selects com os valores salvos
-    if (eventData.userBonusPicks.fight_of_the_night_fight_id) {
-        fotnSelect.value = eventData.userBonusPicks.fight_of_the_night_fight_id;
-        potnSelect.value = eventData.userBonusPicks.performance_of_the_night_fighter_name;
-        saveBonusBtn.textContent = 'Editar Palpites Bônus'; // Muda o texto do botão
+    if (eventData.userBonusPicks) {
+        const fotnSelect = document.getElementById('fight-of-night');
+        const potnSelect = document.getElementById('performance-of-night');
+        const saveBonusBtn = document.getElementById('save-bonus-picks-btn');
+        
+        // Verifica se o usuário já fez um palpite bônus
+        if (eventData.userBonusPicks.fight_of_the_night_fight_id) {
+            
+            // CORREÇÃO: Esperamos um instante para garantir que os <option> já foram criados
+            // pela função populateBonusPicks antes de tentar selecionar um valor.
+            setTimeout(() => {
+                if (fotnSelect) {
+                    fotnSelect.value = eventData.userBonusPicks.fight_of_the_night_fight_id;
+                }
+                if (potnSelect) {
+                    potnSelect.value = eventData.userBonusPicks.performance_of_the_night_fighter_name;
+                }
+            }, 100); // 100 milissegundos é um atraso seguro e imperceptível
+
+            if (saveBonusBtn) {
+                saveBonusBtn.textContent = 'Editar Palpites Bônus'; // Muda o texto do botão
+            }
+        }
     }
-}
         const eventHeader = document.querySelector('.event-header h2');
         if (eventHeader) eventHeader.textContent = eventData.eventName;
         startCountdown(eventData.picksDeadline);
