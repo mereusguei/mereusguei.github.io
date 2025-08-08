@@ -92,32 +92,43 @@ function addAdminActionListeners(token) {
     const resultsForm = document.getElementById('results-form');
     if (!resultsForm) return;
 
-    resultsForm.addEventListener('click', (e) => { // Listener no formulário para 'Corrigir'
+    // Listener para os botões "Corrigir"
+    resultsForm.addEventListener('click', (e) => {
         if (e.target.matches('.btn-edit-result')) {
             const row = e.target.closest('tr');
             row.classList.remove('apured');
             row.querySelectorAll('select, input').forEach(el => el.disabled = false);
-            e.target.textContent = 'Apurar';
-            e.target.classList.replace('btn-edit-result', 'submit-result-btn');
+            // Não precisamos mudar o texto ou a classe, o submit do formulário cuida de tudo
         }
     });
 
-    resultsForm.addEventListener('submit', async (e) => { // Listener para o submit do formulário
+    // Listener para o SUBMIT GERAL do formulário
+    resultsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const resultsArray = [];
         const rows = resultsForm.querySelectorAll('tr[data-fight-id]');
+
         rows.forEach(row => {
-            if (row.querySelector('select:disabled')) return; // Pula lutas já apuradas e não corrigidas
-            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
-            if (winnerName && resultMethod && resultDetails) {
-                resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
+            // Apenas adiciona ao array de apuração se a linha NÃO estiver travada (disabled)
+            if (!row.querySelector('select:disabled')) {
+                const fightId = row.dataset.fightId,
+                      winnerName = row.querySelector('.winner-select').value,
+                      resultMethod = row.querySelector('.method-select').value,
+                      resultDetails = row.querySelector('.details-input').value;
+
+                if (winnerName && resultMethod && resultDetails) {
+                    resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
+                }
             }
         });
 
         const realFightOfTheNightId = document.getElementById('real-fotn').value;
         const realPerformanceOfTheNightFighter = document.getElementById('real-potn').value;
-        if (resultsArray.length === 0) return alert('Nenhuma luta foi preenchida ou alterada para apuração.');
-        if (!confirm(`Confirmar a apuração/correção de ${resultsArray.length} luta(s)?`)) return;
+
+        if (resultsArray.length === 0 && (!realFightOfTheNightId || !realPerformanceOfTheNightFighter)) {
+            return alert('Nenhuma luta ou bônus foi preenchido para apuração.');
+        }
+        if (!confirm(`Confirmar a apuração de ${resultsArray.length} luta(s) e dos bônus?`)) return;
 
         try {
             const response = await fetch(`${API_URL}/api/admin/results`, {
