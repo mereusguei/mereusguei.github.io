@@ -29,6 +29,7 @@ function buildResultsTable(eventFights) {
 
 function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
     let resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><form id="results-form">${buildResultsTable(eventFights)}</form></div>`;
+    
     let picksAccordionHtml = `<div class="admin-section"><h2>Palpites por Evento</h2>`;
     for (const eventId in allPicksData) {
         const event = allPicksData[eventId];
@@ -46,31 +47,62 @@ function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
             const winnerText = `${stats.correctWinners}/${stats.totalPicks}`;
             const methodText = `${stats.correctMethods}/${stats.correctWinners}`;
             const detailText = `${stats.correctDetails}/${stats.correctMethods}`;
-            picksAccordionHtml += `<details class="accordion-user"><summary><strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | Vencedores: ${winnerText} (${winnerPct}%) | Métodos: ${methodText} (${methodPct}%) | Detalhes: ${detailText} (${detailPct}%)</summary><table><thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>`;
+
+            picksAccordionHtml += `<details class="accordion-user"><summary><strong>${userData.username}</strong> | Pontos: <b>${stats.totalPoints}</b> | Vencedores: ${winnerText} (${winnerPct}%) | Métodos: ${methodText} (${methodPct}%) | Detalhes: ${detailText} (${detailPct}%)</summary>`;
+            
+            // Exibe os palpites bônus
+            if (userData.bonus_picks && userData.bonus_picks.fotn_fight_id) {
+                const fotnFight = eventFights.find(f => f.id == userData.bonus_picks.fotn_fight_id);
+                const fotnText = fotnFight ? `${fotnFight.fighter1_name} vs ${fotnFight.fighter2_name}` : 'N/A';
+                picksAccordionHtml += `<div class="bonus-picks-display" style="padding: 8px 15px; font-size: 0.9rem; background: rgba(0,0,0,0.1);">
+                    <p><strong>Bônus - Luta da Noite:</strong> ${fotnText}</p>
+                    <p><strong>Bônus - Performance:</strong> ${userData.bonus_picks.potn_fighter}</p>
+                </div>`;
+            }
+            
+            // Tabela de palpites de lutas
+            picksAccordionHtml += `<table><thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>`;
             userData.picks.sort((a, b) => a.fight_id - b.fight_id).forEach(pick => {
                 const methodDisplay = pick.predicted_method === 'Decision' ? `Decisão ${pick.predicted_details}` : `${pick.predicted_method} no ${pick.predicted_details}`;
                 picksAccordionHtml += `<tr><td>${pick.fight_id}</td><td>${pick.predicted_winner_name} por ${methodDisplay}</td><td><b>${pick.points_awarded}</b></td></tr>`;
             });
-            picksAccordionHtml += `</tbody></table></details>`; 
-            // --- NOVO BLOCO PARA EXIBIR PALPITES BÔNUS ---
-        if (userData.bonus_picks && userData.bonus_picks.fotn_fight_id) {
-            // Encontra o nome da luta correspondente
-            const fotnFight = eventFights.find(f => f.id == userData.bonus_picks.fotn_fight_id);
-            const fotnText = fotnFight ? `${fotnFight.fighter1_name} vs ${fotnFight.fighter2_name}` : 'Luta inválida';
-
-            picksAccordionHtml += `
-                <div class="bonus-picks-display" style="padding: 8px; font-size: 0.9rem;">
-                    <p><strong>Bônus - Luta da Noite:</strong> ${fotnText}</p>
-                    <p><strong>Bônus - Performance:</strong> ${userData.bonus_picks.potn_fighter}</p>
-                </div>
-            `;
-        }
+            picksAccordionHtml += `</tbody></table></details>`;
         }
         picksAccordionHtml += `</details>`;
     }
     picksAccordionHtml += `</div>`;
+
     let rankingsHtml = `<section class="admin-section"><h2>Rankings Detalhados</h2><div class="tabs"><button class="tab-button active" data-ranking="general">Pontuação Geral</button><button class="tab-button" data-ranking="winners">Acerto de Vencedores</button><button class="tab-button" data-ranking="methods">Acerto de Métodos</button><button class="tab-button" data-ranking="details">Acerto de Detalhes</button></div><div id="admin-ranking-content"><p>Carregando rankings...</p></div></section>`;
+    
     adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
+
+    // --- CORREÇÃO: LÓGICA PARA POPULAR OS DROPDOWNS DE BÔNUS ---
+    // Este código agora roda DEPOIS que o HTML foi inserido na página
+    const fotnSelect = document.getElementById('real-fotn');
+    const potnSelect = document.getElementById('real-potn');
+    if (fotnSelect && potnSelect) {
+        const allFighters = new Set();
+        
+        // Adiciona a opção "Nenhuma" primeiro
+        fotnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
+        potnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
+
+        eventFights.forEach(fight => {
+            const fotnOption = document.createElement('option');
+            fotnOption.value = fight.id;
+            fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
+            fotnSelect.appendChild(fotnOption);
+            allFighters.add(fight.fighter1_name);
+            allFighters.add(fight.fighter2_name);
+        });
+
+        allFighters.forEach(fighter => {
+            const potnOption = document.createElement('option');
+            potnOption.value = fighter;
+            potnOption.textContent = fighter;
+            potnSelect.appendChild(potnOption);
+        });
+    }
 }
 
 function handleMethodChange(methodSelect) {
