@@ -174,43 +174,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const eventId = 1;
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
-            fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-        if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
-            throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        }
-        if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
-            throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
-        }
-        const eventData = await eventResponse.json();
-        const allPicksData = await allPicksResponse.json();
-        const accuracyData = await accuracyResponse.json();
-        
-        renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
+    adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+    
+    const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
+        fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_-URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+    ]);
 
-        const fotnSelect = document.getElementById('real-fotn');
-        const potnSelect = document.getElementById('real-potn');
-        const allFighters = new Set();
-        eventData.fights.forEach(fight => {
-            const fotnOption = document.createElement('option');
-            fotnOption.value = fight.id;
-            fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
-            fotnSelect.appendChild(fotnOption);
-            allFighters.add(fight.fighter1_name);
-            allFighters.add(fight.fighter2_name);
-        });
-        allFighters.forEach(fighter => {
-            const potnOption = document.createElement('option');
-            potnOption.value = fighter;
-            potnOption.textContent = fighter;
-            potnSelect.appendChild(potnOption);
-        });
-        
-        addAdminActionListeners(token);
+    if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
+        throw new Error('Acesso negado. Você não tem permissão de administrador.');
+    }
+    if (!eventResponse.ok || !allPicksResponse.ok || !accuracyResponse.ok) {
+        throw new Error('Falha ao carregar dados do painel. Verifique os logs do servidor.');
+    }
+
+    const eventData = await eventResponse.json();
+    const allPicksData = await allPicksResponse.json();
+    const accuracyData = await accuracyResponse.json();
+    
+    // 1. Renderiza o painel completo
+    renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
+
+    // --- LINHA DA CORREÇÃO ADICIONADA AQUI ---
+    // 2. ADICIONA a interatividade aos botões que acabaram de ser criados
+    addAdminActionListeners(token);
+    // --- FIM DA CORREÇÃO ---
         
         const adminRankingContainer = document.getElementById('admin-ranking-content');
         if (adminRankingContainer) {
