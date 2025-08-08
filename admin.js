@@ -88,66 +88,33 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-async function handleApuration(button, token) {
-    const row = button.closest('tr');
-    const fightId = row.dataset.fightId;
-    const winnerName = row.querySelector('.winner-select').value;
-    const resultMethod = row.querySelector('.method-select').value;
-    const resultDetails = row.querySelector('.details-input').value;
-
-    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos do resultado para esta luta.');
-    if (!confirm(`Confirmar apuração para a luta ID ${fightId}?`)) return;
-
-    try {
-        const response = await fetch(`${API_URL}/api/admin/results`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({
-                resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
-                realFightOfTheNightId: document.getElementById('real-fotn').value,
-                realPerformanceOfTheNightFighter: document.getElementById('real-potn').value
-            })
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        alert(data.message);
-        window.location.reload();
-    } catch (error) {
-        alert(`Erro: ${error.message}`);
-    }
-}
-
 function addAdminActionListeners(token) {
-    const resultsTable = document.querySelector('#results-table-container table');
-    const saveAllBtn = document.getElementById('save-all-btn');
+    const resultsForm = document.getElementById('results-form');
+    if (!resultsForm) return;
 
-    if (!resultsTable || !saveAllBtn) return;
-
-    // Listener delegado para os botões "Corrigir" e "Apurar" individuais
-    resultsTable.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.matches('.submit-result-btn')) {
-            handleApuration(target, token);
-        }
-        if (target.matches('.btn-edit-result')) {
-            const row = target.closest('tr');
-            row.classList.remove('apured');
-            row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+    // Listener delegado para os botões "Corrigir"
+    resultsForm.addEventListener('click', (e) => {
+        if (e.target.matches('.btn-edit-result')) {
+            const row = e.target.closest('tr');
+            row.classList.remove('apured'); // Remove o estilo de "apurado"
+            row.querySelectorAll('select, input').forEach(el => el.disabled = false); // Destrava os campos
         }
     });
 
-    // Listener para o botão "Salvar Todas as Apurações" (que agora serve para tudo)
-    saveAllBtn.addEventListener('click', async () => {
+    // Listener para o SUBMIT GERAL do formulário (botão "Salvar Todas as Apurações")
+    resultsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
         const resultsArray = [];
-        const rows = resultsTable.querySelectorAll('tr[data-fight-id]');
+        const rows = resultsForm.querySelectorAll('tr[data-fight-id]');
 
         rows.forEach(row => {
-            // Apenas coleta dados de linhas que NÃO estão travadas
+            // Apenas coleta dados de linhas que NÃO estão travadas (ou seja, as que você preencheu ou corrigiu)
             if (!row.classList.contains('apured')) {
                 const fightId = row.dataset.fightId,
                       winnerName = row.querySelector('.winner-select').value,
                       resultMethod = row.querySelector('.method-select').value,
                       resultDetails = row.querySelector('.details-input').value;
+                
                 // Só adiciona se a linha estiver completamente preenchida
                 if (winnerName && resultMethod && resultDetails) {
                     resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
