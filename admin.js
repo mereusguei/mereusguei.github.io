@@ -177,10 +177,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
     
     const [eventResponse, allPicksResponse, accuracyResponse] = await Promise.all([
-        fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_-URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-    ]);
+    fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+    fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+    fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+]);
 
     if (eventResponse.status === 403 || allPicksResponse.status === 403 || accuracyResponse.status === 403) {
         throw new Error('Acesso negado. Você não tem permissão de administrador.');
