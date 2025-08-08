@@ -1,5 +1,5 @@
-// =================== CÓDIGO FINAL, COMPLETO E DEFINITIVO PARA admin.js ===================
-const API_URL = 'https://site-palites-pagos.vercel.app';
+// =================== CÓDIGO FINAL, COMPLETO E CORRIGIDO PARA admin.js ===================
+const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
     let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
@@ -27,12 +27,7 @@ function buildResultsTable(eventFights) {
                 <td class="details-container">
                     <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
                 </td>
-                <td>
-                    ${isApured ? 
-                        `<button type="button" class="btn btn-edit-result">Corrigir</button>` : 
-                        `` // Deixa em branco se ainda não foi apurado, o botão geral cuida disso
-                    }
-                </td>
+                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}</td>
             </tr>`;
     });
     tableHtml += `</tbody></table>
@@ -41,8 +36,8 @@ function buildResultsTable(eventFights) {
             <div class="form-group"><label for="real-fotn">Luta da Noite Real:</label><select id="real-fotn" class="custom-select"><option value="">-- Selecione a Luta --</option></select></div>
             <div class="form-group"><label for="real-potn">Performance da Noite Real:</label><select id="real-potn" class="custom-select"><option value="">-- Selecione o Lutador --</option></select></div>
         </div>
-        <div class="actions-footer">
-            <button type="submit" class="btn btn-primary">Salvar Todas as Apurações</button>
+        <div class="actions-footer" id="admin-actions">
+            <button type="button" id="save-all-btn" class="btn btn-primary">Salvar Todas as Apurações</button>
         </div>`;
     return tableHtml;
 }
@@ -93,37 +88,83 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-function addAdminActionListeners(token) {
-    const resultsForm = document.getElementById('results-form');
-    if (!resultsForm) return;
+async function handleApuration(button, token) {
+    const row = button.closest('tr');
+    const fightId = row.dataset.fightId;
+    const winnerName = row.querySelector('.winner-select').value;
+    const resultMethod = row.querySelector('.method-select').value;
+    const resultDetails = row.querySelector('.details-input').value;
 
-    resultsForm.addEventListener('click', (e) => {
-        if (e.target.matches('.btn-edit-result')) {
-            const row = e.target.closest('tr');
+    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos do resultado para esta luta.');
+    if (!confirm(`Confirmar apuração para a luta ID ${fightId}?`)) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({
+                resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
+                realFightOfTheNightId: document.getElementById('real-fotn').value,
+                realPerformanceOfTheNightFighter: document.getElementById('real-potn').value
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        alert(data.message);
+        window.location.reload();
+    } catch (error) {
+        alert(`Erro: ${error.message}`);
+    }
+}
+
+function addAdminActionListeners(token) {
+    const resultsTable = document.querySelector('#results-table-container table');
+    const saveAllBtn = document.getElementById('save-all-btn');
+
+    if (!resultsTable || !saveAllBtn) return;
+
+    // Listener delegado para os botões "Corrigir" e "Apurar" individuais
+    resultsTable.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.matches('.submit-result-btn')) {
+            handleApuration(target, token);
+        }
+        if (target.matches('.btn-edit-result')) {
+            const row = target.closest('tr');
             row.classList.remove('apured');
             row.querySelectorAll('select, input').forEach(el => el.disabled = false);
         }
     });
 
-    resultsForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Listener para o botão "Salvar Todas as Apurações" (que agora serve para tudo)
+    saveAllBtn.addEventListener('click', async () => {
         const resultsArray = [];
-        const rows = resultsForm.querySelectorAll('tr[data-fight-id]');
+        const rows = resultsTable.querySelectorAll('tr[data-fight-id]');
+
         rows.forEach(row => {
-            if (row.querySelector('select:disabled')) return;
-            const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
-            if (winnerName && resultMethod && resultDetails) {
-                resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
+            // Apenas coleta dados de linhas que NÃO estão travadas
+            if (!row.classList.contains('apured')) {
+                const fightId = row.dataset.fightId,
+                      winnerName = row.querySelector('.winner-select').value,
+                      resultMethod = row.querySelector('.method-select').value,
+                      resultDetails = row.querySelector('.details-input').value;
+                // Só adiciona se a linha estiver completamente preenchida
+                if (winnerName && resultMethod && resultDetails) {
+                    resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
+                }
             }
         });
 
         const realFightOfTheNightId = document.getElementById('real-fotn').value;
         const realPerformanceOfTheNightFighter = document.getElementById('real-potn').value;
+        
         const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
+
         if (resultsArray.length === 0 && !hasBonusToSubmit) {
-            return alert('Nenhuma luta ou bônus foi preenchido para apuração.');
+            return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
         }
-        if (!confirm(`Confirmar a apuração?`)) return;
+
+        if (!confirm(`Confirmar a apuração de ${resultsArray.length} luta(s) e dos bônus?`)) return;
 
         try {
             const response = await fetch(`${API_URL}/api/admin/results`, {
@@ -152,9 +193,7 @@ function renderRankingTable(container, data, type) {
     }
     tableHtml += `<th>${valueKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`;
     data.sort((a, b) => b[sortKey] - a[sortKey]);
-    data.forEach((row, index) => {
-        tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
-    });
+    data.forEach((row, index) => { tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`; });
     tableHtml += `</tbody></table>`;
     container.innerHTML = tableHtml;
 }
