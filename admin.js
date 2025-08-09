@@ -2,6 +2,7 @@
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
+    // Esta função agora apenas constrói a tabela, sem o título ou o formulário
     let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
     eventFights.forEach(fight => {
         const isApured = !!fight.winner_name;
@@ -9,38 +10,13 @@ function buildResultsTable(eventFights) {
         tableHtml += `
             <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
                 <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
-                <td>
-                    <select class="custom-select winner-select" ${disabled}>
-                        <option value="">-- Selecione --</option>
-                        <option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option>
-                        <option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option>
-                    </select>
-                </td>
-                <td>
-                    <select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>
-                        <option value="">-- Selecione --</option>
-                        <option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option>
-                        <option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option>
-                        <option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option>
-                    </select>
-                </td>
-                <td class="details-container">
-                    <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
-                </td>
-                <td>
-                    ${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`}
-                </td>
+                <td><select class="custom-select winner-select" ${disabled}><option value="">-- Selecione --</option><option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option><option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option></select></td>
+                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}><option value="">-- Selecione --</option><option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option><option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option><option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option></select></td>
+                <td class="details-container"><input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}></td>
+                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`}</td>
             </tr>`;
     });
-    tableHtml += `</tbody></table>
-        <div class="bonus-results" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-            <h3>Resultados Bônus</h3>
-            <div class="form-group"><label for="real-fotn">Luta da Noite Real:</label><select id="real-fotn" class="custom-select"><option value="">-- Selecione a Luta --</option></select></div>
-            <div class="form-group"><label for="real-potn">Performance da Noite Real:</label><select id="real-potn" class="custom-select"><option value="">-- Selecione o Lutador --</option></select></div>
-        </div>
-        <div class="actions-footer" id="admin-actions">
-            <button type="submit" class="btn btn-primary">Salvar Todas as Apurações</button>
-        </div>`;
+    tableHtml += `</tbody></table>`;
     return tableHtml;
 }
 
@@ -86,9 +62,9 @@ function buildRankingsSection() {
     return `<section class="admin-section"><h2>Rankings Detalhados</h2><div class="tabs"><button class="tab-button active" data-ranking="general">Pontuação Geral</button><button class="tab-button" data-ranking="winners">Acerto de Vencedores</button><button class="tab-button" data-ranking="methods">Acerto de Métodos</button><button class="tab-button" data-ranking="details">Acerto de Detalhes</button><button class="tab-button" data-ranking="fotn">Acerto Luta da Noite</button><button class="tab-button" data-ranking="potn">Acerto Performance</button></div><div id="admin-ranking-content"><p>Carregando...</p></div></section>`;
 }
 
-function populateBonusDropdowns(eventFights) {
-    const fotnSelect = document.getElementById('real-fotn');
-    const potnSelect = document.getElementById('real-potn');
+function populateBonusDropdowns(eventFights, eventId) {
+    const fotnSelect = document.getElementById(`real-fotn-${eventId}`);
+    const potnSelect = document.getElementById(`real-potn-${eventId}`);
     if (!fotnSelect || !potnSelect) return;
     fotnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
     potnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
@@ -109,12 +85,37 @@ function populateBonusDropdowns(eventFights) {
     });
 }
 
-function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
-    const resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><form id="results-form">${buildResultsTable(eventFights)}</form></div>`;
-    const picksAccordionHtml = buildPicksAccordion(allPicksData, eventFights);
-    const rankingsHtml = buildRankingsSection();
-    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
-    populateBonusDropdowns(eventFights);
+function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
+    // --- Constrói a Apuração de Resultados com Accordion por Evento ---
+    let resultsAccordionHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2>`;
+    allEventsData.forEach(event => {
+        resultsAccordionHtml += `
+            <details class="accordion-event" open>
+                <summary>${event.eventName}</summary>
+                <form class="results-form" data-event-id="${event.eventId}">
+                    ${buildResultsTable(event.fights)}
+                    <div class="bonus-results" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                        <h3>Resultados Bônus</h3>
+                        <div class="form-group"><label for="real-fotn-${event.eventId}">Luta da Noite Real:</label><select id="real-fotn-${event.eventId}" class="custom-select real-fotn-select"><option value="">-- Selecione a Luta --</option></select></div>
+                        <div class="form-group"><label for="real-potn-${event.eventId}">Performance da Noite Real:</label><select id="real-potn-${event.eventId}" class="custom-select real-potn-select"><option value="">-- Selecione o Lutador --</option></select></div>
+                    </div>
+                    <div class="actions-footer">
+                        <button type="submit" class="btn btn-primary">Salvar Apurações para este Evento</button>
+                    </div>
+                </form>
+            </details>`;
+    });
+    resultsAccordionHtml += `</div>`;
+
+    // O resto da função continua como antes...
+    let picksAccordionHtml = buildPicksAccordion(allPicksData, allEventsData.flatMap(e => e.fights));
+    let rankingsHtml = buildRankingsSection();
+    adminMainContainer.innerHTML = resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
+
+    // Popula os dropdowns de bônus para cada evento
+    allEventsData.forEach(event => {
+        populateBonusDropdowns(event.fights, event.eventId);
+    });
 }
 
 function handleMethodChange(methodSelect) {
@@ -163,18 +164,18 @@ async function handleSingleApuration(button, token) {
 }
 
 function addAdminActionListeners(token) {
-    const resultsForm = document.getElementById('results-form');
-    if (!resultsForm) return;
+    // Usa delegação de evento no container principal para todos os formulários
+    const adminMainContainer = document.getElementById('admin-main');
+    if (!adminMainContainer) return;
 
-    resultsForm.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.matches('.submit-result-btn')) {
-            handleSingleApuration(target, token);
-        }
-        if (target.matches('.btn-edit-result')) {
-            const row = target.closest('tr');
-            row.classList.remove('apured');
-            row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+    adminMainContainer.addEventListener('submit', async (e) => {
+        if (e.target.matches('.results-form')) {
+            e.preventDefault();
+            const form = e.target;
+            const eventId = form.dataset.eventId;
+            // ... (lógica para coletar os dados do formulário específico que foi submetido)
+            const body = { resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter };
+            handleApuration(body, token);
         }
     });
 
