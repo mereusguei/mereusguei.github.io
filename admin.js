@@ -1,13 +1,5 @@
+// =================== CÓDIGO FINAL, COMPLETO E DEFINITIVO PARA admin.js ===================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
-
-// FUNÇÕES DE RENDERIZAÇÃO
-function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
-    let resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><form id="results-form">${buildResultsTable(eventFights)}</form></div>`;
-    let picksAccordionHtml = buildPicksAccordion(allPicksData, eventFights);
-    let rankingsHtml = buildRankingsSection();
-    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
-    populateBonusDropdowns(eventFights);
-}
 
 function buildResultsTable(eventFights) {
     let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
@@ -17,10 +9,27 @@ function buildResultsTable(eventFights) {
         tableHtml += `
             <tr data-fight-id="${fight.id}" class="${isApured ? 'apured' : ''}">
                 <td>${fight.fighter1_name} vs ${fight.fighter2_name}</td>
-                <td><select class="custom-select winner-select" ${disabled}><option value="">-- Selecione --</option><option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option><option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option></select></td>
-                <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}><option value="">-- Selecione --</option><option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option><option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option><option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option></select></td>
-                <td class="details-container"><input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}></td>
-                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}</td>
+                <td>
+                    <select class="custom-select winner-select" ${disabled}>
+                        <option value="">-- Selecione --</option>
+                        <option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option>
+                        <option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}>
+                        <option value="">-- Selecione --</option>
+                        <option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option>
+                        <option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option>
+                        <option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option>
+                    </select>
+                </td>
+                <td class="details-container">
+                    <input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}>
+                </td>
+                <td>
+                    ${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : `<button type="button" class="btn btn-primary submit-result-btn">Apurar</button>`}
+                </td>
             </tr>`;
     });
     tableHtml += `</tbody></table>
@@ -29,7 +38,7 @@ function buildResultsTable(eventFights) {
             <div class="form-group"><label for="real-fotn">Luta da Noite Real:</label><select id="real-fotn" class="custom-select"><option value="">-- Selecione a Luta --</option></select></div>
             <div class="form-group"><label for="real-potn">Performance da Noite Real:</label><select id="real-potn" class="custom-select"><option value="">-- Selecione o Lutador --</option></select></div>
         </div>
-        <div class="actions-footer">
+        <div class="actions-footer" id="admin-actions">
             <button type="submit" class="btn btn-primary">Salvar Todas as Apurações</button>
         </div>`;
     return tableHtml;
@@ -40,15 +49,14 @@ function buildPicksAccordion(allPicksData, eventFights) {
     for (const eventId in allPicksData) {
         const event = allPicksData[eventId];
         if (!event.users || Object.keys(event.users).length === 0) {
-            accordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary><p>Nenhum palpite para este evento.</p></details>`;
+            accordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary><p style="padding: 10px;">Nenhum palpite para este evento ainda.</p></details>`;
             continue;
         }
         accordionHtml += `<details class="accordion-event" open><summary>${event.eventName}</summary>`;
         for (const userId in event.users) {
             const userData = event.users[userId];
-            if (!userData.stats) continue; // Pula se o usuário não tiver stats
+            if (!userData.stats) continue;
             const stats = userData.stats;
-            // ... (cálculos de pct e text como antes)
             const winnerPct = stats.totalPicks > 0 ? ((stats.correctWinners / stats.totalPicks) * 100).toFixed(0) : 0;
             const methodPct = stats.correctWinners > 0 ? ((stats.correctMethods / stats.correctWinners) * 100).toFixed(0) : 0;
             const detailPct = stats.correctMethods > 0 ? ((stats.correctDetails / stats.correctMethods) * 100).toFixed(0) : 0;
@@ -59,10 +67,13 @@ function buildPicksAccordion(allPicksData, eventFights) {
             if (userData.bonus_picks && userData.bonus_picks.fotn_fight_id) {
                 const fotnFight = eventFights.find(f => f.id == userData.bonus_picks.fotn_fight_id);
                 const fotnText = fotnFight ? `${fotnFight.fighter1_name} vs ${fotnFight.fighter2_name}` : 'N/A';
-                accordionHtml += `<div class="bonus-picks-display"><p><strong>Bônus - Luta da Noite:</strong> ${fotnText}</p><p><strong>Bônus - Performance:</strong> ${userData.bonus_picks.potn_fighter}</p></div>`;
+                accordionHtml += `<div class="bonus-picks-display" style="padding: 8px 15px; font-size: 0.9rem; background: rgba(0,0,0,0.1);"><p><strong>Bônus - Luta da Noite:</strong> ${fotnText}</p><p><strong>Bônus - Performance:</strong> ${userData.bonus_picks.potn_fighter}</p></div>`;
             }
-            accordionHtml += `<table>...<tbody>`; // Tabela de palpites
-            userData.picks.forEach(pick => { /* ... */ });
+            accordionHtml += `<table><thead><tr><th>Luta ID</th><th>Palpite</th><th>Pontos</th></tr></thead><tbody>`;
+            userData.picks.sort((a, b) => a.fight_id - b.fight_id).forEach(pick => {
+                const methodDisplay = pick.predicted_method === 'Decision' ? `Decisão ${pick.predicted_details}` : `${pick.predicted_method} no ${pick.predicted_details}`;
+                accordionHtml += `<tr><td>${pick.fight_id}</td><td>${pick.predicted_winner_name} por ${methodDisplay}</td><td><b>${pick.points_awarded}</b></td></tr>`;
+            });
             accordionHtml += `</tbody></table></details>`;
         }
         accordionHtml += `</details>`;
@@ -72,14 +83,7 @@ function buildPicksAccordion(allPicksData, eventFights) {
 }
 
 function buildRankingsSection() {
-    return `<section class="admin-section"><h2>Rankings Detalhados</h2><div class="tabs">
-        <button class="tab-button active" data-ranking="general">Pontuação Geral</button>
-        <button class="tab-button" data-ranking="winners">Acerto de Vencedores</button>
-        <button class="tab-button" data-ranking="methods">Acerto de Métodos</button>
-        <button class="tab-button" data-ranking="details">Acerto de Detalhes</button>
-        <button class="tab-button" data-ranking="fotn">Acerto Luta da Noite</button>
-        <button class="tab-button" data-ranking="potn">Acerto Performance</button>
-        </div><div id="admin-ranking-content"><p>Carregando...</p></div></section>`;
+    return `<section class="admin-section"><h2>Rankings Detalhados</h2><div class="tabs"><button class="tab-button active" data-ranking="general">Pontuação Geral</button><button class="tab-button" data-ranking="winners">Acerto de Vencedores</button><button class="tab-button" data-ranking="methods">Acerto de Métodos</button><button class="tab-button" data-ranking="details">Acerto de Detalhes</button><button class="tab-button" data-ranking="fotn">Acerto Luta da Noite</button><button class="tab-button" data-ranking="potn">Acerto Performance</button></div><div id="admin-ranking-content"><p>Carregando...</p></div></section>`;
 }
 
 function populateBonusDropdowns(eventFights) {
@@ -105,7 +109,14 @@ function populateBonusDropdowns(eventFights) {
     });
 }
 
-// ... (Funções handleMethodChange e addAdminActionListeners como na última resposta)
+function renderAdminPanel(adminMainContainer, allPicksData, eventFights) {
+    const resultsHtml = `<div class="admin-section"><h2>Apuração de Resultados</h2><form id="results-form">${buildResultsTable(eventFights)}</form></div>`;
+    const picksAccordionHtml = buildPicksAccordion(allPicksData, eventFights);
+    const rankingsHtml = buildRankingsSection();
+    adminMainContainer.innerHTML = resultsHtml + picksAccordionHtml + rankingsHtml;
+    populateBonusDropdowns(eventFights);
+}
+
 function handleMethodChange(methodSelect) {
     const row = methodSelect.closest('tr');
     const detailsContainer = row.querySelector('.details-container');
@@ -119,13 +130,49 @@ function handleMethodChange(methodSelect) {
     }
 }
 
+async function handleSingleApuration(button, token) {
+    const row = button.closest('tr');
+    const fightId = row.dataset.fightId;
+    const winnerName = row.querySelector('.winner-select').value;
+    const resultMethod = row.querySelector('.method-select').value;
+    const resultDetails = row.querySelector('.details-input').value;
+
+    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos do resultado para esta luta.');
+    
+    const body = {
+        resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
+        realFightOfTheNightId: document.getElementById('real-fotn').value || null,
+        realPerformanceOfTheNightFighter: document.getElementById('real-potn').value || null
+    };
+
+    if (!confirm(`Confirmar apuração para a luta ID ${fightId}?`)) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        alert(data.message);
+        window.location.reload();
+    } catch (error) {
+        alert(`Erro: ${error.message}`);
+    }
+}
+
 function addAdminActionListeners(token) {
     const resultsForm = document.getElementById('results-form');
     if (!resultsForm) return;
 
     resultsForm.addEventListener('click', (e) => {
-        if (e.target.matches('.btn-edit-result')) {
-            const row = e.target.closest('tr');
+        const target = e.target;
+        if (target.matches('.submit-result-btn')) {
+            handleSingleApuration(target, token);
+        }
+        if (target.matches('.btn-edit-result')) {
+            const row = target.closest('tr');
             row.classList.remove('apured');
             row.querySelectorAll('select, input').forEach(el => el.disabled = false);
         }
@@ -163,7 +210,6 @@ function addAdminActionListeners(token) {
     });
 }
 
-// ... (Função renderRankingTable como na última resposta, mas com os cases para 'fotn' e 'potn')
 function renderRankingTable(container, data, type) {
     let tableHtml = '<table><thead><tr><th>Pos.</th><th>Usuário</th>';
     let sortKey = '', valueKey = '';
@@ -172,16 +218,8 @@ function renderRankingTable(container, data, type) {
         case 'winners': sortKey = 'correct_winners'; valueKey = 'correct_winners'; break;
         case 'methods': sortKey = 'correct_methods'; valueKey = 'correct_methods'; break;
         case 'details': sortKey = 'correct_details'; valueKey = 'correct_details'; break;
-        case 'fotn':
-        sortKey = 'correct_fotn';
-        valueKey = 'correct_fotn';
-        valueHeader = 'Lutas da Noite Corretas';
-        break;
-    case 'potn':
-        sortKey = 'correct_potn';
-        valueKey = 'correct_potn';
-        valueHeader = 'Performances Corretas';
-        break;
+        case 'fotn': sortKey = 'correct_fotn'; valueKey = 'correct_fotn'; break;
+        case 'potn': sortKey = 'correct_potn'; valueKey = 'correct_potn'; break;
     }
     tableHtml += `<th>${valueKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th></tr></thead><tbody>`;
     data.sort((a, b) => b[sortKey] - a[sortKey]);
@@ -190,8 +228,7 @@ function renderRankingTable(container, data, type) {
     container.innerHTML = tableHtml;
 }
 
-    // ... (código do DOMContentLoaded como na última resposta)
-    document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const adminMainContainer = document.getElementById('admin-main');
     const token = localStorage.getItem('token');
     if (!token) {
@@ -213,27 +250,6 @@ function renderRankingTable(container, data, type) {
         const accuracyData = await accuracyResponse.json();
         
         renderAdminPanel(adminMainContainer, allPicksData, eventData.fights);
-
-        const fotnSelect = document.getElementById('real-fotn');
-        const potnSelect = document.getElementById('real-potn');
-        if (fotnSelect && potnSelect) {
-            const allFighters = new Set();
-            eventData.fights.forEach(fight => {
-                const fotnOption = document.createElement('option');
-                fotnOption.value = fight.id;
-                fotnOption.textContent = `${fight.fighter1_name} vs ${fight.fighter2_name}`;
-                fotnSelect.appendChild(fotnOption);
-                allFighters.add(fight.fighter1_name);
-                allFighters.add(fight.fighter2_name);
-            });
-            allFighters.forEach(fighter => {
-                const potnOption = document.createElement('option');
-                potnOption.value = fighter;
-                potnOption.textContent = fighter;
-                potnSelect.appendChild(potnOption);
-            });
-        }
-        
         addAdminActionListeners(token);
         
         const adminRankingContainer = document.getElementById('admin-ranking-content');
