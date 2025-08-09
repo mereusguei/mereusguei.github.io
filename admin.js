@@ -2,7 +2,7 @@
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 function buildResultsTable(eventFights) {
-    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th></tr></thead><tbody>`;
+    let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
     eventFights.forEach(fight => {
         const isApured = !!fight.winner_name;
         const disabled = isApured ? 'disabled' : '';
@@ -12,6 +12,8 @@ function buildResultsTable(eventFights) {
                 <td><select class="custom-select winner-select" ${disabled}><option value="">-- Selecione --</option><option value="${fight.fighter1_name}" ${isApured && fight.winner_name === fight.fighter1_name ? 'selected' : ''}>${fight.fighter1_name}</option><option value="${fight.fighter2_name}" ${isApured && fight.winner_name === fight.fighter2_name ? 'selected' : ''}>${fight.fighter2_name}</option></select></td>
                 <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}><option value="">-- Selecione --</option><option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option><option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option><option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option></select></td>
                 <td class="details-container"><input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}></td>
+                <!-- CORREÇÃO: Lógica do botão "Corrigir" restaurada -->
+                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}</td>
             </tr>`;
     });
     tableHtml += `</tbody></table>
@@ -81,8 +83,12 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
     adminMainContainer.innerHTML = resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
     
     allEventsData.forEach(event => {
-        populateBonusDropdowns(event.fights, event.eventId);
+    // Passa os resultados reais como terceiro argumento
+    populateBonusDropdowns(event.fights, event.eventId, { 
+        realFotnFightId: event.realFotnFightId, 
+        realPotnFighterName: event.realPotnFighterName 
     });
+});
 }
 
 function handleMethodChange(methodSelect) {
@@ -98,14 +104,16 @@ function handleMethodChange(methodSelect) {
     }
 }
 
-function populateBonusDropdowns(eventFights, eventId) {
+function populateBonusDropdowns(eventFights, eventId, realValues) {
     const form = document.querySelector(`.results-form[data-event-id="${eventId}"]`);
     if (!form) return;
     const fotnSelect = form.querySelector('.real-fotn');
     const potnSelect = form.querySelector('.real-potn');
     if (!fotnSelect || !potnSelect) return;
+    
     fotnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
     potnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
+    
     const allFighters = new Set();
     eventFights.forEach(fight => {
         const fotnOption = document.createElement('option');
@@ -115,12 +123,21 @@ function populateBonusDropdowns(eventFights, eventId) {
         allFighters.add(fight.fighter1_name);
         allFighters.add(fight.fighter2_name);
     });
+    
     allFighters.forEach(fighter => {
         const potnOption = document.createElement('option');
         potnOption.value = fighter;
         potnOption.textContent = fighter;
         potnSelect.appendChild(potnOption);
     });
+
+    // --- NOVA LÓGICA PARA "LEMBRAR" OS VALORES SALVOS ---
+    if (realValues.realFotnFightId) {
+        fotnSelect.value = realValues.realFotnFightId;
+    }
+    if (realValues.realPotnFighterName) {
+        potnSelect.value = realValues.realPotnFighterName;
+    }
 }
 
 function addAdminActionListeners(token) {
@@ -199,10 +216,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
         const allEventsDetails = await Promise.all(eventsDataPromises);
         const allEventsData = allEventsDetails.map((details, index) => ({
-            eventId: eventsList[index].id,
-            eventName: details.eventName,
-            fights: details.fights
-        }));
+    eventId: eventsList[index].id,
+    eventName: details.eventName,
+    fights: details.fights,
+    realFotnFightId: details.realFotnFightId, // Adicionado
+    realPotnFighterName: details.realPotnFighterName // Adicionado
+}));
 
         const [allPicksResponse, accuracyResponse] = await Promise.all([
             fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
