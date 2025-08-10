@@ -1,6 +1,21 @@
 // =================== CÓDIGO FINAL E DEFINITIVO PARA admin.js (COM APURAÇÃO POR EVENTO) ===================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
+// Função auxiliar para formatar datas para o input datetime-local
+function formatDateTimeForInput(dateString) {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        // Corrige o fuso horário para a exibição local
+        const timezoneOffset = date.getTimezoneOffset() * 60000; // em milissegundos
+        const localDate = new Date(date.getTime() - timezoneOffset);
+        return localDate.toISOString().slice(0, 16);
+    } catch (error) {
+        console.error("Erro ao formatar data:", dateString, error);
+        return '';
+    }
+}
+
 function buildResultsTable(eventFights) {
     let tableHtml = `<table><thead><tr><th>Luta</th><th>Vencedor Real</th><th>Método Real</th><th>Detalhe Real</th><th>Ação</th></tr></thead><tbody>`;
     eventFights.forEach(fight => {
@@ -477,64 +492,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (editEventSelect && editFormsContainer) {
         
         // Listener para quando o admin seleciona um evento para editar
-        editEventSelect.addEventListener('change', () => {
-            const eventId = editEventSelect.value;
-            if (!eventId) {
-                editFormsContainer.innerHTML = ''; // Limpa a área se nenhum evento for selecionado
-                return;
-            }
+editEventSelect.addEventListener('change', () => {
+    const eventId = editEventSelect.value;
+    if (!eventId) {
+        editFormsContainer.innerHTML = '';
+        return;
+    }
 
-            // Encontra os dados do evento selecionado no array que já buscamos da API
-            const event = allEventsData.find(e => e.eventId == eventId);
-            if (!event) return;
+    const event = allEventsData.find(e => e.eventId == eventId);
+    if (!event) return;
 
-            // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
-            let editHtml = `
-                <form id="edit-event-form-${eventId}" class="edit-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                    <h3>Editando: ${event.eventName}</h3>
-                    <div class="form-group">
-                        <label>Nome do Evento</label>
-                        <input type="text" name="name" value="${event.eventName}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Data do Evento</label>
-                        <input type="datetime-local" name="eventDate" value="${new Date(event.event_date).toISOString().slice(0, 16)}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Prazo para Palpites</label>
-                        <input type="datetime-local" name="picksDeadline" value="${new Date(event.picks_deadline).toISOString().slice(0, 16)}" required>
-                    </div>
-                    <button type="submit" class="btn">Salvar Alterações do Evento</button>
-                </form>
-            `;
+    // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
+    let editHtml = `
+        <form id="edit-event-form-${eventId}" class="edit-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <h3>Editando: ${event.eventName}</h3>
+            <div class="form-group">
+                <label>Nome do Evento</label>
+                <input type="text" name="name" value="${event.eventName}" required>
+            </div>
+            <div class="form-group">
+                <label>Data do Evento</label>
+                <input type="datetime-local" name="eventDate" value="${formatDateTimeForInput(event.eventDate)}" required>
+            </div>
+            <div class="form-group">
+                <label>Prazo para Palpites</label>
+                <input type="datetime-local" name="picksDeadline" value="${formatDateTimeForInput(event.picksDeadline)}" required>
+            </div>
+            <button type="submit" class="btn">Salvar Alterações do Evento</button>
+        </form>
+    `;
 
-            // --- Constrói a lista de LUTAS para edição e reordenamento ---
-            editHtml += `<div id="edit-fights-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                            <h3>Lutas do Evento</h3>`;
+    // --- Constrói a lista de LUTAS para edição ---
+    editHtml += `<div id="edit-fights-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <h3>Lutas do Evento (Arraste para Reordenar)</h3>
+                    <ul id="fight-list-sortable">`;
 
-            event.fights.forEach(fight => {
-                editHtml += `
-                    <form class="edit-fight-form" data-fight-id="${fight.id}">
-                        <h4>Editando: ${fight.fighter1_name} vs ${fight.fighter2_name}</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                            <div>
-                                <div class="form-group"><label>Lutador 1</label><input type="text" name="fighter1_name" value="${fight.fighter1_name}"></div>
-                                <div class="form-group"><label>Cartel 1</label><input type="text" name="fighter1_record" value="${fight.fighter1_record || ''}"></div>
-                                <div class="form-group"><label>Imagem 1 (URL)</label><input type="url" name="fighter1_img" value="${fight.fighter1_img || ''}"></div>
-                            </div>
-                            <div>
-                                <div class="form-group"><label>Lutador 2</label><input type="text" name="fighter2_name" value="${fight.fighter2_name}"></div>
-                                <div class="form-group"><label>Cartel 2</label><input type="text" name="fighter2_record" value="${fight.fighter2_record || ''}"></div>
-                                <div class="form-group"><label>Imagem 2 (URL)</label><input type="url" name="fighter2_img" value="${fight.fighter2_img || ''}"></div>
-                            </div>
+    // Ordena as lutas pela coluna 'fight_order' antes de exibi-las
+    const sortedFights = event.fights.sort((a, b) => a.fight_order - b.fight_order);
+
+    sortedFights.forEach(fight => {
+        editHtml += `
+            <li data-fight-id="${fight.id}" class="sortable-item">
+                <form class="edit-fight-form" data-fight-id="${fight.id}">
+                    <h4>${fight.fighter1_name} vs ${fight.fighter2_name}</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <div class="form-group"><label>Lutador 1</label><input type="text" name="fighter1_name" value="${fight.fighter1_name}"></div>
+                            <div class="form-group"><label>Cartel 1</label><input type="text" name="fighter1_record" value="${fight.fighter1_record || ''}"></div>
+                            <div class="form-group"><label>Imagem 1 (URL)</label><input type="url" name="fighter1_img" value="${fight.fighter1_img || ''}"></div>
                         </div>
-                        <button type="submit" class="btn">Salvar Alterações da Luta</button>
-                    </form>
-                `;
-            });
-            editHtml += `</div>`;
-            editFormsContainer.innerHTML = editHtml;
-        });
+                        <div>
+                            <div class="form-group"><label>Lutador 2</label><input type="text" name="fighter2_name" value="${fight.fighter2_name}"></div>
+                            <div class="form-group"><label>Cartel 2</label><input type="text" name="fighter2_record" value="${fight.fighter2_record || ''}"></div>
+                            <div class="form-group"><label>Imagem 2 (URL)</label><input type="url" name="fighter2_img" value="${fight.fighter2_img || ''}"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Salvar Alterações da Luta</button>
+                </form>
+            </li>`;
+    });
+    editHtml += `</ul><button type="button" id="save-order-btn" class="btn btn-primary" style="margin-top: 10px;">Salvar Ordem das Lutas</button></div>`;
+    
+    editFormsContainer.innerHTML = editHtml;
+});
 
         // Listener GERAL para os formulários de edição
         editFormsContainer.addEventListener('submit', async (e) => {
