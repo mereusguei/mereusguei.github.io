@@ -195,11 +195,64 @@ function populateBonusDropdowns(eventFights, eventId, realValues) {
 
 function addAdminActionListeners(token) {
     const adminMainContainer = document.getElementById('admin-main');
+    if (!adminMainContainer) return;
+
+    // --- LISTENER DELEGADO PARA CLIQUES (BOTÕES) ---
+    adminMainContainer.addEventListener('click', async (e) => {
+        const target = e.target;
+
+        // Lógica para Remover Luta (Botão que não está em formulário)
+        if (target.matches('.remove-fight-btn')) {
+            const row = target.closest('tr');
+            const fightId = row.dataset.fightId;
+            const fightName = row.querySelector('td:first-child').textContent;
+            if (!confirm(`Tem certeza que deseja remover a luta "${fightName}" e TODOS os palpites associados a ela? Esta ação não pode ser desfeita.`)) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/admin/fights/${fightId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                alert(data.message);
+                window.location.reload();
+            } catch (error) { alert(`Erro: ${error.message}`); }
+        }
+
+        // Lógica para Remover Evento (Botão que não está em formulário)
+        if (target.matches('.remove-event-btn')) {
+            const eventId = target.dataset.eventId;
+            const eventName = target.previousElementSibling.textContent;
+            if (!confirm(`!! ATENÇÃO !!\n\nVocê tem certeza que deseja remover o evento inteiro "${eventName}"?\n\nIsso apagará TODAS as lutas, palpites, bônus e registros de pagamento. A ação é IRREVERSÍVEL.`)) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                alert(data.message);
+                window.location.reload();
+            } catch (error) { alert(`Erro: ${error.message}`); }
+        }
+
+        // Lógica para o botão "Corrigir"
+        if (target.matches('.btn-edit-result')) {
+            const row = target.closest('tr');
+            row.classList.remove('apured');
+            row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+        }
+    });
+
+    // --- LISTENER DELEGADO PARA SUBMIT (FORMULÁRIOS) ---
     adminMainContainer.addEventListener('submit', async (e) => {
-        if (e.target.matches('.results-form')) {
-            e.preventDefault();
-            const form = e.target;
-            const eventId = form.dataset.eventId;
+        e.preventDefault();
+        const form = e.target;
+
+        // Lógica para o formulário de Apuração
+        if (form.matches('.results-form')) {
             const resultsArray = [];
             const rows = form.querySelectorAll('tr[data-fight-id]');
             rows.forEach(row => {
@@ -211,9 +264,9 @@ function addAdminActionListeners(token) {
             });
             const realFightOfTheNightId = form.querySelector('.real-fotn').value;
             const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
-            const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
-            if (resultsArray.length === 0 && !hasBonusToSubmit) return alert('Nenhuma luta ou bônus foi preenchido para apuração neste evento.');
-            if (!confirm(`Confirmar a apuração para o evento ID ${eventId}?`)) return;
+            const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter && realFightOfTheNightId !== 'NONE' && realPerformanceOfTheNightFighter !== 'NONE';
+            if (resultsArray.length === 0 && !hasBonusToSubmit) return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
+            if (!confirm(`Confirmar a apuração?`)) return;
 
             try {
                 const response = await fetch(`${API_URL}/api/admin/results`, {
@@ -225,51 +278,8 @@ function addAdminActionListeners(token) {
                 if (!response.ok) throw new Error(data.error);
                 alert(data.message);
                 window.location.reload();
-            } catch (error) {
-                alert(`Ocorreu um erro ao apurar: ${error.message}`);
-            }
+            } catch (error) { alert(`Ocorreu um erro ao apurar: ${error.message}`); }
         }
-    // Dentro de addAdminActionListeners
-adminMainContainer.addEventListener('click', async (e) => {
-    const target = e.target;
-    
-    // Lógica para Remover Luta
-    if (target.matches('.remove-fight-btn')) {
-        const row = target.closest('tr');
-        const fightId = row.dataset.fightId;
-        const fightName = row.querySelector('td:first-child').textContent;
-        if (!confirm(`Tem certeza que deseja remover a luta "${fightName}" e TODOS os palpites associados a ela? Esta ação não pode ser desfeita.`)) return;
-
-        try {
-            const response = await fetch(`${API_URL}/api/admin/fights/${fightId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            alert(data.message);
-            window.location.reload();
-        } catch (error) { alert(`Erro: ${error.message}`); }
-    }
-
-    // Lógica para Remover Evento
-    if (target.matches('.remove-event-btn')) {
-        const eventId = target.dataset.eventId;
-        const eventName = target.previousElementSibling.textContent;
-        if (!confirm(`!! ATENÇÃO !!\n\nVocê tem certeza que deseja remover o evento inteiro "${eventName}"?\n\nIsso apagará TODAS as lutas, palpites, bônus e registros de pagamento associados a este evento. A ação é IRREVERSÍVEL.`)) return;
-
-        try {
-            const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            alert(data.message);
-            window.location.reload();
-        } catch (error) { alert(`Erro: ${error.message}`); }
-    }
-});
     });
 }
 
