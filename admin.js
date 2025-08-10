@@ -72,23 +72,66 @@ function buildRankingsSection() {
 }
 
 function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
+    // 1. Constrói a seção do Gerenciador de Eventos
+    let eventManagerHtml = `
+        <section class="admin-section">
+            <h2>Gerenciador de Eventos</h2>
+            
+            <form id="create-event-form" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;">
+                <h3>Criar Novo Evento</h3>
+                <div class="form-group"><label>Nome do Evento (Ex: UFC 310)</label><input type="text" id="event-name" required></div>
+                <div class="form-group"><label>Data do Evento (YYYY-MM-DD HH:MM)</label><input type="datetime-local" id="event-date" required></div>
+                <div class="form-group"><label>Prazo para Palpites (YYYY-MM-DD HH:MM)</label><input type="datetime-local" id="picks-deadline" required></div>
+                <button type="submit" class="btn btn-primary">Criar Evento</button>
+            </form>
+
+            <form id="add-fight-form">
+                <h3>Adicionar Luta a um Evento</h3>
+                <div class="form-group">
+                    <label>Selecione o Evento</label>
+                    <select id="event-select-for-fight" class="custom-select" required></select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h4>Lutador 1</h4>
+                        <div class="form-group"><label>Nome</label><input type="text" class="fighter-input" required></div>
+                        <div class="form-group"><label>Cartel (Ex: 10-2)</label><input type="text" class="fighter-input"></div>
+                        <div class="form-group"><label>URL da Imagem</label><input type="url" class="fighter-input"></div>
+                    </div>
+                    <div>
+                        <h4>Lutador 2</h4>
+                        <div class="form-group"><label>Nome</label><input type="text" class="fighter-input" required></div>
+                        <div class="form-group"><label>Cartel</label><input type="text" class="fighter-input"></div>
+                        <div class="form-group"><label>URL da Imagem</label><input type="url" class="fighter-input"></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Adicionar Luta</button>
+            </form>
+        </section>
+    `;
+
+    // 2. Constrói a seção de Apuração de Resultados por Evento
     let resultsAccordionHtml = `<div class="admin-section"><h2>Apuração de Resultados por Evento</h2>`;
     allEventsData.forEach(event => {
         resultsAccordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary><form class="results-form" data-event-id="${event.eventId}">${buildResultsTable(event.fights)}</form></details>`;
     });
     resultsAccordionHtml += `</div>`;
 
+    // 3. Constrói as seções de Palpites e Rankings
     const picksAccordionHtml = buildPicksAccordion(allPicksData, allEventsData);
     const rankingsHtml = buildRankingsSection();
-    adminMainContainer.innerHTML = resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
     
+    // 4. Junta tudo e insere na página
+    adminMainContainer.innerHTML = eventManagerHtml + resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
+    
+    // 5. Bloco ESSENCIAL que você corretamente notou que estava faltando:
+    //    Popula os dropdowns de bônus para CADA formulário de apuração
     allEventsData.forEach(event => {
-    // Passa os resultados reais como terceiro argumento
-    populateBonusDropdowns(event.fights, event.eventId, { 
-        realFotnFightId: event.realFotnFightId, 
-        realPotnFighterName: event.realPotnFighterName 
+        populateBonusDropdowns(event.fights, event.eventId, { 
+            realFotnFightId: event.realFotnFightId, 
+            realPotnFighterName: event.realPotnFighterName 
+        });
     });
-});
 }
 
 function handleMethodChange(methodSelect) {
@@ -231,6 +274,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados de palpites ou ranking.');
         const allPicksData = await allPicksResponse.json();
         const accuracyData = await accuracyResponse.json();
+        // --- LÓGICA DO GERENCIADOR DE EVENTOS ---
+const eventSelectForFight = document.getElementById('event-select-for-fight');
+if (eventSelectForFight) {
+    eventSelectForFight.innerHTML = '<option value="">Selecione um Evento</option>';
+    allEventsData.forEach(event => {
+        const option = document.createElement('option');
+        option.value = event.eventId;
+        option.textContent = event.eventName;
+        eventSelectForFight.appendChild(option);
+    });
+}
+
+const createEventForm = document.getElementById('create-event-form');
+if (createEventForm) {
+    createEventForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = {
+            name: document.getElementById('event-name').value,
+            eventDate: document.getElementById('event-date').value,
+            picksDeadline: document.getElementById('picks-deadline').value,
+        };
+        try {
+            const response = await fetch(`${API_URL}/api/admin/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) throw new Error('Falha ao criar evento.');
+            alert('Evento criado com sucesso! Recarregue a página para vê-lo na lista.');
+            createEventForm.reset();
+        } catch (error) { alert(`Erro: ${error.message}`); }
+    });
+}
+
+const addFightForm = document.getElementById('add-fight-form');
+if (addFightForm) {
+    addFightForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inputs = addFightForm.querySelectorAll('.fighter-input');
+        const body = {
+            event_id: document.getElementById('event-select-for-fight').value,
+            fighter1_name: inputs[0].value,
+            fighter1_record: inputs[1].value,
+            fighter1_img: inputs[2].value,
+            fighter2_name: inputs[3].value,
+            fighter2_record: inputs[4].value,
+            fighter2_img: inputs[5].value
+        };
+        try {
+            const response = await fetch(`${API_URL}/api/admin/fights`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) throw new Error('Falha ao adicionar luta.');
+            alert('Luta adicionada com sucesso! Recarregue para ver as atualizações.');
+            addFightForm.reset();
+        } catch (error) { alert(`Erro: ${error.message}`); }
+    });
+}
         
         renderAdminPanel(adminMainContainer, allPicksData, allEventsData);
         addAdminActionListeners(token);
