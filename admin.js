@@ -248,109 +248,118 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     try {
-        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-        
-        const eventsListResponse = await fetch(`${API_URL}/api/admin/events`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!eventsListResponse.ok) throw new Error('Falha ao carregar lista de eventos.');
-        const eventsList = await eventsListResponse.json();
+    adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
+    
+    // --- PASSO 1: BUSCA TODOS OS DADOS NECESSÁRIOS DO BACKEND ---
+    const eventsListResponse = await fetch(`${API_URL}/api/admin/events`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!eventsListResponse.ok) throw new Error('Falha ao carregar lista de eventos.');
+    const eventsList = await eventsListResponse.json();
 
-        const eventsDataPromises = eventsList.map(event => 
-            fetch(`${API_URL}/api/events/${event.id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
-        );
-        const allEventsDetails = await Promise.all(eventsDataPromises);
-        const allEventsData = allEventsDetails.map((details, index) => ({
-    eventId: eventsList[index].id,
-    eventName: details.eventName,
-    fights: details.fights,
-    realFotnFightId: details.realFotnFightId, // Adicionado
-    realPotnFighterName: details.realPotnFighterName // Adicionado
-}));
+    const eventsDataPromises = eventsList.map(event => 
+        fetch(`${API_URL}/api/events/${event.id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
+    );
+    const allEventsDetails = await Promise.all(eventsDataPromises);
+    const allEventsData = allEventsDetails.map((details, index) => ({
+        eventId: eventsList[index].id,
+        eventName: details.eventName,
+        fights: details.fights,
+        realFotnFightId: details.realFotnFightId,
+        realPotnFighterName: details.realPotnFighterName
+    }));
 
-        const [allPicksResponse, accuracyResponse] = await Promise.all([
-            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-        if (allPicksResponse.status === 403 || accuracyResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
-        if (!allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados de palpites ou ranking.');
-        const allPicksData = await allPicksResponse.json();
-        const accuracyData = await accuracyResponse.json();
-        // --- LÓGICA DO GERENCIADOR DE EVENTOS ---
-const eventSelectForFight = document.getElementById('event-select-for-fight');
-if (eventSelectForFight) {
-    eventSelectForFight.innerHTML = '<option value="">Selecione um Evento</option>';
-    allEventsData.forEach(event => {
-        const option = document.createElement('option');
-        option.value = event.eventId;
-        option.textContent = event.eventName;
-        eventSelectForFight.appendChild(option);
-    });
-}
-
-const createEventForm = document.getElementById('create-event-form');
-if (createEventForm) {
-    createEventForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const body = {
-            name: document.getElementById('event-name').value,
-            eventDate: document.getElementById('event-date').value,
-            picksDeadline: document.getElementById('picks-deadline').value,
-        };
-        try {
-            const response = await fetch(`${API_URL}/api/admin/events`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(body)
-            });
-            if (!response.ok) throw new Error('Falha ao criar evento.');
-            alert('Evento criado com sucesso! Recarregue a página para vê-lo na lista.');
-            createEventForm.reset();
-        } catch (error) { alert(`Erro: ${error.message}`); }
-    });
-}
-
-const addFightForm = document.getElementById('add-fight-form');
-if (addFightForm) {
-    addFightForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const inputs = addFightForm.querySelectorAll('.fighter-input');
-        const body = {
-            event_id: document.getElementById('event-select-for-fight').value,
-            fighter1_name: inputs[0].value,
-            fighter1_record: inputs[1].value,
-            fighter1_img: inputs[2].value,
-            fighter2_name: inputs[3].value,
-            fighter2_record: inputs[4].value,
-            fighter2_img: inputs[5].value
-        };
-        try {
-            const response = await fetch(`${API_URL}/api/admin/fights`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(body)
-            });
-            if (!response.ok) throw new Error('Falha ao adicionar luta.');
-            alert('Luta adicionada com sucesso! Recarregue para ver as atualizações.');
-            addFightForm.reset();
-        } catch (error) { alert(`Erro: ${error.message}`); }
-    });
-}
-        
-        renderAdminPanel(adminMainContainer, allPicksData, allEventsData);
-        addAdminActionListeners(token);
-        
-        const adminRankingContainer = document.getElementById('admin-ranking-content');
-        if (adminRankingContainer) {
-            renderRankingTable(adminRankingContainer, accuracyData, 'general');
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    document.querySelector('.tab-button.active').classList.remove('active');
-                    button.classList.add('active');
-                    renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
-                });
-            });
-        }
-    } catch (error) {
-        console.error('Erro ao carregar painel de admin:', error);
-        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
+    const [allPicksResponse, accuracyResponse] = await Promise.all([
+        fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+    ]);
+    if (allPicksResponse.status === 403 || accuracyResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
+    if (!allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados de palpites ou ranking.');
+    
+    const allPicksData = await allPicksResponse.json();
+    const accuracyData = await accuracyResponse.json();
+    
+    // --- PASSO 2: RENDERIZA TODA A ESTRUTURA HTML NA PÁGINA ---
+    renderAdminPanel(adminMainContainer, allPicksData, allEventsData);
+    
+    // --- PASSO 3: AGORA QUE OS ELEMENTOS EXISTEM, ADICIONA A INTERATIVIDADE (EVENT LISTENERS) ---
+    
+    // Lógica do Gerenciador de Eventos
+    const eventSelectForFight = document.getElementById('event-select-for-fight');
+    if (eventSelectForFight) {
+        eventSelectForFight.innerHTML = '<option value="">Selecione um Evento</option>';
+        allEventsData.forEach(event => {
+            const option = document.createElement('option');
+            option.value = event.eventId;
+            option.textContent = event.eventName;
+            eventSelectForFight.appendChild(option);
+        });
     }
+
+    const createEventForm = document.getElementById('create-event-form');
+    if (createEventForm) {
+        createEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                name: document.getElementById('event-name').value,
+                eventDate: document.getElementById('event-date').value,
+                picksDeadline: document.getElementById('picks-deadline').value,
+            };
+            try {
+                const response = await fetch(`${API_URL}/api/admin/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Falha ao criar evento.');
+                alert(data.message);
+                window.location.reload();
+            } catch (error) { alert(`Erro: ${error.message}`); }
+        });
+    }
+
+    const addFightForm = document.getElementById('add-fight-form');
+    if (addFightForm) {
+        addFightForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputs = addFightForm.querySelectorAll('input');
+            const body = {
+                event_id: document.getElementById('event-select-for-fight').value,
+                fighter1_name: inputs[0].value,
+                fighter1_record: inputs[1].value,
+                fighter1_img: inputs[2].value,
+                fighter2_name: inputs[3].value,
+                fighter2_record: inputs[4].value,
+                fighter2_img: inputs[5].value
+            };
+            try {
+                const response = await fetch(`${API_URL}/api/admin/fights`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Falha ao adicionar luta.');
+                alert(data.message);
+                addFightForm.reset();
+            } catch (error) { alert(`Erro: ${error.message}`); }
+        });
+    }
+
+    // Lógica da Apuração e Rankings (que já estava correta)
+    addAdminActionListeners(token);
+    const adminRankingContainer = document.getElementById('admin-ranking-content');
+    if (adminRankingContainer) {
+        renderRankingTable(adminRankingContainer, accuracyData, 'general');
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelector('.tab-button.active').classList.remove('active');
+                button.classList.add('active');
+                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+            });
+        });
+    }
+} catch (error) {
+    console.error('Erro ao carregar painel de admin:', error);
+    adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
+}
 });
