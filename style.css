@@ -400,3 +400,14 @@ tr.apured .btn-primary {
     border-color: var(--text-muted);
     cursor: not-allowed;
 }
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+    margin-left: 5px;
+}
+.accordion-event > summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

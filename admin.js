@@ -13,7 +13,10 @@ function buildResultsTable(eventFights) {
                 <td><select class="custom-select method-select" onchange="handleMethodChange(this)" ${disabled}><option value="">-- Selecione --</option><option value="KO/TKO" ${isApured && fight.result_method === 'KO/TKO' ? 'selected' : ''}>KO/TKO</option><option value="Submission" ${isApured && fight.result_method === 'Submission' ? 'selected' : ''}>Finalização</option><option value="Decision" ${isApured && fight.result_method === 'Decision' ? 'selected' : ''}>Decisão</option></select></td>
                 <td class="details-container"><input type="text" class="custom-select details-input" value="${isApured ? fight.result_details : ''}" placeholder="Selecione um método..." ${disabled}></td>
                 <!-- CORREÇÃO: Lógica do botão "Corrigir" restaurada -->
-                <td>${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}</td>
+                <td>
+    ${isApured ? `<button type="button" class="btn btn-edit-result">Corrigir</button>` : ``}
+    <button type="button" class="btn btn-danger remove-fight-btn">Remover</button>
+</td>
             </tr>`;
     });
     tableHtml += `</tbody></table>
@@ -113,7 +116,14 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
     // 2. Constrói a seção de Apuração de Resultados por Evento
     let resultsAccordionHtml = `<div class="admin-section"><h2>Apuração de Resultados por Evento</h2>`;
     allEventsData.forEach(event => {
-        resultsAccordionHtml += `<details class="accordion-event"><summary>${event.eventName}</summary><form class="results-form" data-event-id="${event.eventId}">${buildResultsTable(event.fights)}</form></details>`;
+        resultsAccordionHtml += `
+    <details class="accordion-event">
+        <summary>
+            <span>${event.eventName}</span>
+            <button type="button" class="btn btn-danger remove-event-btn" data-event-id="${event.eventId}">Remover Evento Inteiro</button>
+        </summary>
+        <form class="results-form" data-event-id="${event.eventId}">${buildResultsTable(event.fights)}</form>
+    </details>`;
     });
     resultsAccordionHtml += `</div>`;
 
