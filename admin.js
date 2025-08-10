@@ -231,6 +231,8 @@ function addAdminActionListeners(token) {
 
     // --- LISTENER DELEGADO PARA CLIQUES (BOTÕES) ---
     adminMainContainer.addEventListener('click', async (e) => {
+        console.log("Clique detectado no container do admin!"); // <-- ADICIONE ESTA LINHA
+
         const target = e.target;
 
         // Lógica para Remover Luta (Botão que não está em formulário)
@@ -272,6 +274,7 @@ function addAdminActionListeners(token) {
 
         // Lógica para o botão "Corrigir"
         if (target.matches('.btn-edit-result')) {
+            console.log("Botão 'Corrigir' foi clicado.");
             const row = target.closest('tr');
             row.classList.remove('apured');
             row.querySelectorAll('select, input').forEach(el => el.disabled = false);
@@ -281,6 +284,7 @@ function addAdminActionListeners(token) {
         } 
         // Lógica para o botão "Salvar Correção"
         else if (target.matches('.submit-single-correction-btn')) {
+            console.log("Botão 'Salvar Correção' foi clicado! Chamando handleSingleApuration...");
             handleSingleApuration(target, token);
         }
     });
