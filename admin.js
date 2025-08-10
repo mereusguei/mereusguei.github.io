@@ -130,9 +130,10 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
     // 3. Constrói as seções de Palpites e Rankings
     const picksAccordionHtml = buildPicksAccordion(allPicksData, allEventsData);
     const rankingsHtml = buildRankingsSection();
+    const editSectionHtml = buildEditSection(allEventsData);
     
     // 4. Junta tudo e insere na página
-    adminMainContainer.innerHTML = eventManagerHtml + resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
+    adminMainContainer.innerHTML = eventManagerHtml + editSectionHtml + resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
     
     // 5. Bloco ESSENCIAL que você corretamente notou que estava faltando:
     //    Popula os dropdowns de bônus para CADA formulário de apuração
@@ -228,6 +229,22 @@ async function handleSingleApuration(button, token) {
     } catch (error) {
         alert(`Erro ao salvar correção: ${error.message}`);
     }
+}
+function buildEditSection(allEventsData) {
+    let html = `
+    <section class="admin-section">
+        <h2>Editar Conteúdo Existente</h2>
+        <div class="form-group">
+            <label>Selecione um Evento para Editar ou Reordenar Lutas</label>
+            <select id="edit-event-select" class="custom-select">
+                <option value="">-- Selecione --</option>`;
+    allEventsData.forEach(event => {
+        html += `<option value="${event.eventId}">${event.eventName}</option>`;
+    });
+    html += `</select></div>
+        <div id="edit-forms-container"></div>
+    </section>`;
+    return html;
 }
 
 function addAdminActionListeners(token) {
@@ -451,6 +468,123 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert(data.message);
                 addFightForm.reset();
             } catch (error) { alert(`Erro: ${error.message}`); }
+        });
+    }
+    // --- LÓGICA FINAL PARA A SEÇÃO DE EDIÇÃO ---
+    const editEventSelect = document.getElementById('edit-event-select');
+    const editFormsContainer = document.getElementById('edit-forms-container');
+
+    if (editEventSelect && editFormsContainer) {
+        
+        // Listener para quando o admin seleciona um evento para editar
+        editEventSelect.addEventListener('change', () => {
+            const eventId = editEventSelect.value;
+            if (!eventId) {
+                editFormsContainer.innerHTML = ''; // Limpa a área se nenhum evento for selecionado
+                return;
+            }
+
+            // Encontra os dados do evento selecionado no array que já buscamos da API
+            const event = allEventsData.find(e => e.eventId == eventId);
+            if (!event) return;
+
+            // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
+            let editHtml = `
+                <form id="edit-event-form-${eventId}" class="edit-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                    <h3>Editando: ${event.eventName}</h3>
+                    <div class="form-group">
+                        <label>Nome do Evento</label>
+                        <input type="text" name="name" value="${event.eventName}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Data do Evento</label>
+                        <input type="datetime-local" name="eventDate" value="${new Date(event.event_date).toISOString().slice(0, 16)}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo para Palpites</label>
+                        <input type="datetime-local" name="picksDeadline" value="${new Date(event.picks_deadline).toISOString().slice(0, 16)}" required>
+                    </div>
+                    <button type="submit" class="btn">Salvar Alterações do Evento</button>
+                </form>
+            `;
+
+            // --- Constrói a lista de LUTAS para edição e reordenamento ---
+            editHtml += `<div id="edit-fights-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                            <h3>Lutas do Evento</h3>`;
+
+            event.fights.forEach(fight => {
+                editHtml += `
+                    <form class="edit-fight-form" data-fight-id="${fight.id}">
+                        <h4>Editando: ${fight.fighter1_name} vs ${fight.fighter2_name}</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <div class="form-group"><label>Lutador 1</label><input type="text" name="fighter1_name" value="${fight.fighter1_name}"></div>
+                                <div class="form-group"><label>Cartel 1</label><input type="text" name="fighter1_record" value="${fight.fighter1_record || ''}"></div>
+                                <div class="form-group"><label>Imagem 1 (URL)</label><input type="url" name="fighter1_img" value="${fight.fighter1_img || ''}"></div>
+                            </div>
+                            <div>
+                                <div class="form-group"><label>Lutador 2</label><input type="text" name="fighter2_name" value="${fight.fighter2_name}"></div>
+                                <div class="form-group"><label>Cartel 2</label><input type="text" name="fighter2_record" value="${fight.fighter2_record || ''}"></div>
+                                <div class="form-group"><label>Imagem 2 (URL)</label><input type="url" name="fighter2_img" value="${fight.fighter2_img || ''}"></div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Salvar Alterações da Luta</button>
+                    </form>
+                `;
+            });
+            editHtml += `</div>`;
+            editFormsContainer.innerHTML = editHtml;
+        });
+
+        // Listener GERAL para os formulários de edição
+        editFormsContainer.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+
+            // --- Lógica para EDITAR EVENTO ---
+            if (form.matches('.edit-event-form')) {
+                const eventId = editEventSelect.value;
+                const body = {
+                    name: form.querySelector('[name="name"]').value,
+                    eventDate: form.querySelector('[name="eventDate"]').value,
+                    picksDeadline: form.querySelector('[name="picksDeadline"]').value
+                };
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    alert(data.message);
+                    window.location.reload();
+                } catch (error) { alert(`Erro: ${error.message}`); }
+            }
+
+            // --- Lógica para EDITAR LUTA ---
+            if (form.matches('.edit-fight-form')) {
+                const fightId = form.dataset.fightId;
+                const body = {
+                    fighter1_name: form.querySelector('[name="fighter1_name"]').value,
+                    fighter1_record: form.querySelector('[name="fighter1_record"]').value,
+                    fighter1_img: form.querySelector('[name="fighter1_img"]').value,
+                    fighter2_name: form.querySelector('[name="fighter2_name"]').value,
+                    fighter2_record: form.querySelector('[name="fighter2_record"]').value,
+                    fighter2_img: form.querySelector('[name="fighter2_img"]').value
+                };
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/fights/${fightId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    alert(data.message);
+                    window.location.reload();
+                } catch (error) { alert(`Erro: ${error.message}`); }
+            }
         });
     }
 
