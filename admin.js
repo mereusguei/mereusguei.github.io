@@ -193,6 +193,38 @@ function populateBonusDropdowns(eventFights, eventId, realValues) {
     }
 }
 
+async function handleSingleApuration(button, token) {
+    const row = button.closest('tr');
+    const fightId = row.dataset.fightId;
+    const winnerName = row.querySelector('.winner-select').value;
+    const resultMethod = row.querySelector('.method-select').value;
+    const resultDetails = row.querySelector('.details-input').value;
+
+    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos da luta corrigida.');
+    
+    const body = {
+        resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
+        realFightOfTheNightId: document.getElementById('real-fotn').value || 'NONE',
+        realPerformanceOfTheNightFighter: document.getElementById('real-potn').value || 'NONE'
+    };
+
+    if (!confirm(`Confirmar a correção para a luta ID ${fightId}?`)) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/admin/results`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        alert('Correção salva com sucesso!');
+        window.location.reload();
+    } catch (error) {
+        alert(`Erro ao salvar correção: ${error.message}`);
+    }
+}
+
 function addAdminActionListeners(token) {
     const adminMainContainer = document.getElementById('admin-main');
     if (!adminMainContainer) return;
