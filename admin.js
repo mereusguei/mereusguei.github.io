@@ -270,50 +270,19 @@ function addAdminActionListeners(token) {
             } catch (error) { alert(`Erro: ${error.message}`); }
         }
 
-        // Lógica para o botão "Corrigir" e "Salvar Correção"
-if (target.matches('.btn-edit-result')) {
-    // Se clicar em "Corrigir"
-    const row = target.closest('tr');
-    row.classList.remove('apured');
-    row.querySelectorAll('select, input').forEach(el => el.disabled = false);
-    target.textContent = 'Salvar Correção';
-    target.classList.remove('btn-edit-result'); // Remove a classe antiga
-    target.classList.add('submit-single-correction-btn'); // Adiciona uma nova classe para identificar a ação
-} 
-else if (target.matches('.submit-single-correction-btn')) {
-    // Se clicar em "Salvar Correção"
-    const row = target.closest('tr');
-    const fightId = row.dataset.fightId;
-    const winnerName = row.querySelector('.winner-select').value;
-    const resultMethod = row.querySelector('.method-select').value;
-    const resultDetails = row.querySelector('.details-input').value;
-
-    if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos da luta corrigida.');
-    if (!confirm(`Confirmar a correção para a luta ID ${fightId}?`)) return;
-
-    // Monta o corpo da requisição para apurar apenas esta luta
-    const body = {
-        resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
-        // Enviamos os valores dos bônus também para não perdê-los, caso já tenham sido definidos
-        realFightOfTheNightId: document.getElementById('real-fotn').value,
-        realPerformanceOfTheNightFighter: document.getElementById('real-potn').value
-    };
-
-    // Envia a requisição para a mesma rota de apuração geral
-    try {
-        const response = await fetch(`${API_URL}/api/admin/results`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(body)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
-        alert('Correção salva com sucesso!');
-        window.location.reload();
-    } catch (error) {
-        alert(`Erro ao salvar correção: ${error.message}`);
-    }
-}
+        // Lógica para o botão "Corrigir"
+        if (target.matches('.btn-edit-result')) {
+            const row = target.closest('tr');
+            row.classList.remove('apured');
+            row.querySelectorAll('select, input').forEach(el => el.disabled = false);
+            target.textContent = 'Salvar Correção';
+            target.classList.remove('btn-edit-result');
+            target.classList.add('submit-single-correction-btn');
+        } 
+        // Lógica para o botão "Salvar Correção"
+        else if (target.matches('.submit-single-correction-btn')) {
+            handleSingleApuration(target, token);
+        }
     });
 
     // --- LISTENER DELEGADO PARA SUBMIT (FORMULÁRIOS) ---
