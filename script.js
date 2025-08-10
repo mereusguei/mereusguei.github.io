@@ -62,41 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ================== ADICIONE ESTAS DUAS FUNÇÕES ==================
 
-async function loadEventPage(eventId, token, hasPaid) {
-    const mainContent = document.querySelector('.container');
-    try {
-        const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
-        
-        const eventDataFromServer = await response.json();
-        eventData = eventDataFromServer; // Atualiza a variável global
 
-        const eventHeader = document.querySelector('.event-header h2');
-        if (eventHeader) eventHeader.textContent = eventData.eventName;
-        
-        startCountdown(eventData.picksDeadline);
-
-        if (hasPaid) {
-            loadFights();
-            populateBonusPicks(eventData.fights);
-            const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
-            if(saveBonusBtnContainer) saveBonusBtnContainer.style.display = 'block';
-        } else {
-            const paymentSection = document.getElementById('payment-section');
-            if (paymentSection) {
-                paymentSection.innerHTML = `<button id="pay-btn" class="btn btn-primary btn-save-all">Liberar Palpites para "${eventData.eventName}" (R$ 5,00)</button>`;
-                document.getElementById('pay-btn').addEventListener('click', () => handlePayment(eventId, eventData.eventName, token));
-            }
-            const fightGrid = document.getElementById('fight-card-grid');
-            if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center;">Pague a taxa para visualizar e fazer seus palpites.</p>';
-            const bonusSection = document.querySelector('.bonus-picks-section');
-            if (bonusSection) bonusSection.style.display = 'none';
-        }
-    } catch (error) {
-        console.error(error);
-        if(mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
-    }
-}
 
 async function loadRanking(type, token, eventId = 1) {
     const rankingContent = document.getElementById('ranking-table-container');
@@ -140,7 +106,7 @@ async function checkPaymentStatus(eventId, token) {
     }
 }
 
-async function handlePayment(eventId, eventName, token) {
+async function handlePayment(eventId, token) {
     try {
         const response = await fetch(`${API_URL}/api/create-payment`, {
             method: 'POST',
@@ -148,7 +114,7 @@ async function handlePayment(eventId, eventName, token) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ eventId, eventName })
+            body: JSON.stringify({ eventId })
         });
 
         const data = await response.json();
@@ -213,7 +179,10 @@ if (saveBonusBtnContainer) {
             const paymentSection = document.getElementById('payment-section');
             if (paymentSection) {
                 paymentSection.innerHTML = `<button id="pay-btn" class="btn btn-primary btn-save-all">Liberar Palpites para "${eventData.eventName}" (R$ 5,00)</button>`;
-                document.getElementById('pay-btn').addEventListener('click', () => handlePayment(eventId, eventData.eventName, token));
+                document.getElementById('pay-btn').addEventListener('click', () => {
+                    // Chamada corrigida, sem o eventName
+                    handlePayment(eventId, token);
+                });
             }
             const fightGrid = document.getElementById('fight-card-grid');
             if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
