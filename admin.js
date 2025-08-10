@@ -195,17 +195,22 @@ function populateBonusDropdowns(eventFights, eventId, realValues) {
 
 async function handleSingleApuration(button, token) {
     const row = button.closest('tr');
+    const form = button.closest('.results-form'); // Encontra o formulário pai
     const fightId = row.dataset.fightId;
     const winnerName = row.querySelector('.winner-select').value;
     const resultMethod = row.querySelector('.method-select').value;
     const resultDetails = row.querySelector('.details-input').value;
 
     if (!winnerName || !resultMethod || !resultDetails) return alert('Por favor, preencha todos os campos da luta corrigida.');
+
+    // CORREÇÃO: Busca os elementos de bônus DENTRO do formulário correto
+    const realFightOfTheNightId = form.querySelector('.real-fotn').value;
+    const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
     
     const body = {
         resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
-        realFightOfTheNightId: document.getElementById('real-fotn').value || 'NONE',
-        realPerformanceOfTheNightFighter: document.getElementById('real-potn').value || 'NONE'
+        realFightOfTheNightId: realFightOfTheNightId || 'NONE',
+        realPerformanceOfTheNightFighter: realPerformanceOfTheNightFighter || 'NONE'
     };
 
     if (!confirm(`Confirmar a correção para a luta ID ${fightId}?`)) return;
