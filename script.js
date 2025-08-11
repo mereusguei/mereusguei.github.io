@@ -303,12 +303,13 @@ function loadFights() {
 }
 
 function startCountdown(deadline) {
+    const timerContainer = document.querySelector('.timer'); // Seleciona o container
     const countdownElement = document.getElementById('countdown');
-    if (!countdownElement) return; // Não faz nada se o elemento não existir
+    if (!timerContainer || !countdownElement) return;
 
     const deadlineTime = new Date(deadline).getTime();
 
-    const interval = setInterval(() => {
+    const updateTimer = () => {
         const now = new Date().getTime();
         const distance = deadlineTime - now;
 
@@ -316,18 +317,21 @@ function startCountdown(deadline) {
             clearInterval(interval);
             countdownElement.innerHTML = "PRAZO ENCERRADO";
             document.querySelectorAll('.btn-pick, .btn-save-all').forEach(btn => btn.disabled = true);
-            return;
+        } else {
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
         }
+    };
 
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    // Roda uma vez imediatamente para preencher o valor e evitar a tela vazia
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
-        countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }, 1000);
-    // Ao final da função, adiciona a classe para revelar o timer
-    countdownElement.classList.add('visible');
+    // Revela o container inteiro com um efeito de fade-in
+    timerContainer.classList.add('visible');
 }
 
 function populateBonusPicks(fights) {

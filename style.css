@@ -411,14 +411,14 @@ tr.apured .btn-primary {
     justify-content: space-between;
     align-items: center;
 }
-/* Esconde as seções dinâmicas por padrão para evitar "flash" de conteúdo */
-.content-hidden {
-    display: none !important;
+/* Container do timer começa invisível e com largura fixa para evitar salto */
+.timer {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    min-width: 350px; /* Largura mínima para evitar que o texto quebre ou salte */
+    display: inline-block; /* Necessário para o min-width funcionar bem */
 }
-#countdown {
-    opacity: 0; /* Começa invisível */
-    transition: opacity 0.5s ease-in-out; /* Animação de fade-in */
-}
-#countdown.visible {
-    opacity: 1; /* Classe para torná-lo visível */
+
+.timer.visible {
+    opacity: 1; /* Classe para revelar o timer inteiro de uma vez */
 }
