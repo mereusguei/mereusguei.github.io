@@ -336,33 +336,45 @@ function addAdminActionListeners(token) {
 
         // Lógica para o formulário de Apuração
         if (form.matches('.results-form')) {
+            const eventId = form.dataset.eventId; // Pega o ID do evento diretamente do formulário
             const resultsArray = [];
             const rows = form.querySelectorAll('tr[data-fight-id]');
+            
             rows.forEach(row => {
                 if (row.querySelector('select:disabled')) return;
-                const fightId = row.dataset.fightId, winnerName = row.querySelector('.winner-select').value, resultMethod = row.querySelector('.method-select').value, resultDetails = row.querySelector('.details-input').value;
+                const fightId = row.dataset.fightId, 
+                      winnerName = row.querySelector('.winner-select').value, 
+                      resultMethod = row.querySelector('.method-select').value, 
+                      resultDetails = row.querySelector('.details-input').value;
                 if (winnerName && resultMethod && resultDetails) {
                     resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
                 }
             });
+            
             const realFightOfTheNightId = form.querySelector('.real-fotn').value;
             const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
             const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
-            if (resultsArray.length === 0 && !hasBonusToSubmit) return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
-            if (!confirm(`Confirmar a apuração?`)) return;
+
+            if (resultsArray.length === 0 && !hasBonusToSubmit) {
+                return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração neste evento.');
+            }
+            if (!confirm(`Confirmar a apuração para o evento ID ${eventId}?`)) return;
 
             try {
                 const response = await fetch(`${API_URL}/api/admin/results`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter })
+                    // Envia o eventId no corpo da requisição
+                    body: JSON.stringify({ eventId, resultsArray, realFightOfTheNightId, realPerformanceOfTheNightFighter })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
                 alert(data.message);
-                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
+                localStorage.setItem('dataCacheInvalidated', 'true');
                 window.location.reload();
-            } catch (error) { alert(`Ocorreu um erro ao apurar: ${error.message}`); }
+            } catch (error) {
+                alert(`Ocorreu um erro ao apurar: ${error.message}`);
+            }
         }
     });
 }
