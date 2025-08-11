@@ -575,17 +575,20 @@ editEventSelect.addEventListener('change', () => {
                     picksDeadline: form.querySelector('[name="picksDeadline"]').value
                 };
                 try {
-                    const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify(body)
-                    });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error);
-                    alert(data.message);
-                    localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
-                    window.location.reload();
-                } catch (error) { alert(`Erro: ${error.message}`); }
+    const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+
+    // --- LINHA DA CORREÇÃO ADICIONADA AQUI ---
+    localStorage.setItem('dataCacheInvalidated', 'true');
+
+    alert(data.message);
+    window.location.reload();
+} catch (error) { alert(`Erro: ${error.message}`); }
             }
 
             // --- Lógica para EDITAR LUTA ---
