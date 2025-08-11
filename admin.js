@@ -444,10 +444,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         createEventForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const body = {
-                name: document.getElementById('event-name').value,
-                eventDate: document.getElementById('event-date').value,
-                picksDeadline: document.getElementById('picks-deadline').value,
-            };
+    name: document.getElementById('event-name').value,
+    // Converte a data local do input para o formato ISO String (UTC)
+    eventDate: new Date(document.getElementById('event-date').value).toISOString(),
+    picksDeadline: new Date(document.getElementById('picks-deadline').value).toISOString(),
+};
             try {
                 const response = await fetch(`${API_URL}/api/admin/events`, {
                     method: 'POST',
@@ -570,10 +571,10 @@ editEventSelect.addEventListener('change', () => {
             if (form.matches('.edit-event-form')) {
                 const eventId = editEventSelect.value;
                 const body = {
-                    name: form.querySelector('[name="name"]').value,
-                    eventDate: form.querySelector('[name="eventDate"]').value,
-                    picksDeadline: form.querySelector('[name="picksDeadline"]').value
-                };
+    name: form.querySelector('[name="name"]').value,
+    eventDate: new Date(form.querySelector('[name="eventDate"]').value).toISOString(),
+    picksDeadline: new Date(form.querySelector('[name="picksDeadline"]').value).toISOString()
+};
                 try {
     const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
         method: 'PUT',
