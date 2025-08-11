@@ -10,5 +10,10 @@
         <p>Seu acesso aos palpites foi liberado.</p>
         <a href="index.html" class="btn btn-primary">Voltar para o Evento</a>
     </div>
+<script>
+    // Assim que a página de sucesso carrega, nós definimos um sinalizador
+    // no localStorage para dizer à página principal que ela precisa revalidar seus dados.
+    localStorage.setItem('paymentStatusChanged', 'true');
+</script>
 </body>
 </html>

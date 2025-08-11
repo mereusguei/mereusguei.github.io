@@ -558,6 +558,15 @@ function addPickButtonListeners() {
 
 // --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE EVENTOS (INDEX.HTML) ---
 function initializeEventPage(user, token) {
+    // --- NOVA VERIFICAÇÃO DE PAGAMENTO ---
+    const paymentStatusChanged = localStorage.getItem('paymentStatusChanged') === 'true';
+    if (paymentStatusChanged) {
+        // Se o status do pagamento mudou, removemos o cache antigo
+        sessionStorage.removeItem('eventDataCache');
+        localStorage.removeItem('paymentStatusChanged'); // Limpa o sinalizador
+    }
+    // --- FIM DA NOVA VERIFICAÇÃO ---
+
     const mainContent = document.querySelector('.container');
     if (!mainContent) return;
 
