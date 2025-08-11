@@ -26,7 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
+                    // Limpa AMBOS os storages para garantir um logout completo
                     localStorage.clear();
+                    sessionStorage.clear(); // <-- LINHA ADICIONADA
+
+                    alert('Você saiu.');
                     window.location.href = 'login.html';
                 });
             }
