@@ -1,27 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <!-- Inclua o mesmo <head> completo do seu index.html -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eventos - Octagon Oracle</title>
+    
+    <!-- Importação de Fontes (essencial para a aparência) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Link para o CSS principal com Cache Busting -->
+    <link rel="stylesheet" href="style.css?v=1.6">
 </head>
-<body id="events-page"> <!-- Novo ID para esta página -->
+<body id="events-page">
 
     <header class="main-header">
         <a href="index.html" style="text-decoration: none;"><h1 class="logo">OCTAGON <span>ORACLE</span></h1></a>
-        <nav class="user-nav" id="user-navigation"></nav>
+        <nav class="user-nav" id="user-navigation">
+            <!-- A navegação será preenchida pelo script.js -->
+        </nav>
     </header>
 
     <main class="container">
-        <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
-            <button class="tab-button active" data-status="upcoming">Próximos Eventos</button>
-            <button class="tab-button" data-status="past">Eventos Encerrados</button>
-        </div>
-        <div class="events-grid" id="events-grid-container">
-            <p style="text-align: center;">Carregando eventos...</p>
-        </div>
+        <!-- Usa a mesma classe de seção para manter o estilo -->
+        <section class="admin-section"> 
+            <h2 style="text-align: center;">Eventos Disponíveis</h2>
+            <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
+                <button class="tab-button active" data-status="upcoming">Próximos Eventos</button>
+                <button class="tab-button" data-status="past">Eventos Encerrados</button>
+            </div>
+            <div class="events-grid" id="events-grid-container">
+                <p style="text-align: center;">Carregando eventos...</p>
+            </div>
+        </section>
     </main>
     
-    <script src="navigation.js"></script>
-    <script src="events.js"></script> <!-- Um novo script dedicado -->
+    <!-- Chamada ao script unificado -->
+    <script src="script.js?v=1.6"></script>
 </body>
 </html>
