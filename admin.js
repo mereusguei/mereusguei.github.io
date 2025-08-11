@@ -509,7 +509,7 @@ editEventSelect.addEventListener('change', () => {
 
     // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
     let editHtml = `
-        <form id="edit-event-form-${eventId}" class="edit-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+    <form id="edit-event-form-${eventId}" class="edit-event-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
             <h3>Editando: ${event.eventName}</h3>
             <div class="form-group">
                 <label>Nome do Evento</label>
