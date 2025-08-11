@@ -347,7 +347,7 @@ function addAdminActionListeners(token) {
             });
             const realFightOfTheNightId = form.querySelector('.real-fotn').value;
             const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
-            const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter && realFightOfTheNightId !== 'NONE' && realPerformanceOfTheNightFighter !== 'NONE';
+            const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
             if (resultsArray.length === 0 && !hasBonusToSubmit) return alert('Nenhuma luta ou bônus foi preenchido/alterado para apuração.');
             if (!confirm(`Confirmar a apuração?`)) return;
 
