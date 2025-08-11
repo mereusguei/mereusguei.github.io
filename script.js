@@ -555,16 +555,36 @@ function initializeEventPage(user, token) {
     if (!mainContent) return;
 
     if (!user || !token) {
-        // Se deslogado, mostra o bloqueio e PARA a execução
-        mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo ao Octagon Oracle!</h2><p>Por favor, faça login ou cadastre-se para ver os eventos e fazer seus palpites.</p></div>`;
+        mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo!</h2><p>Faça login ou cadastre-se para participar.</p></div>`;
         return;
     }
 
-    // Se logado, continua o fluxo normal
-    const eventId = 1;
-    checkPaymentStatus(eventId, token).then(hasPaid => {
-        loadEventPageContent(eventId, token, hasPaid);
-    });
+    // --- NOVA LÓGICA DE CACHE E CARREGAMENTO ---
+    const isDataInvalidated = localStorage.getItem('dataCacheInvalidated') === 'true';
+    if (isDataInvalidated) {
+        sessionStorage.removeItem('eventDataCache');
+        localStorage.removeItem('dataCacheInvalidated');
+    }
+
+    const cachedData = sessionStorage.getItem('eventDataCache');
+    
+    // Converte o JSON do cache UMA VEZ
+    const parsedCachedData = cachedData ? JSON.parse(cachedData) : null;
+
+    if (parsedCachedData && parsedCachedData.eventId) { // Verifica se o cache é válido
+        // Se houver cache, usa os dados dele para renderizar a página instantaneamente
+        loadEventPageContent(parsedCachedData.eventId, token, parsedCachedData.hasPaid);
+    } else {
+        // Se não houver cache, faz a chamada à API como antes
+        const eventId = 1;
+        checkPaymentStatus(eventId, token).then(hasPaid => {
+            // Salva os dados no cache da sessão para recarregamentos rápidos
+            const dataToCache = { eventId, hasPaid, timestamp: new Date().getTime() };
+            sessionStorage.setItem('eventDataCache', JSON.stringify(dataToCache));
+            // Carrega o conteúdo da página
+            loadEventPageContent(eventId, token, hasPaid);
+        });
+    }
 }
 
 // --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE RANKING (RANKING.HTML) ---

@@ -240,6 +240,7 @@ async function handleSingleApuration(button, token) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
         alert('Correção salva com sucesso!');
+        localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
         window.location.reload();
     } catch (error) {
         alert(`Erro ao salvar correção: ${error.message}`);
@@ -287,6 +288,7 @@ function addAdminActionListeners(token) {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
                 alert(data.message);
+                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                 window.location.reload();
             } catch (error) { alert(`Erro: ${error.message}`); }
         }
@@ -305,6 +307,7 @@ function addAdminActionListeners(token) {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
                 alert(data.message);
+                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                 window.location.reload();
             } catch (error) { alert(`Erro: ${error.message}`); }
         }
@@ -357,6 +360,7 @@ function addAdminActionListeners(token) {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
                 alert(data.message);
+                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                 window.location.reload();
             } catch (error) { alert(`Ocorreu um erro ao apurar: ${error.message}`); }
         }
@@ -453,6 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Falha ao criar evento.');
                 alert(data.message);
+                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                 window.location.reload();
             } catch (error) { alert(`Erro: ${error.message}`); }
         });
@@ -578,6 +583,7 @@ editEventSelect.addEventListener('change', () => {
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error);
                     alert(data.message);
+                    localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                     window.location.reload();
                 } catch (error) { alert(`Erro: ${error.message}`); }
             }
@@ -602,6 +608,7 @@ editEventSelect.addEventListener('change', () => {
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error);
                     alert(data.message);
+                    localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
                     window.location.reload();
                 } catch (error) { alert(`Erro: ${error.message}`); }
             }
