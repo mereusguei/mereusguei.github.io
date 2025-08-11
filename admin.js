@@ -479,16 +479,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fighter2_img: inputs[5].value
             };
             try {
-                const response = await fetch(`${API_URL}/api/admin/fights`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Falha ao adicionar luta.');
-                alert(data.message);
-                addFightForm.reset();
-            } catch (error) { alert(`Erro: ${error.message}`); }
+    const response = await fetch(`${API_URL}/api/admin/fights`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Falha ao adicionar luta.');
+    
+    alert(data.message);
+    window.location.reload(); // CORREÇÃO: Recarrega a página para mostrar a nova luta
+
+} catch (error) { 
+    alert(`Erro: ${error.message}`); 
+}
         });
     }
     // --- LÓGICA FINAL PARA A SEÇÃO DE EDIÇÃO ---

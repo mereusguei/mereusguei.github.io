@@ -49,6 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (pageId === 'ranking-page') {
         initializeRankingPage(token);
     }
+
+    // --- DELEGAÇÃO DE EVENTOS PARA OS BOTÕES DE PALPITE (DA PÁGINA DE EVENTOS) ---
+    const fightCardGrid = document.getElementById('fight-card-grid');
+    if (fightCardGrid) {
+        fightCardGrid.addEventListener('click', (e) => {
+            // Verifica se o elemento clicado (ou um de seus pais) é um botão de palpite
+            const button = e.target.closest('.btn-pick, .btn-edit-pick');
+            if (button) {
+                // Se for, pega o ID da luta do card pai e abre o modal
+                const fightId = parseInt(button.closest('.fight-card').dataset.fightId);
+                openPickModal(fightId);
+            }
+        });
+    }
 });
 
 
@@ -59,10 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         fights: [],
         userPicks: {}
     };
-
-// ================== ADICIONE ESTAS DUAS FUNÇÕES ==================
-
-
 
 async function loadRanking(type, token, eventId = 1) {
     const rankingContent = document.getElementById('ranking-table-container');
@@ -271,8 +281,6 @@ async function handleSaveBonusPicks(eventId, token) {
         `;
         fightCardGrid.insertAdjacentHTML('beforeend', fightCard);
     });
-    // Renomeamos a função para adicionar listeners a ambos os tipos de botão
-    addPickOrEditButtonListeners();
 }
 
     function startCountdown(deadline) {
@@ -329,17 +337,7 @@ async function handleSaveBonusPicks(eventId, token) {
         });
     }
 
-// função que lida com ambos os botões
-function addPickOrEditButtonListeners() {
-    // Adiciona o "ouvinte" aos botões de fazer OU editar palpite
-    document.querySelectorAll('.btn-pick, .btn-edit-pick').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const fightId = parseInt(e.target.closest('.fight-card').dataset.fightId);
-            // Ambos os botões abrem o mesmo modal
-            openPickModal(fightId);
-        });
-    });
-}
+
 
 function openPickModal(fightId) {
     // Seleciona os elementos do modal
