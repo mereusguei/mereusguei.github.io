@@ -411,14 +411,18 @@ tr.apured .btn-primary {
     justify-content: space-between;
     align-items: center;
 }
-/* Container do timer começa invisível e com largura fixa para evitar salto */
+/* Container do timer começa invisível para uma animação suave */
 .timer {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
-    min-width: 350px; /* Largura mínima para evitar que o texto quebre ou salte */
-    display: inline-block; /* Necessário para o min-width funcionar bem */
+    min-width: 350px;
+    display: inline-block;
+}
+.timer.visible {
+    opacity: 1;
 }
 
-.timer.visible {
-    opacity: 1; /* Classe para revelar o timer inteiro de uma vez */
+/* Regra para esconder o conteúdo principal antes do carregamento completo do JS */
+.content-hidden {
+    display: none !important;
 }
