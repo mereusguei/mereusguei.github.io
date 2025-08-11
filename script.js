@@ -559,27 +559,29 @@ function initializeEventPage(user, token) {
         return;
     }
 
-    // --- LÓGICA DE CACHE ---
+    // --- NOVA LÓGICA DE CACHE E CARREGAMENTO ---
     const isDataInvalidated = localStorage.getItem('dataCacheInvalidated') === 'true';
     if (isDataInvalidated) {
-        console.log("Cache invalidado pelo admin. Buscando dados novos.");
-        sessionStorage.removeItem('eventDataCache'); // Força a busca de novos dados
-        localStorage.removeItem('dataCacheInvalidated'); // Limpa o sinalizador
+        sessionStorage.removeItem('eventDataCache');
+        localStorage.removeItem('dataCacheInvalidated');
     }
 
     const cachedData = sessionStorage.getItem('eventDataCache');
+    
+    // Converte o JSON do cache UMA VEZ
     const parsedCachedData = cachedData ? JSON.parse(cachedData) : null;
 
-    if (parsedCachedData) {
-        // Se houver cache VÁLIDO, usa os dados dele
+    if (parsedCachedData && parsedCachedData.eventId) { // Verifica se o cache é válido
+        // Se houver cache, usa os dados dele para renderizar a página instantaneamente
         loadEventPageContent(parsedCachedData.eventId, token, parsedCachedData.hasPaid);
-    } else {
-        // Se NÃO houver cache (ou foi invalidado), faz a chamada à API
+        } else {
+            // Se não houver cache, faz a chamada à API como antes
         const eventId = 1;
         checkPaymentStatus(eventId, token).then(hasPaid => {
-            // Salva o resultado no cache para a próxima visita
-            const dataToCache = { eventId, hasPaid };
+            // Salva os dados no cache da sessão para recarregamentos rápidos
+            const dataToCache = { eventId, hasPaid, timestamp: new Date().getTime() };
             sessionStorage.setItem('eventDataCache', JSON.stringify(dataToCache));
+            // Carrega o conteúdo da página
             loadEventPageContent(eventId, token, hasPaid);
         });
     }
