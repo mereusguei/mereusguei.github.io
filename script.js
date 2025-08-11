@@ -188,12 +188,21 @@ if (saveBonusBtnContainer) {
         } else {
             const paymentSection = document.getElementById('payment-section');
             if (paymentSection) {
-                paymentSection.innerHTML = `<button id="pay-btn" class="btn btn-primary btn-save-all">Liberar Palpites para "${eventData.eventName}" (R$ 5,00)</button>`;
-                document.getElementById('pay-btn').addEventListener('click', () => {
-                    // Chamada corrigida, sem o eventName
-                    handlePayment(eventId, token);
-                });
-            }
+    // Formata o preço vindo do banco para o formato de moeda brasileiro (BRL)
+    const formattedPrice = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(eventData.entry_price);
+
+    paymentSection.innerHTML = `
+        <button id="pay-btn" class="btn btn-primary btn-save-all">
+            Liberar Palpites para "${eventData.eventName}" (${formattedPrice})
+        </button>
+    `;
+    document.getElementById('pay-btn').addEventListener('click', () => {
+        handlePayment(eventId, token);
+    });
+}
             const fightGrid = document.getElementById('fight-card-grid');
             if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
             const bonusSection = document.querySelector('.bonus-picks-section');
