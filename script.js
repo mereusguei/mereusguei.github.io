@@ -212,6 +212,12 @@ async function loadEventPageContent(eventId, token, hasPaid) {
             const bonusSection = document.querySelector('.bonus-picks-section');
             if (bonusSection) bonusSection.style.display = 'none';
         }
+        // --- NOVA PARTE: REVELA O CONTEÚDO ---
+        document.querySelector('.event-header').classList.remove('content-hidden');
+        document.querySelector('.fight-card-section').classList.remove('content-hidden');
+        document.querySelector('.bonus-picks-section').classList.remove('content-hidden');
+        document.getElementById('payment-section').classList.remove('content-hidden');
+
     } catch (error) {
         if (mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
     }
@@ -576,6 +582,7 @@ function initializeEventPage(user, token) {
 
     if (!user || !token) {
         mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo!</h2><p>Faça login ou cadastre-se para participar.</p></div>`;
+        mainContent.classList.remove('content-hidden'); // Revela o container com a mensagem de login
         return;
     }
 

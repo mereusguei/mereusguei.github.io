@@ -411,3 +411,7 @@ tr.apured .btn-primary {
     justify-content: space-between;
     align-items: center;
 }
+/* Esconde as seções dinâmicas por padrão para evitar "flash" de conteúdo */
+.content-hidden {
+    display: none !important;
+}
