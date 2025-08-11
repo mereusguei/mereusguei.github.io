@@ -125,8 +125,24 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
                 </div>
                 <button type="submit" class="btn btn-primary">Adicionar Luta</button>
             </form>
-        </section>
-    `;
+        
+        <!-- NOVO FORMULÁRIO PARA ALTERAR PREÇO -->
+        <hr style="border-color: var(--border-color); margin: 20px 0;">
+        <form id="edit-price-form">
+            <h3>Alterar Preço de Entrada do Evento</h3>
+            <div class="form-group">
+                <label>Selecione o Evento</label>
+                <select id="event-select-for-price" class="custom-select" required></select>
+            </div>
+            <div class="form-group">
+                <label>Novo Preço (Ex: 7.50)</label>
+                <input type="number" id="event-new-price" class="custom-select" step="0.01" min="0.50" required>
+            </div>
+            <button type="submit" class="btn">Alterar Preço</button>
+        </form>
+
+    </section>
+`;
 
     // 2. Constrói a seção de Apuração de Resultados por Evento
     let resultsAccordionHtml = `<div class="admin-section"><h2>Apuração de Resultados por Evento</h2>`;
@@ -507,6 +523,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 }
         });
     }
+    // Popula o novo dropdown de preço
+const eventSelectForPrice = document.getElementById('event-select-for-price');
+if (eventSelectForPrice) {
+    eventSelectForPrice.innerHTML = '<option value="">Selecione um Evento</option>';
+    allEventsData.forEach(event => {
+        const option = document.createElement('option');
+        option.value = event.eventId;
+        option.textContent = event.eventName;
+        eventSelectForPrice.appendChild(option);
+    });
+}
+
+// Listener para o formulário de alterar preço
+const editPriceForm = document.getElementById('edit-price-form');
+if (editPriceForm) {
+    editPriceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const eventId = document.getElementById('event-select-for-price').value;
+        const price = document.getElementById('event-new-price').value;
+
+        if (!eventId || !price) return alert('Por favor, selecione um evento e defina um preço.');
+        if (!confirm(`Confirmar alteração do preço para o evento ID ${eventId} para R$ ${price}?`)) return;
+
+        try {
+            const response = await fetch(`${API_URL}/api/admin/events/price/${eventId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ price })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            alert(data.message);
+            window.location.reload();
+        } catch (error) { alert(`Erro: ${error.message}`); }
+    });
+}
+    
     // --- LÓGICA FINAL PARA A SEÇÃO DE EDIÇÃO ---
     const editEventSelect = document.getElementById('edit-event-select');
     const editFormsContainer = document.getElementById('edit-forms-container');
