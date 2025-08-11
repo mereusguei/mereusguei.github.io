@@ -62,8 +62,11 @@ if (loginForm) {
             if (!response.ok) {
                 throw new Error(data.error || 'Algo deu errado');
             }
-            
-            // Login bem-sucedido! Salva o token e dados do usuário no navegador
+
+            // Login bem-sucedido!
+            sessionStorage.clear(); // <-- LINHA ADICIONADA: Limpa qualquer cache de sessão antigo
+
+            // Salva o novo token e os dados do novo usuário no navegador
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
