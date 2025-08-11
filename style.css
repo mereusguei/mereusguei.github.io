@@ -426,3 +426,56 @@ tr.apured .btn-primary {
 .content-hidden {
     display: none !important;
 }
+/* Estilos para a Página de Eventos */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+.event-card-link {
+    text-decoration: none;
+}
+.event-card {
+    position: relative;
+    height: 200px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px;
+    color: white;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+.event-card:hover {
+    transform: scale(1.05);
+}
+.event-card::before { /* Overlay escuro para legibilidade */
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1));
+    border-radius: 8px;
+}
+.event-card-info {
+    position: relative;
+    z-index: 2;
+}
+.event-card-info h3 {
+    font-family: var(--font-primary);
+    margin: 0;
+}
+.status-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+}

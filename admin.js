@@ -100,6 +100,7 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
                 <div class="form-group"><label>Nome do Evento (Ex: UFC 310)</label><input type="text" id="event-name" required></div>
                 <div class="form-group"><label>Data do Evento (YYYY-MM-DD HH:MM)</label><input type="datetime-local" id="event-date" required></div>
                 <div class="form-group"><label>Prazo para Palpites (YYYY-MM-DD HH:MM)</label><input type="datetime-local" id="picks-deadline" required></div>
+                <div class="form-group"><label>URL da Imagem do Card do Evento</label><input type="url" id="event-card-image"></div>
                 <button type="submit" class="btn btn-primary">Criar Evento</button>
             </form>
 
@@ -162,16 +163,16 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
     const picksAccordionHtml = buildPicksAccordion(allPicksData, allEventsData);
     const rankingsHtml = buildRankingsSection();
     const editSectionHtml = buildEditSection(allEventsData);
-    
+
     // 4. Junta tudo e insere na página
     adminMainContainer.innerHTML = eventManagerHtml + editSectionHtml + resultsAccordionHtml + picksAccordionHtml + rankingsHtml;
-    
+
     // 5. Bloco ESSENCIAL que você corretamente notou que estava faltando:
     //    Popula os dropdowns de bônus para CADA formulário de apuração
     allEventsData.forEach(event => {
-        populateBonusDropdowns(event.fights, event.eventId, { 
-            realFotnFightId: event.realFotnFightId, 
-            realPotnFighterName: event.realPotnFighterName 
+        populateBonusDropdowns(event.fights, event.eventId, {
+            realFotnFightId: event.realFotnFightId,
+            realPotnFighterName: event.realPotnFighterName
         });
     });
 }
@@ -195,10 +196,10 @@ function populateBonusDropdowns(eventFights, eventId, realValues) {
     const fotnSelect = form.querySelector('.real-fotn');
     const potnSelect = form.querySelector('.real-potn');
     if (!fotnSelect || !potnSelect) return;
-    
+
     fotnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
     potnSelect.innerHTML = '<option value="NONE">Nenhuma (sem bônus)</option>';
-    
+
     const allFighters = new Set();
     eventFights.forEach(fight => {
         const fotnOption = document.createElement('option');
@@ -208,7 +209,7 @@ function populateBonusDropdowns(eventFights, eventId, realValues) {
         allFighters.add(fight.fighter1_name);
         allFighters.add(fight.fighter2_name);
     });
-    
+
     allFighters.forEach(fighter => {
         const potnOption = document.createElement('option');
         potnOption.value = fighter;
@@ -238,7 +239,7 @@ async function handleSingleApuration(button, token) {
     // CORREÇÃO: Busca os elementos de bônus DENTRO do formulário correto
     const realFightOfTheNightId = form.querySelector('.real-fotn').value;
     const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
-    
+
     const body = {
         resultsArray: [{ fightId, winnerName, resultMethod, resultDetails }],
         realFightOfTheNightId: realFightOfTheNightId || 'NONE',
@@ -314,7 +315,7 @@ function addAdminActionListeners(token) {
             const eventId = target.dataset.eventId;
             const eventName = target.previousElementSibling.textContent;
             if (!confirm(`!! ATENÇÃO !!\n\nVocê tem certeza que deseja remover o evento inteiro "${eventName}"?\n\nIsso apagará TODAS as lutas, palpites, bônus e registros de pagamento. A ação é IRREVERSÍVEL.`)) return;
-            
+
             try {
                 const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
                     method: 'DELETE',
@@ -337,7 +338,7 @@ function addAdminActionListeners(token) {
             target.textContent = 'Salvar Correção';
             target.classList.remove('btn-edit-result');
             target.classList.add('submit-single-correction-btn');
-        } 
+        }
         // Lógica para o botão "Salvar Correção"
         else if (target.matches('.submit-single-correction-btn')) {
             console.log("Botão 'Salvar Correção' foi clicado! Chamando handleSingleApuration...");
@@ -355,18 +356,18 @@ function addAdminActionListeners(token) {
             const eventId = form.dataset.eventId; // Pega o ID do evento diretamente do formulário
             const resultsArray = [];
             const rows = form.querySelectorAll('tr[data-fight-id]');
-            
+
             rows.forEach(row => {
                 if (row.querySelector('select:disabled')) return;
-                const fightId = row.dataset.fightId, 
-                      winnerName = row.querySelector('.winner-select').value, 
-                      resultMethod = row.querySelector('.method-select').value, 
-                      resultDetails = row.querySelector('.details-input').value;
+                const fightId = row.dataset.fightId,
+                    winnerName = row.querySelector('.winner-select').value,
+                    resultMethod = row.querySelector('.method-select').value,
+                    resultDetails = row.querySelector('.details-input').value;
                 if (winnerName && resultMethod && resultDetails) {
                     resultsArray.push({ fightId, winnerName, resultMethod, resultDetails });
                 }
             });
-            
+
             const realFightOfTheNightId = form.querySelector('.real-fotn').value;
             const realPerformanceOfTheNightFighter = form.querySelector('.real-potn').value;
             const hasBonusToSubmit = realFightOfTheNightId && realPerformanceOfTheNightFighter;
@@ -421,164 +422,165 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     try {
-    adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
-    
-    // --- PASSO 1: BUSCA TODOS OS DADOS NECESSÁRIOS DO BACKEND ---
-    const eventsListResponse = await fetch(`${API_URL}/api/admin/events`, { headers: { 'Authorization': `Bearer ${token}` } });
-    if (!eventsListResponse.ok) throw new Error('Falha ao carregar lista de eventos.');
-    const eventsList = await eventsListResponse.json();
+        adminMainContainer.innerHTML = '<p>Carregando dados do painel...</p>';
 
-    const eventsDataPromises = eventsList.map(event => 
-        fetch(`${API_URL}/api/events/${event.id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
-    );
-    const allEventsDetails = await Promise.all(eventsDataPromises);
-    const allEventsData = allEventsDetails.map((details, index) => ({
-        eventId: eventsList[index].id,
-        eventName: details.eventName,
-        fights: details.fights,
-        realFotnFightId: details.realFotnFightId,
-        realPotnFighterName: details.realPotnFighterName
-    }));
+        // --- PASSO 1: BUSCA TODOS OS DADOS NECESSÁRIOS DO BACKEND ---
+        const eventsListResponse = await fetch(`${API_URL}/api/admin/events`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!eventsListResponse.ok) throw new Error('Falha ao carregar lista de eventos.');
+        const eventsList = await eventsListResponse.json();
 
-    const [allPicksResponse, accuracyResponse] = await Promise.all([
-        fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
-    ]);
-    if (allPicksResponse.status === 403 || accuracyResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
-    if (!allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados de palpites ou ranking.');
-    
-    const allPicksData = await allPicksResponse.json();
-    const accuracyData = await accuracyResponse.json();
-    
-    // --- PASSO 2: RENDERIZA TODA A ESTRUTURA HTML NA PÁGINA ---
-    renderAdminPanel(adminMainContainer, allPicksData, allEventsData);
-    
-    // --- PASSO 3: AGORA QUE OS ELEMENTOS EXISTEM, ADICIONA A INTERATIVIDADE (EVENT LISTENERS) ---
-    
-    // Lógica do Gerenciador de Eventos
-    const eventSelectForFight = document.getElementById('event-select-for-fight');
-    if (eventSelectForFight) {
-        eventSelectForFight.innerHTML = '<option value="">Selecione um Evento</option>';
-        allEventsData.forEach(event => {
-            const option = document.createElement('option');
-            option.value = event.eventId;
-            option.textContent = event.eventName;
-            eventSelectForFight.appendChild(option);
-        });
-    }
+        const eventsDataPromises = eventsList.map(event =>
+            fetch(`${API_URL}/api/events/${event.id}`, { headers: { 'Authorization': `Bearer ${token}` } }).then(res => res.json())
+        );
+        const allEventsDetails = await Promise.all(eventsDataPromises);
+        const allEventsData = allEventsDetails.map((details, index) => ({
+            eventId: eventsList[index].id,
+            eventName: details.eventName,
+            fights: details.fights,
+            realFotnFightId: details.realFotnFightId,
+            realPotnFighterName: details.realPotnFighterName
+        }));
 
-    const createEventForm = document.getElementById('create-event-form');
-    if (createEventForm) {
-        createEventForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const body = {
-    name: document.getElementById('event-name').value,
-    // Converte a data local do input para o formato ISO String (UTC)
-    eventDate: new Date(document.getElementById('event-date').value).toISOString(),
-    picksDeadline: new Date(document.getElementById('picks-deadline').value).toISOString(),
-};
-            try {
-                const response = await fetch(`${API_URL}/api/admin/events`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Falha ao criar evento.');
-                alert(data.message);
-                localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
-                window.location.reload();
-            } catch (error) { alert(`Erro: ${error.message}`); }
-        });
-    }
+        const [allPicksResponse, accuracyResponse] = await Promise.all([
+            fetch(`${API_URL}/api/admin/all-picks`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/api/rankings/accuracy`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        if (allPicksResponse.status === 403 || accuracyResponse.status === 403) throw new Error('Acesso negado. Você não tem permissão de administrador.');
+        if (!allPicksResponse.ok || !accuracyResponse.ok) throw new Error('Falha ao carregar dados de palpites ou ranking.');
 
-    const addFightForm = document.getElementById('add-fight-form');
-    if (addFightForm) {
-        addFightForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const inputs = addFightForm.querySelectorAll('input');
-            const body = {
-                event_id: document.getElementById('event-select-for-fight').value,
-                fighter1_name: inputs[0].value,
-                fighter1_record: inputs[1].value,
-                fighter1_img: inputs[2].value,
-                fighter2_name: inputs[3].value,
-                fighter2_record: inputs[4].value,
-                fighter2_img: inputs[5].value
-            };
-            try {
-    const response = await fetch(`${API_URL}/api/admin/fights`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(body)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Falha ao adicionar luta.');
-    
-    alert(data.message);
-    window.location.reload(); // CORREÇÃO: Recarrega a página para mostrar a nova luta
+        const allPicksData = await allPicksResponse.json();
+        const accuracyData = await accuracyResponse.json();
 
-} catch (error) { 
-    alert(`Erro: ${error.message}`); 
-}
-        });
-    }
-    // Popula o novo dropdown de preço
-const eventSelectForPrice = document.getElementById('event-select-for-price');
-if (eventSelectForPrice) {
-    eventSelectForPrice.innerHTML = '<option value="">Selecione um Evento</option>';
-    allEventsData.forEach(event => {
-        const option = document.createElement('option');
-        option.value = event.eventId;
-        option.textContent = event.eventName;
-        eventSelectForPrice.appendChild(option);
-    });
-}
+        // --- PASSO 2: RENDERIZA TODA A ESTRUTURA HTML NA PÁGINA ---
+        renderAdminPanel(adminMainContainer, allPicksData, allEventsData);
 
-// Listener para o formulário de alterar preço
-const editPriceForm = document.getElementById('edit-price-form');
-if (editPriceForm) {
-    editPriceForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const eventId = document.getElementById('event-select-for-price').value;
-        const price = document.getElementById('event-new-price').value;
+        // --- PASSO 3: AGORA QUE OS ELEMENTOS EXISTEM, ADICIONA A INTERATIVIDADE (EVENT LISTENERS) ---
 
-        if (!eventId || !price) return alert('Por favor, selecione um evento e defina um preço.');
-        if (!confirm(`Confirmar alteração do preço para o evento ID ${eventId} para R$ ${price}?`)) return;
-
-        try {
-            const response = await fetch(`${API_URL}/api/admin/events/price/${eventId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ price })
+        // Lógica do Gerenciador de Eventos
+        const eventSelectForFight = document.getElementById('event-select-for-fight');
+        if (eventSelectForFight) {
+            eventSelectForFight.innerHTML = '<option value="">Selecione um Evento</option>';
+            allEventsData.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.eventId;
+                option.textContent = event.eventName;
+                eventSelectForFight.appendChild(option);
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error);
-            alert(data.message);
-            window.location.reload();
-        } catch (error) { alert(`Erro: ${error.message}`); }
-    });
-}
-    
-    // --- LÓGICA FINAL PARA A SEÇÃO DE EDIÇÃO ---
-    const editEventSelect = document.getElementById('edit-event-select');
-    const editFormsContainer = document.getElementById('edit-forms-container');
+        }
 
-    if (editEventSelect && editFormsContainer) {
-        
-        // Listener para quando o admin seleciona um evento para editar
-editEventSelect.addEventListener('change', () => {
-    const eventId = editEventSelect.value;
-    if (!eventId) {
-        editFormsContainer.innerHTML = '';
-        return;
-    }
+        const createEventForm = document.getElementById('create-event-form');
+        if (createEventForm) {
+            createEventForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const body = {
+                    name: document.getElementById('event-name').value,
+                    // Converte a data local do input para o formato ISO String (UTC)
+                    eventDate: new Date(document.getElementById('event-date').value).toISOString(),
+                    picksDeadline: new Date(document.getElementById('picks-deadline').value).toISOString(),
+                    card_image_url: document.getElementById('event-card-image').value // <-- LINHA ADICIONADA
+                };
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/events`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Falha ao criar evento.');
+                    alert(data.message);
+                    localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
+                    window.location.reload();
+                } catch (error) { alert(`Erro: ${error.message}`); }
+            });
+        }
 
-    const event = allEventsData.find(e => e.eventId == eventId);
-    if (!event) return;
+        const addFightForm = document.getElementById('add-fight-form');
+        if (addFightForm) {
+            addFightForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const inputs = addFightForm.querySelectorAll('input');
+                const body = {
+                    event_id: document.getElementById('event-select-for-fight').value,
+                    fighter1_name: inputs[0].value,
+                    fighter1_record: inputs[1].value,
+                    fighter1_img: inputs[2].value,
+                    fighter2_name: inputs[3].value,
+                    fighter2_record: inputs[4].value,
+                    fighter2_img: inputs[5].value
+                };
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/fights`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Falha ao adicionar luta.');
 
-    // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
-    let editHtml = `
+                    alert(data.message);
+                    window.location.reload(); // CORREÇÃO: Recarrega a página para mostrar a nova luta
+
+                } catch (error) {
+                    alert(`Erro: ${error.message}`);
+                }
+            });
+        }
+        // Popula o novo dropdown de preço
+        const eventSelectForPrice = document.getElementById('event-select-for-price');
+        if (eventSelectForPrice) {
+            eventSelectForPrice.innerHTML = '<option value="">Selecione um Evento</option>';
+            allEventsData.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.eventId;
+                option.textContent = event.eventName;
+                eventSelectForPrice.appendChild(option);
+            });
+        }
+
+        // Listener para o formulário de alterar preço
+        const editPriceForm = document.getElementById('edit-price-form');
+        if (editPriceForm) {
+            editPriceForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const eventId = document.getElementById('event-select-for-price').value;
+                const price = document.getElementById('event-new-price').value;
+
+                if (!eventId || !price) return alert('Por favor, selecione um evento e defina um preço.');
+                if (!confirm(`Confirmar alteração do preço para o evento ID ${eventId} para R$ ${price}?`)) return;
+
+                try {
+                    const response = await fetch(`${API_URL}/api/admin/events/price/${eventId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ price })
+                    });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error);
+                    alert(data.message);
+                    window.location.reload();
+                } catch (error) { alert(`Erro: ${error.message}`); }
+            });
+        }
+
+        // --- LÓGICA FINAL PARA A SEÇÃO DE EDIÇÃO ---
+        const editEventSelect = document.getElementById('edit-event-select');
+        const editFormsContainer = document.getElementById('edit-forms-container');
+
+        if (editEventSelect && editFormsContainer) {
+
+            // Listener para quando o admin seleciona um evento para editar
+            editEventSelect.addEventListener('change', () => {
+                const eventId = editEventSelect.value;
+                if (!eventId) {
+                    editFormsContainer.innerHTML = '';
+                    return;
+                }
+
+                const event = allEventsData.find(e => e.eventId == eventId);
+                if (!event) return;
+
+                // --- Constrói o formulário de EDIÇÃO DO EVENTO ---
+                let editHtml = `
     <form id="edit-event-form-${eventId}" class="edit-event-form" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
             <h3>Editando: ${event.eventName}</h3>
             <div class="form-group">
@@ -593,20 +595,21 @@ editEventSelect.addEventListener('change', () => {
                 <label>Prazo para Palpites</label>
                 <input type="datetime-local" name="picksDeadline" value="${formatDateTimeForInput(event.picksDeadline)}" required>
             </div>
+            <div class="form-group"><label>URL da Imagem do Card</label><input type="url" name="card_image_url" value="${event.card_image_url || ''}"></div>
             <button type="submit" class="btn">Salvar Alterações do Evento</button>
         </form>
     `;
 
-    // --- Constrói a lista de LUTAS para edição ---
-    editHtml += `<div id="edit-fights-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                // --- Constrói a lista de LUTAS para edição ---
+                editHtml += `<div id="edit-fights-container" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                     <h3>Lutas do Evento (Arraste para Reordenar)</h3>
                     <ul id="fight-list-sortable">`;
 
-    // Ordena as lutas pela coluna 'fight_order' antes de exibi-las
-    const sortedFights = event.fights.sort((a, b) => a.fight_order - b.fight_order);
+                // Ordena as lutas pela coluna 'fight_order' antes de exibi-las
+                const sortedFights = event.fights.sort((a, b) => a.fight_order - b.fight_order);
 
-    sortedFights.forEach(fight => {
-        editHtml += `
+                sortedFights.forEach(fight => {
+                    editHtml += `
             <li data-fight-id="${fight.id}" class="sortable-item">
                 <form class="edit-fight-form" data-fight-id="${fight.id}">
                     <h4>${fight.fighter1_name} vs ${fight.fighter2_name}</h4>
@@ -625,84 +628,85 @@ editEventSelect.addEventListener('change', () => {
                     <button type="submit" class="btn">Salvar Alterações da Luta</button>
                 </form>
             </li>`;
-    });
-    editHtml += `</ul><button type="button" id="save-order-btn" class="btn btn-primary" style="margin-top: 10px;">Salvar Ordem das Lutas</button></div>`;
-    
-    editFormsContainer.innerHTML = editHtml;
-});
+                });
+                editHtml += `</ul><button type="button" id="save-order-btn" class="btn btn-primary" style="margin-top: 10px;">Salvar Ordem das Lutas</button></div>`;
 
-        // Listener GERAL para os formulários de edição
-        editFormsContainer.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-
-            // --- Lógica para EDITAR EVENTO ---
-            if (form.matches('.edit-event-form')) {
-                const eventId = editEventSelect.value;
-                const body = {
-    name: form.querySelector('[name="name"]').value,
-    eventDate: new Date(form.querySelector('[name="eventDate"]').value).toISOString(),
-    picksDeadline: new Date(form.querySelector('[name="picksDeadline"]').value).toISOString()
-};
-                try {
-    const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(body)
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
-
-    // --- LINHA DA CORREÇÃO ADICIONADA AQUI ---
-    localStorage.setItem('dataCacheInvalidated', 'true');
-
-    alert(data.message);
-    window.location.reload();
-} catch (error) { alert(`Erro: ${error.message}`); }
-            }
-
-            // --- Lógica para EDITAR LUTA ---
-            if (form.matches('.edit-fight-form')) {
-                const fightId = form.dataset.fightId;
-                const body = {
-                    fighter1_name: form.querySelector('[name="fighter1_name"]').value,
-                    fighter1_record: form.querySelector('[name="fighter1_record"]').value,
-                    fighter1_img: form.querySelector('[name="fighter1_img"]').value,
-                    fighter2_name: form.querySelector('[name="fighter2_name"]').value,
-                    fighter2_record: form.querySelector('[name="fighter2_record"]').value,
-                    fighter2_img: form.querySelector('[name="fighter2_img"]').value
-                };
-                try {
-                    const response = await fetch(`${API_URL}/api/admin/fights/${fightId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify(body)
-                    });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.error);
-                    alert(data.message);
-                    localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
-                    window.location.reload();
-                } catch (error) { alert(`Erro: ${error.message}`); }
-            }
-        });
-    }
-
-    // Lógica da Apuração e Rankings (que já estava correta)
-    addAdminActionListeners(token);
-    const adminRankingContainer = document.getElementById('admin-ranking-content');
-    if (adminRankingContainer) {
-        renderRankingTable(adminRankingContainer, accuracyData, 'general');
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelector('.tab-button.active').classList.remove('active');
-                button.classList.add('active');
-                renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+                editFormsContainer.innerHTML = editHtml;
             });
-        });
+
+            // Listener GERAL para os formulários de edição
+            editFormsContainer.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+
+                // --- Lógica para EDITAR EVENTO ---
+                if (form.matches('.edit-event-form')) {
+                    const eventId = editEventSelect.value;
+                    const body = {
+                        name: form.querySelector('[name="name"]').value,
+                        eventDate: new Date(form.querySelector('[name="eventDate"]').value).toISOString(),
+                        picksDeadline: new Date(form.querySelector('[name="picksDeadline"]').value).toISOString(),
+                        card_image_url: form.querySelector('[name="card_image_url"]').value
+                    };
+                    try {
+                        const response = await fetch(`${API_URL}/api/admin/events/${eventId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error);
+
+                        // --- LINHA DA CORREÇÃO ADICIONADA AQUI ---
+                        localStorage.setItem('dataCacheInvalidated', 'true');
+
+                        alert(data.message);
+                        window.location.reload();
+                    } catch (error) { alert(`Erro: ${error.message}`); }
+                }
+
+                // --- Lógica para EDITAR LUTA ---
+                if (form.matches('.edit-fight-form')) {
+                    const fightId = form.dataset.fightId;
+                    const body = {
+                        fighter1_name: form.querySelector('[name="fighter1_name"]').value,
+                        fighter1_record: form.querySelector('[name="fighter1_record"]').value,
+                        fighter1_img: form.querySelector('[name="fighter1_img"]').value,
+                        fighter2_name: form.querySelector('[name="fighter2_name"]').value,
+                        fighter2_record: form.querySelector('[name="fighter2_record"]').value,
+                        fighter2_img: form.querySelector('[name="fighter2_img"]').value
+                    };
+                    try {
+                        const response = await fetch(`${API_URL}/api/admin/fights/${fightId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify(body)
+                        });
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error);
+                        alert(data.message);
+                        localStorage.setItem('dataCacheInvalidated', 'true'); // Sinaliza que os dados mudaram
+                        window.location.reload();
+                    } catch (error) { alert(`Erro: ${error.message}`); }
+                }
+            });
+        }
+
+        // Lógica da Apuração e Rankings (que já estava correta)
+        addAdminActionListeners(token);
+        const adminRankingContainer = document.getElementById('admin-ranking-content');
+        if (adminRankingContainer) {
+            renderRankingTable(adminRankingContainer, accuracyData, 'general');
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelector('.tab-button.active').classList.remove('active');
+                    button.classList.add('active');
+                    renderRankingTable(adminRankingContainer, accuracyData, button.dataset.ranking);
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar painel de admin:', error);
+        adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
     }
-} catch (error) {
-    console.error('Erro ao carregar painel de admin:', error);
-    adminMainContainer.innerHTML = `<div class="admin-section"><h2 style="color:red;">Erro ao Carregar Painel</h2><p>${error.message}</p></div>`;
-}
 });

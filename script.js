@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user && token) {
             // Se o usuário está LOGADO, monta a navegação completa
             userNavigation.innerHTML = `
-                <div class="nav-links">
-                    <a href="index.html" class="btn">Eventos</a>
-                    <a href="ranking.html" class="btn">Ranking</a>
-                </div>
+    <div class="nav-links">
+        <a href="events.html" class="btn">Eventos</a>
+        <a href="ranking.html" class="btn">Ranking</a>
+    </div>
                 <div class="user-profile">
                     <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
                     <span>Olá, ${user.username}</span>
@@ -613,7 +613,15 @@ function initializeEventPage(user, token) {
         loadEventPageContent(parsedCachedData.eventId, token, parsedCachedData.hasPaid);
     } else {
         // Se não houver cache, faz a chamada à API como antes
-        const eventId = 1;
+        // Pega o parâmetro 'eventId' da URL (ex: index.html?eventId=2)
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('eventId');
+
+        // Se NENHUM eventId for passado na URL, redireciona para a nova página de eventos
+        if (!eventId) {
+            window.location.href = 'events.html';
+            return; // Para a execução para evitar erros
+        }
         checkPaymentStatus(eventId, token).then(hasPaid => {
             // Salva os dados no cache da sessão para recarregamentos rápidos
             const dataToCache = { eventId, hasPaid, timestamp: new Date().getTime() };

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <!-- Inclua o mesmo <head> completo do seu index.html -->
+    <title>Eventos - Octagon Oracle</title>
+</head>
+<body id="events-page"> <!-- Novo ID para esta página -->
+
+    <header class="main-header">
+        <a href="index.html" style="text-decoration: none;"><h1 class="logo">OCTAGON <span>ORACLE</span></h1></a>
+        <nav class="user-nav" id="user-navigation"></nav>
+    </header>
+
+    <main class="container">
+        <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
+            <button class="tab-button active" data-status="upcoming">Próximos Eventos</button>
+            <button class="tab-button" data-status="past">Eventos Encerrados</button>
+        </div>
+        <div class="events-grid" id="events-grid-container">
+            <p style="text-align: center;">Carregando eventos...</p>
+        </div>
+    </main>
+    
+    <script src="navigation.js"></script>
+    <script src="events.js"></script> <!-- Um novo script dedicado -->
+</body>
+</html>
