@@ -415,3 +415,10 @@ tr.apured .btn-primary {
 .content-hidden {
     display: none !important;
 }
+#countdown {
+    opacity: 0; /* Começa invisível */
+    transition: opacity 0.5s ease-in-out; /* Animação de fade-in */
+}
+#countdown.visible {
+    opacity: 1; /* Classe para torná-lo visível */
+}

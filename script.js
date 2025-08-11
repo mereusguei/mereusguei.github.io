@@ -326,6 +326,8 @@ function startCountdown(deadline) {
 
         countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }, 1000);
+    // Ao final da função, adiciona a classe para revelar o timer
+    countdownElement.classList.add('visible');
 }
 
 function populateBonusPicks(fights) {
