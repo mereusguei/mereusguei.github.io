@@ -136,7 +136,7 @@ function renderAdminPanel(adminMainContainer, allPicksData, allEventsData) {
             </div>
             <div class="form-group">
                 <label>Novo Preço (Ex: 7.50)</label>
-                <input type="number" id="event-new-price" class="custom-select" step="0.01" min="0.50" required>
+                <input type="number" id="event-new-price" class="custom-select" step="0.01" min="0.01" required>
             </div>
             <button type="submit" class="btn">Alterar Preço</button>
         </form>
