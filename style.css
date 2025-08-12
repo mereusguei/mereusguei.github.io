@@ -495,12 +495,14 @@ tr.apured .btn-primary {
     transform: translateY(-5px);
     box-shadow: 0 0 20px var(--border-color);
 }
-.event-card::before { /* Overlay escuro para legibilidade */
+/* O gradiente fica por cima da imagem, mas atrás do texto */
+.event-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.1));
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0) 60%);
     border-radius: 8px;
+    z-index: 1; /* O gradiente fica na camada 1 */
 }
 .event-card-info {
     position: relative;
