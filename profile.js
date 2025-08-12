@@ -1,6 +1,4 @@
-// ================== CÓDIGO COMPLETO PARA profile.js ==================
 const API_URL = 'https://site-palpites-pagos.vercel.app';
-// --- ADICIONE SUAS CREDENCIAIS DO CLOUDINARY AQUI ---
 const CLOUDINARY_CLOUD_NAME = 'dkqxyj4te';
 const CLOUDINARY_UPLOAD_PRESET = 'ejlzebde';
 
@@ -19,21 +17,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileForm = document.getElementById('profile-form');
     const profileMessage = document.getElementById('profile-message');
 
-    // Preenche os dados iniciais do usuário
     if (usernameDisplay) usernameDisplay.value = user.username;
-    if (profilePicPreview) {
-        // Busca a URL da foto do banco de dados (precisamos adicionar isso na API de login)
-        // Por enquanto, usaremos um placeholder se não houver URL
-        // Exemplo: profilePicPreview.src = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
-        profilePicPreview.src = `https://i.pravatar.cc/150?u=${user.username}`; // Placeholder atual
-    }
 
-    // --- NOVA LÓGICA DE PREVIEW DA IMAGEM ---
+    // Lógica para carregar a foto de perfil salva do usuário (a ser implementada no backend)
+    // if (user.profile_picture_url) {
+    //     profilePicPreview.src = user.profile_picture_url;
+    // } else {
+    profilePicPreview.src = `https://i.pravatar.cc/150?u=${user.username}`;
+    // }
+
     if (profilePicUpload && profilePicPreview) {
         profilePicUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
-                // Cria uma URL temporária para o preview da imagem selecionada
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     profilePicPreview.src = e.target.result;
@@ -55,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const imageFile = profilePicUpload.files[0];
             let profilePictureUrl = null;
 
-            // 1. Faz o upload da imagem para o Cloudinary, SE uma nova foi selecionada
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('file', imageFile);
@@ -83,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return profileMessage.textContent = 'Nenhuma alteração para salvar.';
             }
 
-            // 2. Envia os dados para o nosso backend
             try {
                 const response = await fetch(`${API_URL}/api/users/profile`, {
                     method: 'PUT',
@@ -96,7 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 profileMessage.className = 'success';
                 profileMessage.textContent = data.message;
                 document.getElementById('new-password').value = '';
-                profilePicUpload.value = ''; // Limpa a seleção do arquivo
+                profilePicUpload.value = '';
+
+                // Atualiza o objeto 'user' no localStorage se a foto mudou
+                if (profilePictureUrl) {
+                    const updatedUser = { ...user, profile_picture_url: profilePictureUrl };
+                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                }
+
             } catch (error) {
                 profileMessage.className = 'error';
                 profileMessage.textContent = `Erro: ${error.message}`;
