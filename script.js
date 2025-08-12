@@ -1,7 +1,7 @@
 // URL da sua API (quando estiver rodando localmente)
 const API_URL = 'https://site-palpites-pagos.vercel.app';
 
-// FUNÇÃO PRINCIPAL QUE RODA QUANDO UMA PÁGINA É CARREGADA
+// --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- LÓGICA DE NAVEGAÇÃO (Roda em todas as páginas que têm a barra de navegação) ---
@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user && token) {
             // Se o usuário está LOGADO, monta a navegação completa
             userNavigation.innerHTML = `
-    <div class="nav-links">
-        <a href="events.html" class="btn">Eventos</a>
-        <a href="ranking.html" class="btn">Ranking</a>
-    </div>
+                <div class="nav-links">
+                    <a href="events.html" class="btn">Eventos</a>
+                    <a href="ranking.html" class="btn">Ranking</a>
+                </div>
                 <div class="user-profile">
                     <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
                     <span>Olá, ${user.username}</span>
@@ -26,11 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const logoutBtn = document.getElementById('logout-btn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
-                    // Limpa AMBOS os storages para garantir um logout completo
                     localStorage.clear();
-                    sessionStorage.clear(); // <-- LINHA ADICIONADA
-
-                    alert('Você saiu.');
+                    sessionStorage.clear();
                     window.location.href = 'login.html';
                 });
             }
@@ -50,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pageId === 'event-page') {
         initializeEventPage(user, token);
+    } else if (pageId === 'events-page') {
+        initializeEventsListPage(token);
     } else if (pageId === 'ranking-page') {
         initializeRankingPage(token);
     }
@@ -58,25 +57,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const fightCardGrid = document.getElementById('fight-card-grid');
     if (fightCardGrid) {
         fightCardGrid.addEventListener('click', (e) => {
-            // Verifica se o elemento clicado (ou um de seus pais) é um botão de palpite
             const button = e.target.closest('.btn-pick, .btn-edit-pick');
             if (button) {
-                // Se for, pega o ID da luta do card pai e abre o modal
                 const fightId = parseInt(button.closest('.fight-card').dataset.fightId);
                 openPickModal(fightId);
             }
         });
     }
-});
+}); // Fim do DOMContentLoaded
 
 
-// --- SEÇÃO DE FUNÇÕES GLOBAIS ---
-// Todas as funções que o site precisa para funcionar.
+// --- SEÇÃO DE FUNÇÕES GLOBAIS / AUXILIARES ---
 
-let eventData = {
-    fights: [],
-    userPicks: {}
-};
+let eventData = {}; // Variável global para armazenar dados do evento
 
 async function loadRanking(type, token, eventId = 1) {
     const rankingContent = document.getElementById('ranking-table-container');
@@ -575,28 +568,33 @@ function addPickButtonListeners() {
     });
 }
 
-// --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE EVENTOS (INDEX.HTML) ---
+// FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE DETALHES DO EVENTO (INDEX.HTML)
 function initializeEventPage(user, token) {
-    // --- NOVA VERIFICAÇÃO DE PAGAMENTO ---
-    const paymentStatusChanged = localStorage.getItem('paymentStatusChanged') === 'true';
-    if (paymentStatusChanged) {
-        // Se o status do pagamento mudou, removemos o cache antigo
-        sessionStorage.removeItem('eventDataCache');
-        localStorage.removeItem('paymentStatusChanged'); // Limpa o sinalizador
-    }
-    // --- FIM DA NOVA VERIFICAÇÃO ---
-
     const mainContent = document.querySelector('.container');
     if (!mainContent) return;
 
+    // --- VERIFICAÇÃO DE LOGIN ---
     if (!user || !token) {
         mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo!</h2><p>Faça login ou cadastre-se para participar.</p></div>`;
-        // Adiciona a linha para revelar o container com a mensagem de login
         mainContent.classList.remove('content-hidden');
         return;
     }
 
-    // --- NOVA LÓGICA DE CACHE E CARREGAMENTO ---
+    // --- LÓGICA DE CACHE E REDIRECIONAMENTO ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('eventId');
+
+    if (!eventId) {
+        window.location.href = 'events.html';
+        return;
+    }
+
+    const paymentStatusChanged = localStorage.getItem('paymentStatusChanged') === 'true';
+    if (paymentStatusChanged) {
+        sessionStorage.removeItem('eventDataCache');
+        localStorage.removeItem('paymentStatusChanged');
+    }
+
     const isDataInvalidated = localStorage.getItem('dataCacheInvalidated') === 'true';
     if (isDataInvalidated) {
         sessionStorage.removeItem('eventDataCache');
@@ -604,35 +602,58 @@ function initializeEventPage(user, token) {
     }
 
     const cachedData = sessionStorage.getItem('eventDataCache');
-
-    // Converte o JSON do cache UMA VEZ
     const parsedCachedData = cachedData ? JSON.parse(cachedData) : null;
 
-    if (parsedCachedData && parsedCachedData.eventId) { // Verifica se o cache é válido
-        // Se houver cache, usa os dados dele para renderizar a página instantaneamente
+    if (parsedCachedData && parsedCachedData.eventId == eventId) {
         loadEventPageContent(parsedCachedData.eventId, token, parsedCachedData.hasPaid);
     } else {
-        // Se não houver cache, faz a chamada à API como antes
-        // Pega o parâmetro 'eventId' da URL (ex: index.html?eventId=2)
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('eventId');
-
-        // Se NENHUM eventId for passado na URL, redireciona para a nova página de eventos
-        if (!eventId) {
-            window.location.href = 'events.html';
-            return; // Para a execução para evitar erros
-        }
         checkPaymentStatus(eventId, token).then(hasPaid => {
-            // Salva os dados no cache da sessão para recarregamentos rápidos
             const dataToCache = { eventId, hasPaid, timestamp: new Date().getTime() };
             sessionStorage.setItem('eventDataCache', JSON.stringify(dataToCache));
-            // Carrega o conteúdo da página
             loadEventPageContent(eventId, token, hasPaid);
         });
     }
 }
 
-// --- FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE RANKING (RANKING.HTML) ---
+// FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE LISTA DE EVENTOS (EVENTS.HTML)
+function initializeEventsListPage(token) {
+    if (!token) { window.location.href = 'login.html'; return; }
+    const eventsGrid = document.getElementById('events-grid-container');
+
+    async function loadEvents(status) {
+        try {
+            eventsGrid.innerHTML = '<p style="text-align: center;">Carregando eventos...</p>';
+            const response = await fetch(`${API_URL}/api/events?status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar eventos.');
+            const events = await response.json();
+            let eventsHtml = '';
+            if (events.length === 0) {
+                eventsHtml = `<p style="text-align: center;">Nenhum evento encontrado.</p>`;
+            } else {
+                events.forEach(event => {
+                    const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+                    const eventLink = `index.html?eventId=${event.id}`;
+                    eventsHtml += `<a href="${eventLink}" class="event-card-link"><div class="event-card" style="background-image: url('${event.card_image_url || 'https://via.placeholder.com/400x200'}')">${status === 'past' ? '<span class="status-tag">Encerrado</span>' : ''}<div class="event-card-info"><h3>${event.name}</h3><p>${eventDate}</p></div></div></a>`;
+                });
+            }
+            eventsGrid.innerHTML = eventsHtml;
+        } catch (error) {
+            eventsGrid.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
+        }
+    }
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelector('.tab-button.active').classList.remove('active');
+            button.classList.add('active');
+            loadEvents(button.dataset.status);
+        });
+    });
+
+    loadEvents('upcoming');
+}
+
+// FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE RANKING (RANKING.HTML)
 function initializeRankingPage(token) {
     if (!token) {
         window.location.href = 'login.html'; // Protege a página
