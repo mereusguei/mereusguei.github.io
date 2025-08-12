@@ -27,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Lógica de PREVIEW da imagem (já estava correta)
     if (profilePicUpload && profilePicPreview) {
+        console.log("Elemento de upload encontrado. Adicionando listener..."); // <-- Espião #1
         profilePicUpload.addEventListener('change', (event) => {
+            console.log("EVENTO 'CHANGE' DISPARADO! O usuário selecionou um arquivo."); // <-- Espião #2
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
