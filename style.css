@@ -426,10 +426,37 @@ tr.apured .btn-primary {
 .content-hidden {
     display: none !important;
 }
-/* Estilos para a Página de Eventos */
+/* Estilos para os botões de aba (Próximos/Encerrados) */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    justify-content: center; /* Centraliza as abas */
+}
+
+.tab-button {
+    border: 1px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    padding: 10px 20px;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+.tab-button.active, .tab-button:hover {
+    background: var(--primary-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+/* Estilos para os Cards de Evento */
 .events-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
 }
 .event-card-link {
@@ -448,15 +475,17 @@ tr.apured .btn-primary {
     color: white;
     overflow: hidden;
     transition: transform 0.3s ease;
+    border: 1px solid var(--border-color);
 }
 .event-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px var(--border-color);
 }
 .event-card::before { /* Overlay escuro para legibilidade */
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.1));
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.1));
     border-radius: 8px;
 }
 .event-card-info {
@@ -466,11 +495,12 @@ tr.apured .btn-primary {
 .event-card-info h3 {
     font-family: var(--font-primary);
     margin: 0;
+    margin-bottom: 5px;
 }
 .status-tag {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     background-color: var(--secondary-color);
     color: white;
     padding: 5px 10px;
