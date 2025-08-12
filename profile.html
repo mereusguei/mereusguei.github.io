@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=5.2">
+    <link rel="stylesheet" href="style.css?v=5.3">
 </head>
 
 <body id="profile-page">
@@ -30,6 +30,7 @@
 
             <!-- SEÇÃO 1: FOTO DE PERFIL -->
             <section class="admin-section">
+                <!-- 1.1 e 1.2: Título centralizado e botão sem animação no hover -->
                 <h2>Foto de Perfil</h2>
                 <div class="profile-pic-section">
                     <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
@@ -37,7 +38,8 @@
                         <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
                             style="display: none;">
                         <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
-                        <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
+                        <!-- 1.3: Tooltip adicionado -->
+                        <small class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
                         <button type="button" id="cancel-photo-btn" class="btn btn-danger"
                             style="display: none;">Reverter</button>
                     </div>
@@ -46,14 +48,18 @@
 
             <!-- SEÇÃO 2: NOME DE USUÁRIO E SENHA -->
             <section class="admin-section">
-                <h2>Nome de Usuário e Senha</h2>
+                <!-- 1.5: Título ajustado -->
+                <h2>Detalhes da Conta</h2>
 
                 <!-- Campo de Nome de Usuário -->
                 <div class="form-group">
-                    <label>Nome de Usuário</label>
+                    <!-- 1.4: Label removido -->
                     <input type="text" id="username-display" class="profile-input" disabled>
-                    <button type="button" class="btn" disabled
-                        title="A alteração de nome de usuário não está disponível.">Alterar Nome de Usuário</button>
+                    <!-- 1.6: Botão com tooltip -->
+                    <div class="tooltip-container">
+                        <button type="button" class="btn" disabled>Alterar Nome de Usuário</button>
+                        <small class="tooltip-text-static">A alteração de nome de usuário não está disponível.</small>
+                    </div>
                 </div>
 
                 <hr style="border-color: var(--border-color); margin: 30px 0;">
@@ -61,7 +67,9 @@
                 <!-- Seção de Senha -->
                 <div id="password-section">
                     <div class="form-group">
-                        <label>Senha</label>
+                        <!-- 1.7: Título "Senha" adicionado -->
+                        <h3>Senha</h3>
+                        <!-- 1.6: Label removido -->
                         <div id="password-display-area">
                             <input type="password" class="profile-input" value="********" disabled>
                             <button type="button" id="show-change-password-btn" class="btn">Alterar Senha</button>
@@ -85,7 +93,7 @@
         </div>
     </main>
 
-    <script src="script.js?v=5.2"></script>
+    <script src="script.js?v=5.3"></script>
 </body>
 
 </html>
