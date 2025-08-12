@@ -152,7 +152,7 @@ function initializeNavigation(user, token) {
 }
 
 function initializeProfilePage(user, token) {
-    if (!user) { window.location.href = 'login.html'; return; } // Protege a página
+    if (!user) { window.location.href = 'login.html'; return; }
 
     // --- Seletores de Elementos ---
     const usernameDisplay = document.getElementById('username-display');
@@ -160,7 +160,7 @@ function initializeProfilePage(user, token) {
     const profilePicUpload = document.getElementById('profile-pic-upload');
     const changePhotoBtn = document.getElementById('change-photo-btn');
     const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
-    const photoStatusText = document.getElementById('photo-status-text'); // Tooltip
+    const photoStatusText = document.getElementById('photo-status-text');
     const profileMessage = document.getElementById('profile-message');
     const showChangePasswordBtn = document.getElementById('show-change-password-btn');
     const passwordDisplayArea = document.getElementById('password-display-area');
@@ -168,126 +168,99 @@ function initializeProfilePage(user, token) {
     const passwordForm = document.getElementById('password-form');
     const cancelPasswordBtn = document.getElementById('cancel-password-btn');
 
-    // Guarda a URL da foto anterior para reversão
     let photoBeforeEdit = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
 
-    // Função para gerenciar o estado da interface de upload de foto
-    function setPhotoUIState(state) {
-        if (state === 'idle') { // Estado inicial ou após cancelar
+    function setUIState(state) {
+        if (state === 'idle') {
             changePhotoBtn.textContent = 'Alterar Foto';
             changePhotoBtn.disabled = false;
-            cancelPhotoBtn.style.display = 'none'; // Esconde o botão cancelar/reverter
-            photoStatusText.style.display = 'block'; // Mostra o tooltip
-        } else if (state === 'uploading') { // Durante o upload
+            cancelPhotoBtn.style.display = 'none';
+            photoStatusText.style.display = 'block';
+        } else if (state === 'uploading') {
             changePhotoBtn.textContent = 'Enviando...';
             changePhotoBtn.disabled = true;
             cancelPhotoBtn.style.display = 'inline-block';
-            cancelPhotoBtn.textContent = 'Cancelar'; // Muda o texto do botão para Cancelar
-            photoStatusText.style.display = 'none'; // Esconde o tooltip
-        } else if (state === 'success') { // Após upload bem-sucedido
+            cancelPhotoBtn.textContent = 'Cancelar'; // Durante o upload, o botão é 'Cancelar'
+            photoStatusText.style.display = 'none';
+        } else if (state === 'success') {
             changePhotoBtn.textContent = 'Foto Atualizada ✔️';
-            changePhotoBtn.disabled = true; // Desabilita após sucesso
-            cancelPhotoBtn.textContent = 'Reverter'; // Muda o texto para Reverter
+            changePhotoBtn.disabled = true;
+            cancelPhotoBtn.textContent = 'Reverter'; // Após o sucesso, o botão é 'Reverter'
             cancelPhotoBtn.style.display = 'inline-block';
             photoStatusText.style.display = 'none';
         }
     }
 
-    // Preenche os campos de nome e foto
     if (usernameDisplay) usernameDisplay.value = user.username;
     if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
 
-    // Listener para o botão "Alterar Foto" que ativa o input de arquivo
-    changePhotoBtn?.addEventListener('click', () => {
-        if (!changePhotoBtn.disabled) { // Só ativa se não estiver desabilitado
-            profilePicUpload?.click();
-        }
-    });
+    changePhotoBtn?.addEventListener('click', () => { if (!changePhotoBtn.disabled) profilePicUpload?.click(); });
 
-    // Listener para o input de arquivo de foto
     profilePicUpload?.addEventListener('change', async (event) => {
         const file = event.target.files[0];
-        if (!file) return; // Sai se nenhum arquivo foi selecionado
+        if (!file) return;
 
-        // Preview da imagem selecionada
         const reader = new FileReader();
-        reader.onload = e => {
-            if (profilePicPreview) profilePicPreview.src = e.target.result;
-        };
+        reader.onload = e => { if (profilePicPreview) profilePicPreview.src = e.target.result; };
         reader.readAsDataURL(file);
 
-        setPhotoUIState('uploading'); // Muda UI para estado de upload
+        setUIState('uploading');
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'ml_default'); // Use seu preset do Cloudinary
-        formData.append('cloud_name', 'djzz8b53h'); // Use seu cloud name do Cloudinary
-
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
         try {
-            // Upload para o Cloudinary
-            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/djzz8b53h/image/upload`, { method: 'POST', body: formData });
+            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
             const uploadData = await uploadResponse.json();
-
             if (!uploadData.secure_url) throw new Error('Falha no upload para o Cloudinary.');
 
-            // Atualiza a URL da foto no backend da sua aplicação
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ profilePictureUrl: uploadData.secure_url })
             });
 
-            // Atualiza os dados do usuário no localStorage e na navegação
             const updatedUser = { ...user, profile_picture_url: uploadData.secure_url };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
             const headerProfilePic = document.querySelector('.user-profile img');
             if (headerProfilePic) headerProfilePic.src = uploadData.secure_url;
 
-            setPhotoUIState('success'); // Muda UI para estado de sucesso
+            setUIState('success');
         } catch (error) {
-            alert(`Erro ao atualizar foto: ${error.message}`);
-            setPhotoUIState('idle'); // Volta para estado idle em caso de erro
-            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit; // Reverte o preview
+            alert(`Erro: ${error.message}`);
+            setUIState('idle');
+            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit; // Reverte o preview em caso de erro
         }
     });
 
-    // Listener para o botão "Reverter" ou "Cancelar" a foto
     cancelPhotoBtn?.addEventListener('click', async () => {
-        if (cancelPhotoBtn.textContent === 'Cancelar') { // Se for o botão de Cancelar durante upload
-            // Implementar lógica de cancelamento de upload se necessário (geralmente mais complexo)
-            // Por enquanto, apenas volta ao estado inicial
-            setPhotoUIState('idle');
-            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit; // Reverte o preview
-            // Limpa o input de arquivo
-            if (profilePicUpload) profilePicUpload.value = '';
-        } else { // Se for o botão de Reverter após sucesso
-            if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
+        // A lógica de reversão agora usa a variável 'photoBeforeEdit'
+        if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
 
-            try {
-                // Envia a URL da foto anterior de volta para o backend
-                await fetch(`${API_URL}/api/users/profile`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ profilePictureUrl: photoBeforeEdit })
-                });
+        try {
+            // Envia a URL da foto anterior de volta para o backend
+            await fetch(`${API_URL}/api/users/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ profilePictureUrl: photoBeforeEdit })
+            });
 
-                // Atualiza o localStorage e a UI
-                const revertedUser = { ...user, profile_picture_url: photoBeforeEdit };
-                localStorage.setItem('user', JSON.stringify(revertedUser));
+            // Atualiza o localStorage e a UI
+            const revertedUser = { ...user, profile_picture_url: photoBeforeEdit };
+            localStorage.setItem('user', JSON.stringify(revertedUser));
 
-                const headerProfilePic = document.querySelector('.user-profile img');
-                if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
-                if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
+            const headerProfilePic = document.querySelector('.user-profile img');
+            if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
 
-                setPhotoUIState('idle'); // Volta para estado idle
-            } catch (error) {
-                alert(`Erro ao reverter foto: ${error.message}`);
-            }
+            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
+            setUIState('idle');
+        } catch (error) {
+            alert(`Erro ao reverter: ${error.message}`);
         }
     });
 
-    // --- LÓGICA PARA ALTERAÇÃO DE SENHA ---
+    // --- NOVA LÓGICA PARA ALTERAÇÃO DE SENHA ---
     if (showChangePasswordBtn) {
         showChangePasswordBtn.addEventListener('click', () => {
             passwordDisplayArea.style.display = 'none';
@@ -299,7 +272,6 @@ function initializeProfilePage(user, token) {
         cancelPasswordBtn.addEventListener('click', () => {
             passwordEditArea.style.display = 'none';
             passwordDisplayArea.style.display = 'block';
-            // Limpa os campos e mensagens de erro/sucesso
             document.getElementById('new-password').value = '';
             if (profileMessage) profileMessage.textContent = '';
         });
@@ -311,9 +283,8 @@ function initializeProfilePage(user, token) {
             const submitButton = passwordForm.querySelector('button[type="submit"]');
             const newPassword = document.getElementById('new-password').value;
 
-            // Validações da senha
             if (!newPassword) {
-                if (profileMessage) profileMessage.textContent = 'Por favor, digite a nova senha.';
+                if (profileMessage) profileMessage.textContent = 'Digite a nova senha para salvá-la.';
                 return;
             }
             if (newPassword.length < 6) {
@@ -321,29 +292,25 @@ function initializeProfilePage(user, token) {
                 return;
             }
 
-            // Prepara o botão de submit
             submitButton.textContent = 'Salvando Senha...';
             submitButton.disabled = true;
-            if (profileMessage) profileMessage.textContent = ''; // Limpa mensagens anteriores
+            if (profileMessage) profileMessage.textContent = '';
 
             try {
-                // Envia a nova senha para o backend
                 const response = await fetch(`${API_URL}/api/users/profile`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ newPassword }) // Envia apenas a nova senha
+                    body: JSON.stringify({ newPassword })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                // Feedback de sucesso
                 if (profileMessage) {
-                    profileMessage.className = 'success'; // Adiciona uma classe para estilizar a mensagem
-                    profileMessage.textContent = data.message || 'Senha alterada com sucesso!';
+                    profileMessage.className = 'success';
+                    profileMessage.textContent = data.message + ' Sua senha foi alterada.';
                 }
-
-                // Volta para o estado de exibição da senha após um pequeno delay
-                setTimeout(() => {
+                // Volta para o estado de exibição
+                setTimeout(() => { // Pequeno delay para o usuário ver a mensagem de sucesso
                     passwordEditArea.style.display = 'none';
                     passwordDisplayArea.style.display = 'block';
                     document.getElementById('new-password').value = '';
@@ -351,13 +318,11 @@ function initializeProfilePage(user, token) {
                 }, 2000);
 
             } catch (error) {
-                // Feedback de erro
                 if (profileMessage) {
-                    profileMessage.className = 'error'; // Adiciona uma classe para estilizar a mensagem de erro
+                    profileMessage.className = 'error';
                     profileMessage.textContent = `Erro: ${error.message}`;
                 }
             } finally {
-                // Restaura o estado do botão de submit
                 submitButton.textContent = 'Salvar Nova Senha';
                 submitButton.disabled = false;
             }
@@ -365,7 +330,237 @@ function initializeProfilePage(user, token) {
     }
 }
 
-// --- FUNÇÕES AUXILIARES (as mesmas de antes, mas integradas) ---
+function initializeEventPage(user, token) {
+    const mainContent = document.querySelector('.container');
+    if (!mainContent) return;
+
+    // Protege a página caso o usuário não esteja logado
+    if (!user || !token) {
+        mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo!</h2><p>Faça login ou cadastre-se para participar.</p></div>`;
+        mainContent.classList.remove('content-hidden'); // Revela o conteúdo
+        return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('eventId') || '1'; // Pega o ID do evento da URL, default para '1'
+
+    // Lógica de invalidação de cache
+    const isInvalidated = localStorage.getItem('paymentStatusChanged') === 'true' || localStorage.getItem('dataCacheInvalidated') === 'true';
+    if (isInvalidated) {
+        sessionStorage.removeItem(`eventDataCache-${eventId}`); // Remove cache específico do evento
+        localStorage.removeItem('paymentStatusChanged'); // Limpa flags de invalidação
+        localStorage.removeItem('dataCacheInvalidated');
+    }
+
+    // Tenta carregar dados do cache
+    const cachedData = sessionStorage.getItem(`eventDataCache-${eventId}`);
+    const parsedCachedData = cachedData ? JSON.parse(cachedData) : null;
+
+    if (parsedCachedData) {
+        loadEventPageContent(eventId, token, parsedCachedData.hasPaid); // Usa dados do cache
+    } else {
+        // Se não há cache ou ele foi invalidado, busca o status de pagamento
+        checkPaymentStatus(eventId, token).then(hasPaid => {
+            // Salva os novos dados no cache
+            sessionStorage.setItem(`eventDataCache-${eventId}`, JSON.stringify({ eventId, hasPaid }));
+            loadEventPageContent(eventId, token, hasPaid);
+        }).catch(error => {
+            console.error("Erro ao verificar status de pagamento:", error);
+            mainContent.innerHTML = `<h2 style="color:red;">Erro ao carregar dados do evento.</h2>`;
+            mainContent.classList.remove('content-hidden');
+        });
+    }
+}
+
+function initializeEventsListPage(token) {
+    if (!token) { window.location.href = 'login.html'; return; } // Protege a página
+
+    const eventsGrid = document.getElementById('events-grid-container');
+
+    // Função interna para carregar a lista de eventos (futuros ou passados)
+    async function loadEvents(status) {
+        try {
+            eventsGrid.innerHTML = '<p style="text-align: center;">Carregando eventos...</p>';
+            const response = await fetch(`${API_URL}/api/events?status=${status}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar eventos.');
+            const events = await response.json();
+            let eventsHtml = '';
+            if (events.length === 0) {
+                eventsHtml = `<p style="text-align: center;">Nenhum evento ${status === 'upcoming' ? 'futuro' : 'passado'} encontrado.</p>`;
+            } else {
+                events.forEach((event, index) => {
+                    const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+                    const eventLink = `index.html?eventId=${event.id}`;
+                    let timerHtml = '';
+                    // Exibe o timer apenas para o primeiro evento futuro
+                    if (status === 'upcoming' && index === 0) {
+                        const countdownId = `event-countdown-${event.id}`;
+                        timerHtml = `<div class="event-card-timer"><strong id="${countdownId}">--:--:--</strong></div>`;
+                        // Inicia o countdown após um pequeno atraso para garantir que o elemento exista
+                        setTimeout(() => startCountdown(event.picks_deadline, countdownId), 0);
+                    }
+                    eventsHtml += `
+                        <a href="${eventLink}" class="event-card-link">
+                            <div class="event-card">
+                                <img src="${event.card_image_url || 'https://via.placeholder.com/400x200'}" class="event-card-bg" alt="${event.name || 'Evento'}">
+                                ${status === 'past' ? '<span class="status-tag">Encerrado</span>' : ''}
+                                ${timerHtml}
+                                <div class="event-card-info">
+                                    <h3>${event.name}</h3>
+                                    <p>${eventDate}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+            eventsGrid.innerHTML = eventsHtml;
+        } catch (error) {
+            eventsGrid.innerHTML = `<p style="color:red; text-align:center;">${error.message}</p>`;
+        }
+    }
+
+    // Adiciona listeners aos botões das abas para carregar eventos futuros/passados
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelector('.tab-button.active')?.classList.remove('active');
+            button.classList.add('active');
+            loadEvents(button.dataset.status);
+        });
+    });
+
+    loadEvents('upcoming'); // Carrega os eventos futuros por padrão
+}
+
+function initializeRankingPage(token) {
+    if (!token) { window.location.href = 'login.html'; return; } // Protege a página
+
+    const rankingContent = document.getElementById('ranking-table-container');
+    const eventSelectorContainer = document.getElementById('event-selector-container');
+    const eventSelect = document.getElementById('event-select');
+    let allEvents = []; // Armazena os eventos para popular o dropdown
+
+    // Função interna para carregar e exibir a tabela de ranking
+    function loadRankingTable(type, eventId = null) {
+        let url = `${API_URL}/api/rankings/`;
+        if (type === 'general') {
+            url += 'general';
+        } else if (type === 'event' && eventId) {
+            url += `event/${eventId}`;
+        } else {
+            if (rankingContent) rankingContent.innerHTML = '<p>Selecione um evento para ver o ranking.</p>';
+            return;
+        }
+
+        try {
+            rankingContent.innerHTML = '<p>Carregando ranking...</p>';
+            fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(response => {
+                    if (!response.ok) throw new Error('Falha ao carregar ranking.');
+                    return response.json();
+                })
+                .then(data => {
+                    buildTableHtml(type, data);
+                })
+                .catch(error => {
+                    rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
+                });
+        } catch (error) {
+            rankingContent.innerHTML = `<p style="color:red;">Erro ao buscar dados: ${error.message}</p>`;
+        }
+    }
+
+    // Função interna para construir o HTML da tabela
+    function buildTableHtml(type, data) {
+        if (!rankingContent) return;
+        let tableHtml = '<table><thead><tr><th>Posição</th><th>Usuário</th>';
+        let valueKey = '';
+
+        if (type === 'general') {
+            tableHtml += '<th>Pontuação Total</th></tr></thead><tbody>';
+            valueKey = 'total_points';
+        } else if (type === 'event') {
+            tableHtml += '<th>Pontos no Evento</th></tr></thead><tbody>';
+            valueKey = 'event_points';
+        } else {
+            rankingContent.innerHTML = '<p>Tipo de ranking inválido.</p>';
+            return;
+        }
+
+        if (data.length === 0) {
+            tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
+        } else {
+            data.forEach((row, index) => {
+                tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
+            });
+        }
+        tableHtml += '</tbody></table>';
+        rankingContent.innerHTML = tableHtml;
+    }
+
+    // Função para carregar os eventos no dropdown
+    async function loadEventsForSelector() {
+        try {
+            const response = await fetch(`${API_URL}/api/events?status=upcoming`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar eventos para o ranking.');
+            allEvents = await response.json();
+
+            if (eventSelect) {
+                // Limpa opções existentes (caso haja recarregamento)
+                eventSelect.innerHTML = '<option value="">Selecione um Evento...</option>';
+                allEvents.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.id;
+                    option.textContent = event.name;
+                    eventSelect.appendChild(option);
+                });
+                // Carrega o ranking do primeiro evento se houver
+                if (allEvents.length > 0) {
+                    loadRankingTable('event', allEvents[0].id);
+                } else {
+                    if (rankingContent) rankingContent.innerHTML = '<p>Nenhum evento encontrado para exibir ranking.</p>';
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao carregar eventos para o ranking:", error);
+            if (rankingContent) rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        }
+    }
+
+    // Adiciona listeners aos botões das abas (geral vs. evento)
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelector('.tab-button.active')?.classList.remove('active');
+            button.classList.add('active');
+            const rankingType = button.dataset.ranking;
+
+            if (rankingType === 'event') {
+                if (eventSelectorContainer) eventSelectorContainer.style.display = 'block';
+                if (eventSelect && eventSelect.value) {
+                    loadRankingTable('event', eventSelect.value);
+                } else if (allEvents.length > 0) { // Caso o dropdown já esteja populado mas nada foi selecionado
+                    loadRankingTable('event', allEvents[0].id);
+                }
+            } else {
+                if (eventSelectorContainer) eventSelectorContainer.style.display = 'none';
+                loadRankingTable('general');
+            }
+        });
+    });
+
+    // Adiciona listener para mudança no dropdown de evento
+    if (eventSelect) {
+        eventSelect.addEventListener('change', () => {
+            loadRankingTable('event', eventSelect.value);
+        });
+    }
+
+    // Inicia o carregamento
+    loadEventsForSelector();
+    loadRankingTable('general'); // Carrega o ranking geral por padrão
+}
+
+// --- FUNÇÕES AUXILIARES ---
 
 // Verifica o status de pagamento de um evento
 async function checkPaymentStatus(eventId, token) {
@@ -406,7 +601,6 @@ async function handlePayment(eventId, token) {
 // Carrega e renderiza o conteúdo da página de detalhes do evento
 async function loadEventPageContent(eventId, token, hasPaid) {
     const mainContent = document.querySelector('.container');
-    if (!mainContent) return;
     try {
         const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
