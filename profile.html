@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=4.2">
+    <link rel="stylesheet" href="style.css?v=4.9">
 </head>
 
 <body id="profile-page">
@@ -38,9 +38,10 @@
                         <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
                             style="display: none;">
                         <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
+                        <!-- O texto de ajuda agora é um 'tooltip' -->
+                        <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
                         <button type="button" id="cancel-photo-btn" class="btn btn-danger"
-                            style="display: none;">Cancelar</button>
-                        <small id="photo-status-text">Selecione uma imagem .jpg ou .png</small>
+                            style="display: none;">Reverter</button>
                     </div>
                 </div>
 
@@ -62,7 +63,7 @@
         </div>
     </main>
 
-    <script src="script.js?v=4.7"></script>
+    <script src="script.js?v=4.9"></script>
 </body>
 
 </html>

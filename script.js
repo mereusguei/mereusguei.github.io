@@ -159,39 +159,38 @@ function initializeProfilePage(user, token) {
     const profilePicUpload = document.getElementById('profile-pic-upload');
     const changePhotoBtn = document.getElementById('change-photo-btn');
     const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
-    const photoStatusText = document.getElementById('photo-status-text');
+    const photoStatusText = document.getElementById('photo-status-text'); // O tooltip
     const detailsForm = document.getElementById('profile-details-form');
 
-    // GUARDA a foto original que veio do localStorage
-    let photoBeforeEdit = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
+    let originalPhotoUrl = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
+    let isUploading = false;
 
-    // --- FUNÇÕES DE CONTROLE DA UI ---
-    function setUIState(state, message = '') {
-        const defaultText = 'Selecione uma imagem .jpg ou .png';
+    function setUIState(state) {
         if (state === 'idle') {
             changePhotoBtn.textContent = 'Alterar Foto';
             changePhotoBtn.disabled = false;
             cancelPhotoBtn.style.display = 'none';
-            photoStatusText.textContent = message || defaultText;
+            photoStatusText.style.display = 'block'; // Mostra o tooltip no hover
         } else if (state === 'uploading') {
             changePhotoBtn.textContent = 'Enviando...';
             changePhotoBtn.disabled = true;
             cancelPhotoBtn.style.display = 'inline-block';
-            photoStatusText.textContent = 'Aguarde o envio...';
+            photoStatusText.style.display = 'none'; // Esconde o tooltip durante o upload
         } else if (state === 'success') {
-            changePhotoBtn.textContent = 'Foto Salva ✔️';
+            changePhotoBtn.textContent = 'Foto Atualizada ✔️';
             changePhotoBtn.disabled = true;
             cancelPhotoBtn.textContent = 'Reverter';
             cancelPhotoBtn.style.display = 'inline-block';
-            photoStatusText.textContent = message || 'Upload concluído!';
+            photoStatusText.style.display = 'none';
         }
     }
 
-    // --- LÓGICA PRINCIPAL ---
     if (usernameDisplay) usernameDisplay.value = user.username;
-    if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
+    if (profilePicPreview) profilePicPreview.src = originalPhotoUrl;
 
-    changePhotoBtn?.addEventListener('click', () => profilePicUpload?.click());
+    changePhotoBtn?.addEventListener('click', () => {
+        if (!isUploading) profilePicUpload?.click();
+    });
 
     profilePicUpload?.addEventListener('change', async (event) => {
         const file = event.target.files[0];
@@ -210,23 +209,22 @@ function initializeProfilePage(user, token) {
             const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
             const uploadData = await uploadResponse.json();
             if (!uploadData.secure_url) throw new Error('Falha no upload para o Cloudinary.');
-
-            // ATUALIZA o backend com a nova foto
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ profilePictureUrl: uploadData.secure_url })
             });
-
-            const updatedUser = { ...user, profile_picture_url: uploadData.secure_url };
+            originalPhotoUrl = uploadData.secure_url;
+            const updatedUser = { ...user, profile_picture_url: originalPhotoUrl };
             localStorage.setItem('user', JSON.stringify(updatedUser));
-
             const headerProfilePic = document.querySelector('.user-profile img');
-            if (headerProfilePic) headerProfilePic.src = uploadData.secure_url;
+            if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
 
-            setUIState('success', 'Foto de perfil atualizada!');
+            setUIState('success');
         } catch (error) {
-            setUIState('error', `Erro: ${error.message}`);
+            alert(`Erro: ${error.message}`);
+            setUIState('idle');
+            profilePicPreview.src = originalPhotoUrl;
         }
     });
 
@@ -248,7 +246,7 @@ function initializeProfilePage(user, token) {
             if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
 
             profilePicPreview.src = photoBeforeEdit;
-            setUIState('idle', 'Alteração revertida.');
+            setUIState('idle');
         } catch (error) {
             setUIState('error', `Erro ao reverter: ${error.message}`);
         }

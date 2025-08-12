@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Pagamento Aprovado!</title>
-    <link rel="stylesheet" href="style.css?v=4.2">
+    <link rel="stylesheet" href="style.css?v=4.9">
 </head>
+
 <body>
     <div class="auth-container">
         <h2>Pagamento Aprovado!</h2>
         <p>Seu acesso aos palpites foi liberado.</p>
         <a href="index.html" class="btn btn-primary">Voltar para o Evento</a>
     </div>
-<script>
-    // Assim que a página de sucesso carrega, nós definimos um sinalizador
-    // no localStorage para dizer à página principal que ela precisa revalidar seus dados.
-    localStorage.setItem('paymentStatusChanged', 'true');
-</script>
+    <script>
+        // Assim que a página de sucesso carrega, nós definimos um sinalizador
+        // no localStorage para dizer à página principal que ela precisa revalidar seus dados.
+        localStorage.setItem('paymentStatusChanged', 'true');
+    </script>
 </body>
+
 </html>
