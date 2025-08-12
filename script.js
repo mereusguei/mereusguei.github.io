@@ -170,7 +170,7 @@ async function loadEventPageContent(eventId, token, hasPaid) {
         }
         const eventHeader = document.querySelector('.event-header h2');
         if (eventHeader) eventHeader.textContent = eventData.eventName;
-        startCountdown(eventData.picksDeadline);
+        startCountdown(eventData.picksDeadline, 'countdown');
         if (hasPaid) {
             loadFights();
             populateBonusPicks(eventData.fights);
@@ -298,21 +298,32 @@ function loadFights() {
     });
 }
 
-function startCountdown(deadline) {
-    const timerContainer = document.querySelector('.timer'); // Seleciona o container
-    const countdownElement = document.getElementById('countdown');
-    if (!timerContainer || !countdownElement) return;
+function startCountdown(deadline, elementId) {
+    // Agora, ele procura pelo ID que foi passado como parâmetro.
+    const countdownElement = document.getElementById(elementId);
 
+    // Se não encontrar o elemento, ele para a execução para evitar erros.
+    if (!countdownElement) return;
+
+    // Ele encontra o "pai" mais próximo que seja um container de timer.
+    const timerContainer = countdownElement.closest('.timer, .event-card-timer');
     const deadlineTime = new Date(deadline).getTime();
 
-    const updateTimer = () => {
+    // Cria um 'intervalo' único para este timer específico.
+    // Usamos 'let' para que o clearInterval dentro de updateTimer possa acessá-lo.
+    let interval = setInterval(updateTimer, 1000);
+
+    function updateTimer() {
         const now = new Date().getTime();
         const distance = deadlineTime - now;
 
         if (distance < 0) {
             clearInterval(interval);
             countdownElement.innerHTML = "PRAZO ENCERRADO";
-            document.querySelectorAll('.btn-pick, .btn-save-all').forEach(btn => btn.disabled = true);
+            // Desabilita botões apenas se estivermos na página principal do evento
+            if (document.body.id === 'event-page') {
+                document.querySelectorAll('.btn-pick, .btn-save-all').forEach(btn => btn.disabled = true);
+            }
         } else {
             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -324,10 +335,11 @@ function startCountdown(deadline) {
 
     // Roda uma vez imediatamente para preencher o valor e evitar a tela vazia
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
 
-    // Revela o container inteiro com um efeito de fade-in
-    timerContainer.classList.add('visible');
+    // Revela o container do timer com um efeito de fade-in
+    if (timerContainer) {
+        timerContainer.classList.add('visible');
+    }
 }
 
 function populateBonusPicks(fights) {
@@ -626,10 +638,43 @@ function initializeEventsListPage(token) {
             if (events.length === 0) {
                 eventsHtml = `<p style="text-align: center;">Nenhum evento encontrado.</p>`;
             } else {
-                events.forEach(event => {
+                events.forEach((event, index) => {
                     const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
                     const eventLink = `index.html?eventId=${event.id}`;
-                    eventsHtml += `<a href="${eventLink}" class="event-card-link"><div class="event-card" style="background-image: url('${event.card_image_url || 'https://via.placeholder.com/400x200'}')">${status === 'past' ? '<span class="status-tag">Encerrado</span>' : ''}<div class="event-card-info"><h3>${event.name}</h3><p>${eventDate}</p></div></div></a>`;
+
+                    // --- NOVA LÓGICA DO TIMER ---
+                    // Cria um placeholder para o timer
+                    let timerHtml = '';
+                    // Se estamos na aba "Próximos Eventos" E este é o primeiro item da lista (index === 0)
+                    if (status === 'upcoming' && index === 0) {
+                        // Cria um ID único para o countdown deste card
+                        const countdownId = `event-countdown-${event.id}`;
+                        timerHtml = `
+            <div class="event-card-timer">
+                <span>Prazo para palpites:</span>
+                <strong id="${countdownId}">--:--:--</strong>
+            </div>
+        `;
+                        // Inicia o countdown para este elemento específico
+                        // Usamos um setTimeout para dar tempo do HTML ser inserido na página
+                        setTimeout(() => startCountdown(event.picks_deadline, countdownId), 0);
+                    }
+
+                    eventsHtml += `
+        <a href="${eventLink}" class="event-card-link">
+            <div class="event-card" style="background-image: url('${event.card_image_url || 'https://via.placeholder.com/400x200'}')">
+                ${status === 'past' ? '<span class="status-tag">Encerrado</span>' : ''}
+                
+                <!-- INSERE O TIMER AQUI -->
+                ${timerHtml}
+
+                <div class="event-card-info">
+                    <h3>${event.name}</h3>
+                    <p>${eventDate}</p>
+                </div>
+            </div>
+        </a>
+    `;
                 });
             }
             eventsGrid.innerHTML = eventsHtml;
