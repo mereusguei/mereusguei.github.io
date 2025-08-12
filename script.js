@@ -2,6 +2,10 @@
 
 const API_URL = 'https://site-palpites-pagos.vercel.app'; // Nota: O URL fornecido tem um typo "palites" em vez de "palpites". Presumi que seja o correto.
 
+// Credenciais do Cloudinary para o upload da foto de perfil
+const CLOUDINARY_CLOUD_NAME = 'dkqxyj4te';
+const CLOUDINARY_UPLOAD_PRESET = 'ejlzebde';
+
 let eventData = {}; // Variável global para armazenar dados do evento
 
 // --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
