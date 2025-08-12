@@ -613,12 +613,11 @@ tr.apured .btn-primary {
 
 /* Container para os botões de ação da foto */
 .profile-pic-action {
-    position: relative;
+    position: relative; /* Necessário para o posicionamento do tooltip */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Empilha os botões verticalmente */
     align-items: center;
-    gap: 10px;
-    width: 100%; /* <-- LINHA ADICIONADA */
+    gap: 10px; /* Espaçamento entre os botões */
 }
 
 /* Estilo do Tooltip (texto de ajuda) */

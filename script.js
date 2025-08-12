@@ -161,41 +161,36 @@ function initializeProfilePage(user, token) {
     const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
     const photoStatusText = document.getElementById('photo-status-text');
     const detailsForm = document.getElementById('profile-details-form');
+    const profileMessage = document.getElementById('profile-message');
 
+    // CORREÇÃO: Restauramos a variável para lembrar da foto original
     let photoBeforeEdit = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
 
-    function setUIState(state, message = '') {
-        const defaultText = 'Selecione uma imagem .jpg ou .png';
+    function setUIState(state) {
         if (state === 'idle') {
             changePhotoBtn.textContent = 'Alterar Foto';
             changePhotoBtn.disabled = false;
             cancelPhotoBtn.style.display = 'none';
-            photoStatusText.textContent = message || defaultText;
             photoStatusText.style.display = 'block';
         } else if (state === 'uploading') {
             changePhotoBtn.textContent = 'Enviando...';
             changePhotoBtn.disabled = true;
             cancelPhotoBtn.style.display = 'inline-block';
+            cancelPhotoBtn.textContent = 'Cancelar'; // Durante o upload, o botão é 'Cancelar'
             photoStatusText.style.display = 'none';
         } else if (state === 'success') {
             changePhotoBtn.textContent = 'Foto Atualizada ✔️';
             changePhotoBtn.disabled = true;
-            cancelPhotoBtn.textContent = 'Reverter';
+            cancelPhotoBtn.textContent = 'Reverter'; // Após o sucesso, o botão é 'Reverter'
             cancelPhotoBtn.style.display = 'inline-block';
             photoStatusText.style.display = 'none';
-        } else if (state === 'error') {
-            changePhotoBtn.textContent = 'Alterar Foto';
-            changePhotoBtn.disabled = false;
-            cancelPhotoBtn.style.display = 'none';
-            photoStatusText.textContent = message;
-            photoStatusText.style.display = 'block';
         }
     }
 
     if (usernameDisplay) usernameDisplay.value = user.username;
     if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
 
-    changePhotoBtn?.addEventListener('click', () => profilePicUpload?.click());
+    changePhotoBtn?.addEventListener('click', () => { if (!changePhotoBtn.disabled) profilePicUpload?.click(); });
 
     profilePicUpload?.addEventListener('change', async (event) => {
         const file = event.target.files[0];
@@ -224,34 +219,30 @@ function initializeProfilePage(user, token) {
             const updatedUser = { ...user, profile_picture_url: uploadData.secure_url };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
-            // CORREÇÃO: Atualiza a variável 'photoBeforeEdit' com a nova foto salva.
-            photoBeforeEdit = uploadData.secure_url;
-
             const headerProfilePic = document.querySelector('.user-profile img');
-            if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
+            if (headerProfilePic) headerProfilePic.src = uploadData.secure_url;
 
             setUIState('success');
         } catch (error) {
-            setUIState('error', `Erro: ${error.message}`);
-            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit; // Reverte o preview em caso de falha
+            alert(`Erro: ${error.message}`);
+            setUIState('idle');
+            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit; // Reverte o preview em caso de erro
         }
     });
 
     cancelPhotoBtn?.addEventListener('click', async () => {
+        // A lógica de reversão agora usa a variável 'photoBeforeEdit'
         if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
 
-        setUIState('uploading');
-
         try {
-            // Usa o placeholder como o valor de reversão "padrão"
-            const placeholderUrl = `https://i.pravatar.cc/150?u=${user.username}`;
+            // Envia a URL da foto anterior de volta para o backend
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ profilePictureUrl: placeholderUrl })
+                body: JSON.stringify({ profilePictureUrl: photoBeforeEdit })
             });
 
-            photoBeforeEdit = placeholderUrl;
+            // Atualiza o localStorage e a UI
             const revertedUser = { ...user, profile_picture_url: photoBeforeEdit };
             localStorage.setItem('user', JSON.stringify(revertedUser));
 
@@ -259,11 +250,9 @@ function initializeProfilePage(user, token) {
             if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
 
             if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
-            profilePicUpload.value = '';
-
-            setUIState('idle', 'Foto revertida para o padrão.');
+            setUIState('idle');
         } catch (error) {
-            setUIState('error', `Erro ao reverter: ${error.message}`);
+            alert(`Erro ao reverter: ${error.message}`);
         }
     });
 
