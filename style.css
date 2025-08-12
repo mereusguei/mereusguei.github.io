@@ -471,6 +471,7 @@ tr.apured .btn-primary {
     justify-content: flex-end;
     padding: 20px;
     color: white;
+    overflow: hidden;
     transition: transform 0.3s ease;
     border: 1px solid var(--border-color);
 }
@@ -504,7 +505,6 @@ tr.apured .btn-primary {
     border-radius: 8px;
     z-index: 1; /* O gradiente fica na camada 1 */
     transition: transform 0.4s ease; /* <-- LINHA ADICIONADA */
-    overflow: hidden; /* <-- ADICIONE O OVERFLOW AQUI */
 }
 .event-card-info {
     position: relative;
