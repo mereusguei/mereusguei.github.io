@@ -485,6 +485,7 @@ tr.apured .btn-primary {
     object-fit: cover; /* Garante que a imagem cubra todo o espaço, cortando o excesso */
     z-index: 0; /* Coloca a imagem atrás de todo o conteúdo */
     transition: transform 0.4s ease; /* Adiciona um efeito de zoom suave no hover */
+    border-radius: 8px; /* <-- ADICIONE ESTA LINHA */
 }
 
 /* Efeito de zoom no hover */
