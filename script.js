@@ -656,16 +656,97 @@ function initializeEventsListPage(token) {
 // FUNÇÃO DE INICIALIZAÇÃO DA PÁGINA DE RANKING (RANKING.HTML)
 function initializeRankingPage(token) {
     if (!token) {
-        window.location.href = 'login.html'; // Protege a página
+        window.location.href = 'login.html'; // Protege a página, redireciona se não logado
         return;
     }
-    loadRanking('general', token); // Carrega ranking geral
 
+    const rankingContent = document.getElementById('ranking-table-container');
+    const eventSelectorContainer = document.getElementById('event-selector-container');
+    const eventSelect = document.getElementById('event-select');
+    let allEvents = []; // Armazenar eventos para o dropdown
+
+    // Função interna para carregar os dados de ranking específicos
+    async function loadRanking(type, eventId = 1) {
+        let url = `${API_URL}/api/rankings/`;
+        if (type === 'general') {
+            url += 'general';
+        } else if (type === 'event') {
+            url += `event/${eventId}`;
+        } else { return; }
+
+        try {
+            if (rankingContent) rankingContent.innerHTML = '<p>Carregando ranking...</p>';
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar ranking.');
+            const data = await response.json();
+            buildTableHtml(type, data);
+        } catch (error) {
+            if (rankingContent) rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
+        }
+    }
+
+    // Função interna para construir a tabela de ranking
+    function buildTableHtml(type, data) {
+        if (!rankingContent) return;
+        let tableHtml = '<table><thead><tr><th>Posição</th><th>Usuário</th>';
+        let valueKey = '';
+        if (type === 'general') {
+            tableHtml += '<th>Pontuação Total</th></tr></thead><tbody>';
+            valueKey = 'total_points';
+        } else if (type === 'event') {
+            tableHtml += '<th>Pontos no Evento</th></tr></thead><tbody>';
+            valueKey = 'event_points';
+        }
+
+        if (data.length === 0) {
+            tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
+        } else {
+            data.forEach((row, index) => {
+                tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
+            });
+        }
+        tableHtml += '</tbody></table>';
+        rankingContent.innerHTML = tableHtml;
+    }
+
+    // Busca os eventos para popular o dropdown do ranking "Por Evento"
+    async function loadEventsForSelector() {
+        // (Esta lógica pode ser aprimorada para buscar de uma API, mas por enquanto usamos placeholder)
+        allEvents = [{ id: 1, name: "UFC 308: Pereira vs. Prochazka 2" }]; // Placeholder
+        if (eventSelect) {
+            allEvents.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = event.name;
+                eventSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Adiciona listeners aos botões das abas
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             document.querySelector('.tab-button.active').classList.remove('active');
             button.classList.add('active');
-            loadRanking(button.dataset.target, token);
+            const rankingType = button.dataset.ranking;
+
+            if (rankingType === 'event') {
+                if (eventSelectorContainer) eventSelectorContainer.style.display = 'block';
+                loadRanking('event', eventSelect.value);
+            } else {
+                if (eventSelectorContainer) eventSelectorContainer.style.display = 'none';
+                loadRanking('general');
+            }
         });
     });
+
+    if (eventSelect) {
+        eventSelect.addEventListener('change', () => {
+            loadRanking('event', eventSelect.value);
+        });
+    }
+
+    // Inicia o carregamento da página de ranking
+    loadEventsForSelector();
+    loadRanking('general');
 }
