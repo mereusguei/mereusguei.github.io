@@ -9,37 +9,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
-    if (userNavigation) {
-        if (user && token) {
-            // Se o usuário está LOGADO, monta a navegação completa
-            userNavigation.innerHTML = `
-                <div class="nav-links">
-                    <a href="events.html" class="btn">Eventos</a>
-                    <a href="ranking.html" class="btn">Ranking</a>
-                </div>
-                <div class="user-profile">
-                    <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
-                    <span>Olá, ${user.username}</span>
-                </div>
-                <button id="logout-btn" class="btn btn-logout">Sair</button>
-            `;
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', () => {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'login.html';
-                });
-            }
-        } else {
-            // Se o usuário está DESLOGADO, monta os botões de login/cadastro
-            userNavigation.innerHTML = `
-                <div class="auth-buttons">
-                    <a href="login.html" class="btn">Login</a>
-                    <a href="register.html" class="btn btn-primary">Cadastro</a>
-                </div>
-            `;
+    if (user && token) {
+        // Se o usuário está LOGADO, monta a navegação com o menu dropdown
+        userNavigation.innerHTML = `
+        <div class="nav-links">
+            <a href="events.html" class="btn">Eventos</a>
+            <a href="ranking.html" class="btn">Ranking</a>
+        </div>
+        <div class="user-profile" id="user-profile-menu">
+            <img src="https://i.pravatar.cc/40?u=${user.username}" alt="Foto do Usuário">
+            <span>Olá, ${user.username}</span>
+            <div class="profile-dropdown">
+                <a href="profile.html">Minha Conta</a>
+                <button id="logout-btn">Sair</button>
+            </div>
+        </div>
+    `;
+
+        // Adiciona a lógica para abrir/fechar o dropdown
+        const profileMenu = document.getElementById('user-profile-menu');
+        if (profileMenu) {
+            profileMenu.addEventListener('click', (e) => {
+                // Previne que clicar em "Minha Conta" ou "Sair" feche o menu imediatamente
+                if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+                    profileMenu.classList.toggle('active');
+                }
+            });
         }
+
+        // Adiciona a lógica ao botão de sair
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            });
+        }
+    } else {
+        // Se o usuário está DESLOGADO, a lógica continua a mesma
+        userNavigation.innerHTML = `
+        <div class="auth-buttons">
+            <a href="login.html" class="btn">Login</a>
+            <a href="register.html" class="btn btn-primary">Cadastro</a>
+        </div>
+    `;
     }
 
     // --- LÓGICA ESPECÍFICA PARA CADA PÁGINA ---

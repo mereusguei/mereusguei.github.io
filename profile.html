@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <!-- Inclua o mesmo <head> completo do seu index.html -->
+    <title>Minha Conta - Octagon Oracle</title>
+</head>
+<body id="profile-page">
+
+    <header class="main-header">
+        <a href="index.html" style="text-decoration: none;"><h1 class="logo">OCTAGON <span>ORACLE</span></h1></a>
+        <nav class="user-nav" id="user-navigation"></nav>
+    </header>
+
+    <main class="container">
+        <section class="admin-section">
+            <h2>Minha Conta</h2>
+            <form id="profile-form">
+                <div class="form-group">
+                    <label>Foto de Perfil (em breve)</label>
+                    <div class="profile-pic-container">
+                        <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
+                        <input type="file" id="profile-pic-upload" style="display: none;" disabled>
+                        <button type="button" class="btn" onclick="document.getElementById('profile-pic-upload').click();" disabled>Alterar Foto</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nome de Usuário</label>
+                    <input type="text" id="username-display" disabled>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 20px 0;">
+                <h3>Alterar Senha</h3>
+                <div class="form-group">
+                    <label for="new-password">Nova Senha</label>
+                    <input type="password" id="new-password" placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </form>
+        </section>
+    </main>
+    
+    <script src="script.js?v=2.7"></script> <!-- Script principal para o cabeçalho -->
+<script src="profile.js?v=2.7"></script> <!-- Script específico da página -->
+</body>
+</html>
