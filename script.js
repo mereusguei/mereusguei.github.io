@@ -162,10 +162,10 @@ function initializeProfilePage(user, token) {
     const photoStatusText = document.getElementById('photo-status-text');
     const detailsForm = document.getElementById('profile-details-form');
 
-    let originalPhotoUrl = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
-    let tempPreviewUrl = null; // Para guardar o preview enquanto o upload acontece
+    // GUARDA a foto original que veio do localStorage
+    let photoBeforeEdit = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
 
-    // --- FUNÇÕES DE CONTROLE DA UI (INTERFACE) ---
+    // --- FUNÇÕES DE CONTROLE DA UI ---
     function setUIState(state, message = '') {
         const defaultText = 'Selecione uma imagem .jpg ou .png';
         if (state === 'idle') {
@@ -180,22 +180,16 @@ function initializeProfilePage(user, token) {
             photoStatusText.textContent = 'Aguarde o envio...';
         } else if (state === 'success') {
             changePhotoBtn.textContent = 'Foto Salva ✔️';
-            changePhotoBtn.disabled = true; // Impede novo clique imediato
+            changePhotoBtn.disabled = true;
             cancelPhotoBtn.textContent = 'Reverter';
             cancelPhotoBtn.style.display = 'inline-block';
             photoStatusText.textContent = message || 'Upload concluído!';
-        } else if (state === 'error') {
-            changePhotoBtn.textContent = 'Alterar Foto';
-            changePhotoBtn.disabled = false;
-            cancelPhotoBtn.style.display = 'none';
-            photoStatusText.textContent = message || defaultText;
-            profilePicPreview.src = originalPhotoUrl;
         }
     }
 
     // --- LÓGICA PRINCIPAL ---
     if (usernameDisplay) usernameDisplay.value = user.username;
-    if (profilePicPreview) profilePicPreview.src = originalPhotoUrl;
+    if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
 
     changePhotoBtn?.addEventListener('click', () => profilePicUpload?.click());
 
@@ -204,10 +198,7 @@ function initializeProfilePage(user, token) {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = e => {
-            tempPreviewUrl = e.target.result;
-            if (profilePicPreview) profilePicPreview.src = tempPreviewUrl;
-        };
+        reader.onload = e => { if (profilePicPreview) profilePicPreview.src = e.target.result; };
         reader.readAsDataURL(file);
 
         setUIState('uploading');
@@ -220,18 +211,18 @@ function initializeProfilePage(user, token) {
             const uploadData = await uploadResponse.json();
             if (!uploadData.secure_url) throw new Error('Falha no upload para o Cloudinary.');
 
+            // ATUALIZA o backend com a nova foto
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ profilePictureUrl: uploadData.secure_url })
             });
 
-            originalPhotoUrl = uploadData.secure_url;
-            const updatedUser = { ...user, profile_picture_url: originalPhotoUrl };
+            const updatedUser = { ...user, profile_picture_url: uploadData.secure_url };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
             const headerProfilePic = document.querySelector('.user-profile img');
-            if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
+            if (headerProfilePic) headerProfilePic.src = uploadData.secure_url;
 
             setUIState('success', 'Foto de perfil atualizada!');
         } catch (error) {
@@ -240,26 +231,23 @@ function initializeProfilePage(user, token) {
     });
 
     cancelPhotoBtn?.addEventListener('click', async () => {
-        // Lógica de Reversão
         if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
 
         try {
-            // Reverte para a URL do placeholder genérico
-            const placeholderUrl = `https://i.pravatar.cc/150?u=${user.username}`;
+            // Reverte para a URL da foto que estava salva ANTES da edição
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ profilePictureUrl: placeholderUrl })
+                body: JSON.stringify({ profilePictureUrl: photoBeforeEdit })
             });
 
-            originalPhotoUrl = placeholderUrl;
-            const updatedUser = { ...user, profile_picture_url: originalPhotoUrl };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
+            const revertedUser = { ...user, profile_picture_url: photoBeforeEdit };
+            localStorage.setItem('user', JSON.stringify(revertedUser));
 
             const headerProfilePic = document.querySelector('.user-profile img');
-            if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
+            if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
 
-            profilePicPreview.src = originalPhotoUrl;
+            profilePicPreview.src = photoBeforeEdit;
             setUIState('idle', 'Alteração revertida.');
         } catch (error) {
             setUIState('error', `Erro ao reverter: ${error.message}`);
