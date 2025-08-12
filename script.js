@@ -580,14 +580,10 @@ function initializeEventPage(user, token) {
         return;
     }
 
-    // --- LÓGICA DE CACHE E REDIRECIONAMENTO ---
+    // Pega o ID da URL. Se a URL for apenas "index.html" (sem parâmetros),
+    // o '|| 1' fará com que o eventId padrão seja 1.
     const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('eventId');
-
-    if (!eventId) {
-        window.location.href = 'events.html';
-        return;
-    }
+    const eventId = urlParams.get('eventId') || '1'; // Usamos '1' como string para consistência
 
     const paymentStatusChanged = localStorage.getItem('paymentStatusChanged') === 'true';
     if (paymentStatusChanged) {
