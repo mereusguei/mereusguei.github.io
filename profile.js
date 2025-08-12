@@ -3,7 +3,7 @@ const CLOUDINARY_CLOUD_NAME = 'dkqxyj4te';
 const CLOUDINARY_UPLOAD_PRESET = 'ejlzebde';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    let user = JSON.parse(localStorage.getItem('user')); // Usamos 'let' para poder atualizar
     const token = localStorage.getItem('token');
 
     if (!user || !token) {
@@ -17,15 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileForm = document.getElementById('profile-form');
     const profileMessage = document.getElementById('profile-message');
 
+    // Preenche os dados iniciais do usuário
     if (usernameDisplay) usernameDisplay.value = user.username;
 
-    // Lógica para carregar a foto de perfil salva do usuário (a ser implementada no backend)
-    // if (user.profile_picture_url) {
-    //     profilePicPreview.src = user.profile_picture_url;
-    // } else {
-    profilePicPreview.src = `https://i.pravatar.cc/150?u=${user.username}`;
-    // }
+    // CORREÇÃO: Prioriza a foto salva, senão usa o placeholder
+    if (profilePicPreview) {
+        profilePicPreview.src = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
+    }
 
+    // Lógica de PREVIEW da imagem (já estava correta)
     if (profilePicUpload && profilePicPreview) {
         profilePicUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitButton.disabled = true;
             profileMessage.textContent = '';
 
-            const newPassword = document.getElementById('new-password').value;
+            const newPassword = document.getElementById('new--password').value;
             const imageFile = profilePicUpload.files[0];
             let profilePictureUrl = null;
 
@@ -56,9 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('file', imageFile);
                 formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
                 try {
-                    const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                        method: 'POST', body: formData,
-                    });
+                    const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
                     const uploadData = await uploadResponse.json();
                     if (uploadData.secure_url) {
                         profilePictureUrl = uploadData.secure_url;
@@ -92,10 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('new-password').value = '';
                 profilePicUpload.value = '';
 
-                // Atualiza o objeto 'user' no localStorage se a foto mudou
+                // ATUALIZA o objeto 'user' no localStorage se a foto mudou
                 if (profilePictureUrl) {
-                    const updatedUser = { ...user, profile_picture_url: profilePictureUrl };
-                    localStorage.setItem('user', JSON.stringify(updatedUser));
+                    user.profile_picture_url = profilePictureUrl;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    // ATUALIZA a foto no cabeçalho em tempo real
+                    const headerProfilePic = document.querySelector('.user-profile img');
+                    if (headerProfilePic) headerProfilePic.src = profilePictureUrl;
                 }
 
             } catch (error) {

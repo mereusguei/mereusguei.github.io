@@ -558,83 +558,54 @@ tr.apured .btn-primary {
 .profile-pic-container { display: flex; align-items: center; gap: 20px; }
 .profile-pic-container img { width: 100px; height: 100px; border-radius: 50%; }
 
-/* Ajuste de espaçamento e alinhamento */
+/* 2.a - Centraliza todo o conteúdo da página de perfil */
 .profile-wrapper {
     display: flex;
     justify-content: center;
+    align-items: center;
     padding: 40px 0;
 }
-
 .profile-wrapper .admin-section {
     width: 100%;
-    max-width: 600px;
+    max-width: 600px; /* Largura máxima para o card de perfil */
 }
 
-/* Avatar centralizado e com efeito */
+/* 2.e - Dá destaque ao avatar */
 .profile-pic-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 20px;
+    margin-bottom: 30px;
 }
-
 #profile-pic-preview {
-    width: 130px;
-    height: 130px;
+    width: 120px; /* Tamanho aumentado */
+    height: 120px;
     border-radius: 50%;
     border: 3px solid var(--primary-color);
-    box-shadow: 0 0 15px var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color); /* Efeito glow neon */
     object-fit: cover;
 }
+#profile-pic-upload { display: none; }
 
-/* Texto de instrução abaixo do botão */
-.profile-pic-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Campos uniformes */
-.profile-details-section .form-group input {
-    width: 100%;
-    max-width: 300px;
-    padding: 8px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: var(--card-bg);
-    color: var(--text-color);
-}
-
-/* Espaçamento entre seções */
+/* 2.b e 2.c - Alinhamento interno e espaçamento */
 .profile-details-section h3 {
     text-align: center;
     margin-bottom: 15px;
 }
-
-/* Linha divisória suave */
-.section-divider {
-    border: none;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 25px auto;
-    max-width: 80%;
+.profile-details-section .form-group {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Botões uniformes */
-.btn {
+/* 2.d - Uniformiza botões */
+.profile-pic-action .btn {
+    /* Faz o botão 'Alterar Foto' ter o mesmo estilo do botão principal */
     background-color: var(--primary-color);
     color: var(--bg-color);
     border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s ease;
 }
-
-.btn:hover {
+.profile-pic-action .btn:hover {
     background-color: white;
-    color: var(--primary-color);
 }
