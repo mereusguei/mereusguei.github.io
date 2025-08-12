@@ -157,109 +157,123 @@ function initializeProfilePage(user, token) {
     const usernameDisplay = document.getElementById('username-display');
     const profilePicPreview = document.getElementById('profile-pic-preview');
     const profilePicUpload = document.getElementById('profile-pic-upload');
-    const profileForm = document.getElementById('profile-form');
+    const changePhotoBtn = document.getElementById('change-photo-btn');
+    const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
+    const photoStatusText = document.getElementById('photo-status-text');
+    const detailsForm = document.getElementById('profile-details-form');
     const profileMessage = document.getElementById('profile-message');
 
+    let originalPhotoUrl = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
+    let isUploading = false;
+
+    // Preenche os dados iniciais
     if (usernameDisplay) usernameDisplay.value = user.username;
-    if (profilePicPreview) {
-        profilePicPreview.src = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
-    }
+    if (profilePicPreview) profilePicPreview.src = originalPhotoUrl;
 
-    // Listener para o PREVIEW da imagem
-    if (profilePicUpload && profilePicPreview) {
-        profilePicUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    profilePicPreview.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+    // Botão "Alterar Foto" aciona o clique no input de arquivo
+    changePhotoBtn?.addEventListener('click', () => {
+        if (!isUploading) profilePicUpload?.click();
+    });
+
+    // Listener para quando um arquivo é selecionado
+    profilePicUpload?.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Mostra o preview
+        const reader = new FileReader();
+        reader.onload = e => { if (profilePicPreview) profilePicPreview.src = e.target.result; };
+        reader.readAsDataURL(file);
+
+        isUploading = true;
+        changePhotoBtn.textContent = 'Enviando...';
+        changePhotoBtn.disabled = true;
+        cancelPhotoBtn.style.display = 'inline-block';
+        photoStatusText.textContent = 'Aguarde o envio...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        try {
+            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+            const uploadData = await uploadResponse.json();
+            if (!uploadData.secure_url) throw new Error(uploadData.error.message || 'Falha no upload.');
+
+            await fetch(`${API_URL}/api/users/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ profilePictureUrl: uploadData.secure_url })
+            });
+
+            originalPhotoUrl = uploadData.secure_url;
+            const updatedUser = { ...user, profile_picture_url: originalPhotoUrl };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            const headerProfilePic = document.querySelector('.user-profile img');
+            if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
+
+            changePhotoBtn.textContent = 'Foto Salva ✔️';
+            photoStatusText.textContent = 'Upload concluído com sucesso!';
+            isUploading = false;
+        } catch (error) {
+            photoStatusText.textContent = `Erro: ${error.message}`;
+            profilePicPreview.src = originalPhotoUrl;
+            changePhotoBtn.textContent = 'Alterar Foto';
+            changePhotoBtn.disabled = false;
+            cancelPhotoBtn.style.display = 'none';
+            isUploading = false;
+        }
+    });
+
+    cancelPhotoBtn?.addEventListener('click', () => {
+        profilePicPreview.src = originalPhotoUrl;
+        profilePicUpload.value = '';
+        changePhotoBtn.textContent = 'Alterar Foto';
+        changePhotoBtn.disabled = false;
+        cancelPhotoBtn.style.display = 'none';
+        photoStatusText.textContent = 'Selecione uma imagem .jpg ou .png';
+        isUploading = false;
+    });
+
+    // Lógica para salvar a SENHA (e outros detalhes futuros)
+    detailsForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitButton = detailsForm.querySelector('button[type="submit"]');
+        const newPassword = document.getElementById('new-password').value;
+
+        if (!newPassword) {
+            if (profileMessage) profileMessage.textContent = 'Digite a nova senha para salvá-la.';
+            return;
+        }
+
+        submitButton.textContent = 'Salvando Senha...';
+        submitButton.disabled = true;
+        if (profileMessage) profileMessage.textContent = '';
+
+        try {
+            const response = await fetch(`${API_URL}/api/users/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+
+            if (profileMessage) {
+                profileMessage.className = 'success';
+                profileMessage.textContent = data.message;
             }
-        });
-    }
-
-    // Listener para o SUBMIT do formulário
-    if (profileForm) {
-        profileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitButton = profileForm.querySelector('button[type="submit"]');
-            submitButton.textContent = 'Salvando...';
-            submitButton.disabled = true;
-            if (profileMessage) profileMessage.textContent = '';
-
-            const newPassword = document.getElementById('new-password').value;
-            const imageFile = profilePicUpload.files[0];
-            let profilePictureUrl = null;
-
-            // 1. Faz o upload da imagem para o Cloudinary, SE uma nova foi selecionada
-            if (imageFile) {
-                const formData = new FormData();
-                formData.append('file', imageFile);
-                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-                try {
-                    const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                        method: 'POST', body: formData,
-                    });
-                    const uploadData = await uploadResponse.json();
-                    if (uploadData.secure_url) {
-                        profilePictureUrl = uploadData.secure_url;
-                    } else { throw new Error('Falha no upload para o Cloudinary.'); }
-                } catch (error) {
-                    if (profileMessage) {
-                        profileMessage.className = 'error';
-                        profileMessage.textContent = `Erro no upload: ${error.message}`;
-                    }
-                    submitButton.textContent = 'Salvar Alterações';
-                    submitButton.disabled = false;
-                    return;
-                }
+            document.getElementById('new-password').value = '';
+        } catch (error) {
+            if (profileMessage) {
+                profileMessage.className = 'error';
+                profileMessage.textContent = `Erro: ${error.message}`;
             }
-
-            if (!newPassword && !profilePictureUrl) {
-                submitButton.textContent = 'Salvar Alterações';
-                submitButton.disabled = false;
-                if (profileMessage) profileMessage.textContent = 'Nenhuma alteração para salvar.';
-                return;
-            }
-
-            // 2. Envia os dados para o nosso backend em formato JSON
-            try {
-                const response = await fetch(`${API_URL}/api/users/profile`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ newPassword, profilePictureUrl })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
-
-                if (profileMessage) {
-                    profileMessage.className = 'success';
-                    profileMessage.textContent = data.message;
-                }
-
-                document.getElementById('new-password').value = '';
-                profilePicUpload.value = '';
-
-                // Atualiza o objeto 'user' no localStorage se a foto mudou
-                if (profilePictureUrl) {
-                    const updatedUser = { ...user, profile_picture_url: profilePictureUrl };
-                    localStorage.setItem('user', JSON.stringify(updatedUser));
-                    // Atualiza a foto no cabeçalho em tempo real
-                    const headerProfilePic = document.querySelector('.user-profile img');
-                    if (headerProfilePic) headerProfilePic.src = profilePictureUrl;
-                }
-            } catch (error) {
-                if (profileMessage) {
-                    profileMessage.className = 'error';
-                    profileMessage.textContent = `Erro: ${error.message}`;
-                }
-            } finally {
-                submitButton.textContent = 'Salvar Alterações';
-                submitButton.disabled = false;
-            }
-        });
-    }
+        } finally {
+            submitButton.textContent = 'Salvar Alterações';
+            submitButton.disabled = false;
+        }
+    });
 }
 
 function initializeEventPage(user, token) {

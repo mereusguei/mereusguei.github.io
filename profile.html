@@ -1,63 +1,68 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Conta - Octagon Oracle</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet">
+
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=4.2"> 
+    <link rel="stylesheet" href="style.css?v=4.2">
 </head>
+
 <body id="profile-page">
 
     <header class="main-header">
-        <a href="index.html" style="text-decoration: none;"><h1 class="logo">OCTAGON <span>ORACLE</span></h1></a>
+        <a href="index.html" style="text-decoration: none;">
+            <h1 class="logo">OCTAGON <span>ORACLE</span></h1>
+        </a>
         <nav class="user-nav" id="user-navigation"></nav>
     </header>
 
     <main class="container">
-    <!-- Novo container para centralização -->
-    <div class="profile-wrapper">
-        <section class="admin-section">
-            <h2>Minha Conta</h2>
-            <form id="profile-form">
+        <!-- Novo container para centralização -->
+        <div class="profile-wrapper">
+            <section class="admin-section">
+                <h2>Minha Conta</h2>
+
+                <!-- Seção da Foto de Perfil -->
                 <div class="profile-pic-section">
                     <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
                     <div class="profile-pic-action">
-                        <label for="profile-pic-upload" class="btn">Alterar Foto</label>
-                        <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg">
-                        <small>Selecione uma imagem .jpg ou .png</small>
+                        <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
+                            style="display: none;">
+                        <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
+                        <button type="button" id="cancel-photo-btn" class="btn btn-danger"
+                            style="display: none;">Cancelar</button>
+                        <small id="photo-status-text">Selecione uma imagem .jpg ou .png</small>
                     </div>
                 </div>
 
-                <div class="profile-details-section">
-                    <div class="form-group">
-                        <label>Nome de Usuário</label>
-                        <input type="text" id="username-display" disabled>
-                    </div>
-                    
-                    <hr style="border-color: var(--border-color); margin: 30px 0;">
+                <hr style="border-color: var(--border-color); margin: 30px 0;">
 
+                <!-- Seção de Senha e Detalhes -->
+                <form id="profile-details-form">
+                    <div class="form-group"><label>Nome de Usuário</label><input type="text" id="username-display"
+                            disabled></div>
                     <h3>Alterar Senha</h3>
-                    <div class="form-group">
-                        <label for="new-password">Nova Senha</label>
-                        <input type="password" id="new-password" placeholder="Mínimo 6 caracteres">
-                    </div>
-                    
+                    <div class="form-group"><label for="new-password">Nova Senha</label><input type="password"
+                            id="new-password" placeholder="Mínimo 6 caracteres"></div>
                     <div class="actions-footer" style="padding: 0; margin-top: 30px;">
                         <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                     </div>
                     <div id="profile-message" style="margin-top: 15px; text-align: center;"></div>
-                </div>
-            </form>
-        </section>
-    </div>
-</main>
-    
-    <script src="script.js?v=4.4"></script> 
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <script src="script.js?v=4.5"></script>
 </body>
+
 </html>
