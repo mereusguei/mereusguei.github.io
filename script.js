@@ -161,35 +161,56 @@ function initializeProfilePage(user, token) {
     const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
     const photoStatusText = document.getElementById('photo-status-text');
     const detailsForm = document.getElementById('profile-details-form');
-    const profileMessage = document.getElementById('profile-message');
 
     let originalPhotoUrl = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
-    let isUploading = false;
+    let tempPreviewUrl = null; // Para guardar o preview enquanto o upload acontece
 
-    // Preenche os dados iniciais
+    // --- FUNÇÕES DE CONTROLE DA UI (INTERFACE) ---
+    function setUIState(state, message = '') {
+        const defaultText = 'Selecione uma imagem .jpg ou .png';
+        if (state === 'idle') {
+            changePhotoBtn.textContent = 'Alterar Foto';
+            changePhotoBtn.disabled = false;
+            cancelPhotoBtn.style.display = 'none';
+            photoStatusText.textContent = message || defaultText;
+        } else if (state === 'uploading') {
+            changePhotoBtn.textContent = 'Enviando...';
+            changePhotoBtn.disabled = true;
+            cancelPhotoBtn.style.display = 'inline-block';
+            photoStatusText.textContent = 'Aguarde o envio...';
+        } else if (state === 'success') {
+            changePhotoBtn.textContent = 'Foto Salva ✔️';
+            changePhotoBtn.disabled = true; // Impede novo clique imediato
+            cancelPhotoBtn.textContent = 'Reverter';
+            cancelPhotoBtn.style.display = 'inline-block';
+            photoStatusText.textContent = message || 'Upload concluído!';
+        } else if (state === 'error') {
+            changePhotoBtn.textContent = 'Alterar Foto';
+            changePhotoBtn.disabled = false;
+            cancelPhotoBtn.style.display = 'none';
+            photoStatusText.textContent = message || defaultText;
+            profilePicPreview.src = originalPhotoUrl;
+        }
+    }
+
+    // --- LÓGICA PRINCIPAL ---
     if (usernameDisplay) usernameDisplay.value = user.username;
     if (profilePicPreview) profilePicPreview.src = originalPhotoUrl;
 
-    // Botão "Alterar Foto" aciona o clique no input de arquivo
-    changePhotoBtn?.addEventListener('click', () => {
-        if (!isUploading) profilePicUpload?.click();
-    });
+    changePhotoBtn?.addEventListener('click', () => profilePicUpload?.click());
 
-    // Listener para quando um arquivo é selecionado
     profilePicUpload?.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Mostra o preview
         const reader = new FileReader();
-        reader.onload = e => { if (profilePicPreview) profilePicPreview.src = e.target.result; };
+        reader.onload = e => {
+            tempPreviewUrl = e.target.result;
+            if (profilePicPreview) profilePicPreview.src = tempPreviewUrl;
+        };
         reader.readAsDataURL(file);
 
-        isUploading = true;
-        changePhotoBtn.textContent = 'Enviando...';
-        changePhotoBtn.disabled = true;
-        cancelPhotoBtn.style.display = 'inline-block';
-        photoStatusText.textContent = 'Aguarde o envio...';
+        setUIState('uploading');
 
         const formData = new FormData();
         formData.append('file', file);
@@ -197,7 +218,7 @@ function initializeProfilePage(user, token) {
         try {
             const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
             const uploadData = await uploadResponse.json();
-            if (!uploadData.secure_url) throw new Error(uploadData.error.message || 'Falha no upload.');
+            if (!uploadData.secure_url) throw new Error('Falha no upload para o Cloudinary.');
 
             await fetch(`${API_URL}/api/users/profile`, {
                 method: 'PUT',
@@ -212,30 +233,39 @@ function initializeProfilePage(user, token) {
             const headerProfilePic = document.querySelector('.user-profile img');
             if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
 
-            changePhotoBtn.textContent = 'Foto Salva ✔️';
-            photoStatusText.textContent = 'Upload concluído com sucesso!';
-            isUploading = false;
+            setUIState('success', 'Foto de perfil atualizada!');
         } catch (error) {
-            photoStatusText.textContent = `Erro: ${error.message}`;
-            profilePicPreview.src = originalPhotoUrl;
-            changePhotoBtn.textContent = 'Alterar Foto';
-            changePhotoBtn.disabled = false;
-            cancelPhotoBtn.style.display = 'none';
-            isUploading = false;
+            setUIState('error', `Erro: ${error.message}`);
         }
     });
 
-    cancelPhotoBtn?.addEventListener('click', () => {
-        profilePicPreview.src = originalPhotoUrl;
-        profilePicUpload.value = '';
-        changePhotoBtn.textContent = 'Alterar Foto';
-        changePhotoBtn.disabled = false;
-        cancelPhotoBtn.style.display = 'none';
-        photoStatusText.textContent = 'Selecione uma imagem .jpg ou .png';
-        isUploading = false;
+    cancelPhotoBtn?.addEventListener('click', async () => {
+        // Lógica de Reversão
+        if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
+
+        try {
+            // Reverte para a URL do placeholder genérico
+            const placeholderUrl = `https://i.pravatar.cc/150?u=${user.username}`;
+            await fetch(`${API_URL}/api/users/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ profilePictureUrl: placeholderUrl })
+            });
+
+            originalPhotoUrl = placeholderUrl;
+            const updatedUser = { ...user, profile_picture_url: originalPhotoUrl };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            const headerProfilePic = document.querySelector('.user-profile img');
+            if (headerProfilePic) headerProfilePic.src = originalPhotoUrl;
+
+            profilePicPreview.src = originalPhotoUrl;
+            setUIState('idle', 'Alteração revertida.');
+        } catch (error) {
+            setUIState('error', `Erro ao reverter: ${error.message}`);
+        }
     });
 
-    // Lógica para salvar a SENHA (e outros detalhes futuros)
     detailsForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitButton = detailsForm.querySelector('button[type="submit"]');

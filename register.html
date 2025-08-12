@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <!-- O cabeçalho é idêntico ao do login.html -->
     <meta charset="UTF-8">
@@ -7,29 +8,74 @@
     <title>Cadastro - Octagon Oracle</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=4.2">
     <style>
         /* Reutilizando os mesmos estilos do login.html */
-        .auth-container { max-width: 400px; margin: 100px auto; padding: 40px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
-        .auth-container h2 { text-align: center; font-family: var(--font-primary); margin-bottom: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px; }
-        .auth-container .btn { width: 100%; }
-        .auth-link { text-align: center; margin-top: 20px; }
-        .auth-link a { color: var(--primary-color); }
-        #error-message { color: #ff4d4d; text-align: center; margin-bottom: 15px; }
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .auth-container h2 {
+            text-align: center;
+            font-family: var(--font-primary);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+        }
+
+        .auth-container .btn {
+            width: 100%;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-link a {
+            color: var(--primary-color);
+        }
+
+        #error-message {
+            color: #ff4d4d;
+            text-align: center;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
+
 <body>
     <!-- NO login.html, ADICIONE ESTE BLOCO -->
-<header class="main-header">
-    <a href="index.html" style="text-decoration: none;">
-        <h1 class="logo">OCTAGON <span>ORACLE</span></h1>
-    </a>
-</header>
-<!-- O <div class="auth-container"> continua aqui embaixo -->
+    <header class="main-header">
+        <a href="index.html" style="text-decoration: none;">
+            <h1 class="logo">OCTAGON <span>ORACLE</span></h1>
+        </a>
+    </header>
+    <!-- O <div class="auth-container"> continua aqui embaixo -->
     <div class="auth-container">
         <h2>Cadastro</h2>
         <div id="error-message"></div>
@@ -52,6 +98,7 @@
             <p>Já tem uma conta? <a href="login.html">Faça Login</a></p>
         </div>
     </div>
-    <script src="auth.js?v=4.2"></script>
+    <script src="auth.js?v=4.6"></script>
 </body>
+
 </html>
