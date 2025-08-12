@@ -229,7 +229,10 @@ function initializeProfilePage(user, token) {
     });
 
     cancelPhotoBtn?.addEventListener('click', async () => {
-        if (!confirm('Tem certeza que deseja reverter para a foto anterior?')) return;
+        // Lógica de Reversão
+        if (!confirm('Tem certeza que deseja reverter para a foto de perfil anterior?')) return;
+
+        setUIState('uploading'); // Mostra um estado de "carregando"
 
         try {
             // Reverte para a URL da foto que estava salva ANTES da edição
@@ -245,8 +248,13 @@ function initializeProfilePage(user, token) {
             const headerProfilePic = document.querySelector('.user-profile img');
             if (headerProfilePic) headerProfilePic.src = photoBeforeEdit;
 
-            profilePicPreview.src = photoBeforeEdit;
-            setUIState('idle');
+            if (profilePicPreview) profilePicPreview.src = photoBeforeEdit;
+
+            // Limpa o input de arquivo para evitar reenvio acidental
+            if (profilePicUpload) profilePicUpload.value = '';
+
+            setUIState('idle'); // Volta a UI para o estado inicial
+
         } catch (error) {
             setUIState('error', `Erro ao reverter: ${error.message}`);
         }
