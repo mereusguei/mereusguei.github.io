@@ -443,13 +443,19 @@ tr.apured .btn-primary {
     box-shadow: 0 0 15px var(--primary-color);
 }
 
-/* Estilos para os Cards de Evento */
+/* Novo Layout (Layout de Lista Centralizada) */
 .events-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 20px;
+    display: flex; /* Usa Flexbox para alinhamento */
+    flex-direction: column; /* Organiza os itens em uma coluna (um abaixo do outro) */
+    align-items: center; /* Centraliza os cards na página */
+    gap: 20px; /* Mantém o espaçamento entre os cards */
 }
-.event-card-link { text-decoration: none; }
+.event-card-link {
+    text-decoration: none;
+    width: 100%; /* Ocupa a largura disponível */
+    max-width: 800px; /* Define uma largura máxima para os cards (ajuste conforme gostar) */
+    display: block; /* Necessário para a largura funcionar corretamente */
+}
 
 .event-card {
     position: relative; height: 200px;
