@@ -642,30 +642,21 @@ function initializeEventsListPage(token) {
                     const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
                     const eventLink = `index.html?eventId=${event.id}`;
 
-                    // --- NOVA LÓGICA DO TIMER ---
-                    // Cria um placeholder para o timer
                     let timerHtml = '';
-                    // Se estamos na aba "Próximos Eventos" E este é o primeiro item da lista (index === 0)
                     if (status === 'upcoming' && index === 0) {
-                        // Cria um ID único para o countdown deste card
                         const countdownId = `event-countdown-${event.id}`;
-                        timerHtml = `
-            <div class="event-card-timer">
-                <span>Prazo para palpites:</span>
-                <strong id="${countdownId}">--:--:--</strong>
-            </div>
-        `;
-                        // Inicia o countdown para este elemento específico
-                        // Usamos um setTimeout para dar tempo do HTML ser inserido na página
+                        timerHtml = `<div class="event-card-timer"><strong id="${countdownId}">--:--:--</strong></div>`;
                         setTimeout(() => startCountdown(event.picks_deadline, countdownId), 0);
                     }
 
                     eventsHtml += `
         <a href="${eventLink}" class="event-card-link">
-            <div class="event-card" style="background-image: url('${event.card_image_url || 'https://via.placeholder.com/400x200'}')">
+            <div class="event-card">
+                <!-- A imagem agora é um elemento <img> separado -->
+                <img src="${event.card_image_url || 'https://via.placeholder.com/400x200'}" class="event-card-bg" alt="">
+
                 ${status === 'past' ? '<span class="status-tag">Encerrado</span>' : ''}
                 
-                <!-- INSERE O TIMER AQUI -->
                 ${timerHtml}
 
                 <div class="event-card-info">

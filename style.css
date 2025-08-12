@@ -466,8 +466,6 @@ tr.apured .btn-primary {
     position: relative;
     height: 200px;
     border-radius: 8px;
-    background-size: cover;
-    background-position: center;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -476,6 +474,22 @@ tr.apured .btn-primary {
     overflow: hidden;
     transition: transform 0.3s ease;
     border: 1px solid var(--border-color);
+}
+/* NOVA REGRA para a imagem de fundo */
+.event-card-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Garante que a imagem cubra todo o espaço, cortando o excesso */
+    z-index: 0; /* Coloca a imagem atrás de todo o conteúdo */
+    transition: transform 0.4s ease; /* Adiciona um efeito de zoom suave no hover */
+}
+
+/* Efeito de zoom no hover */
+.event-card:hover .event-card-bg {
+    transform: scale(1.1);
 }
 .event-card:hover {
     transform: translateY(-5px);
