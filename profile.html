@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=5.1">
+    <link rel="stylesheet" href="style.css?v=5.2">
 </head>
 
 <body id="profile-page">
@@ -26,44 +26,66 @@
     </header>
 
     <main class="container">
-        <!-- Novo container para centralização -->
         <div class="profile-wrapper">
-            <section class="admin-section">
-                <h2>Minha Conta</h2>
 
-                <!-- Seção da Foto de Perfil -->
+            <!-- SEÇÃO 1: FOTO DE PERFIL -->
+            <section class="admin-section">
+                <h2>Foto de Perfil</h2>
                 <div class="profile-pic-section">
                     <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
                     <div class="profile-pic-action">
                         <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
                             style="display: none;">
                         <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
-                        <!-- O texto de ajuda agora é um 'tooltip' -->
                         <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
                         <button type="button" id="cancel-photo-btn" class="btn btn-danger"
                             style="display: none;">Reverter</button>
                     </div>
                 </div>
+            </section>
+
+            <!-- SEÇÃO 2: NOME DE USUÁRIO E SENHA -->
+            <section class="admin-section">
+                <h2>Nome de Usuário e Senha</h2>
+
+                <!-- Campo de Nome de Usuário -->
+                <div class="form-group">
+                    <label>Nome de Usuário</label>
+                    <input type="text" id="username-display" class="profile-input" disabled>
+                    <button type="button" class="btn" disabled
+                        title="A alteração de nome de usuário não está disponível.">Alterar Nome de Usuário</button>
+                </div>
 
                 <hr style="border-color: var(--border-color); margin: 30px 0;">
 
-                <!-- Seção de Senha e Detalhes -->
-                <form id="profile-details-form">
-                    <div class="form-group"><label>Nome de Usuário</label><input type="text" id="username-display"
-                            disabled></div>
-                    <h3>Alterar Senha</h3>
-                    <div class="form-group"><label for="new-password">Nova Senha</label><input type="password"
-                            id="new-password" placeholder="Mínimo 6 caracteres"></div>
-                    <div class="actions-footer" style="padding: 0; margin-top: 30px;">
-                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                <!-- Seção de Senha -->
+                <div id="password-section">
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <div id="password-display-area">
+                            <input type="password" class="profile-input" value="********" disabled>
+                            <button type="button" id="show-change-password-btn" class="btn">Alterar Senha</button>
+                        </div>
+
+                        <div id="password-edit-area" style="display: none;">
+                            <form id="password-form">
+                                <input type="password" id="new-password" class="profile-input"
+                                    placeholder="Digite a nova senha (mín. 6 caracteres)" required>
+                                <div class="password-actions">
+                                    <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
+                                    <button type="button" id="cancel-password-btn" class="btn">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <div id="profile-message" style="margin-top: 15px; text-align: center;"></div>
-                </form>
+                </div>
             </section>
+
         </div>
     </main>
 
-    <script src="script.js?v=5.1"></script>
+    <script src="script.js?v=5.2"></script>
 </body>
 
 </html>
