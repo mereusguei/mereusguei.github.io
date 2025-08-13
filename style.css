@@ -605,6 +605,7 @@ tr.apured .btn-primary {
     background-color: var(--primary-color);
     color: var(--bg-color);
     border: none;
+    width: 100%;
 }
 .profile-pic-action .btn:hover {
     background-color: white;
@@ -667,15 +668,10 @@ tr.apured .btn-primary {
     visibility: visible;
 }
 
-/* Define uma largura consistente para ambos os botões de ação da foto */
-#change-photo-btn, #cancel-photo-btn {
-    width: 200px; /* Define uma largura fixa (ajuste se preferir) */
-    text-align: center; /* Garante que o texto dentro do botão esteja centralizado */
-}
-
-/* Opcional: mantém um pequeno espaçamento superior para o botão de reverter */
+/* Botão de Reverter */
 #cancel-photo-btn {
-    margin-top: 5px;
+    margin-top: 5px; /* Pequeno espaçamento adicional */
+    width: 100%
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
