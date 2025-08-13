@@ -493,10 +493,9 @@ function initializeRankingPage(token) {
 
         const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
-        let tableHtml = ''; // Inicializa vazio para construir o cabeçalho e o corpo
+        let tableHtml = '';
         let valueKey = '';
 
-        // --- AJUSTE NO CÓDIGO DO CABEÇALHO (THEAD) ---
         if (type === 'general') {
             tableHtml += `
             <table>
@@ -510,13 +509,10 @@ function initializeRankingPage(token) {
                 <tbody>
         `;
             valueKey = 'total_points';
-        }
-        // O bloco 'else if (type === 'event')' já foi removido anteriormente
-        else {
+        } else {
             rankingContent.innerHTML = '<p>Tipo de ranking inválido.</p>';
             return;
         }
-        // --- FIM DO AJUSTE NO CABEÇALHO ---
 
         if (data.length === 0) {
             tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
@@ -524,22 +520,24 @@ function initializeRankingPage(token) {
             data.forEach((row, index) => {
                 const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
 
+                // --- AJUSTE PARA CENTRALIZAR E AUMENTAR O NOME NA COLUNA USUÁRIO ---
                 const userInfoHtml = `
                 <div class="user-info-cell">
                     <img src="${userProfilePic}" alt="Foto de Perfil de ${row.username}">
                     <span class="user-name">${row.username}</span>
                 </div>
             `;
+                // --- FIM DO AJUSTE ---
 
                 tableHtml += `
                 <tr>
                     <td><b>${index + 1}º</b></td>
-                    <td>${userInfoHtml}</td>
+                    <td class="user-cell-content">${userInfoHtml}</td> <!-- Adicionada classe para facilitar estilo -->
                     <td>${row[valueKey]}</td>
                 </tr>`;
             });
         }
-        tableHtml += '</tbody></table>'; // Fecha o tbody e a table
+        tableHtml += '</tbody></table>';
         rankingContent.innerHTML = tableHtml;
     }
 

@@ -784,13 +784,12 @@ tr.apured .btn-primary {
     text-align: left; /* Título do usuário alinhado à esquerda */
 }
 /* Ajustes para a célula que contém a foto e o nome do usuário */
-#ranking-table-container td:nth-child(2) {
+#ranking-table-container td:nth-child(2) { /* Célula que agrupa foto + nome */
     padding: 0; /* Remove padding padrão da TD para controlar com o flexbox interno */
     display: flex;
     align-items: center; /* Centraliza verticalmente foto e nome */
     gap: 15px; /* Espaço entre foto e nome */
-    /* Permite que a célula se expanda, mas não menos que o necessário para o conteúdo */
-    min-width: 200px; /* Garante um espaço mínimo para o nome */
+    min-width: 200px; /* Garante um espaço mínimo para o nome e foto */
 }
 #ranking-table-container td:nth-child(2) img {
     width: 45px; /* Tamanho da foto */
@@ -804,6 +803,7 @@ tr.apured .btn-primary {
     font-size: 1.1rem; /* Aumenta o tamanho da fonte */
     color: var(--text-color);
     font-family: var(--font-secondary); /* Garante a fonte correta */
+    text-align: left; /* Alinha o nome à esquerda dentro do seu container */
 }
 
 /* Coluna da Pontuação */
