@@ -260,11 +260,12 @@ function initializeProfilePage(user, token) {
         }
     });
 
-    // --- NOVA LÓGICA PARA ALTERAÇÃO DE SENHA ---
+    // --- NOVA E COMPLETA LÓGICA PARA ALTERAÇÃO DE SENHA ---
     if (showChangePasswordBtn) {
         showChangePasswordBtn.addEventListener('click', () => {
             passwordDisplayArea.style.display = 'none';
             passwordEditArea.style.display = 'block';
+            if (profileMessage) profileMessage.textContent = '';
         });
     }
 
@@ -281,19 +282,20 @@ function initializeProfilePage(user, token) {
         passwordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = passwordForm.querySelector('button[type="submit"]');
-            const newPassword = document.getElementById('new-password').value;
+            const newPasswordInput = document.getElementById('new-password');
+            const newPassword = newPasswordInput.value;
 
-            if (!newPassword) {
-                if (profileMessage) profileMessage.textContent = 'Digite a nova senha para salvá-la.';
-                return;
-            }
-            if (newPassword.length < 6) {
-                if (profileMessage) profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+            if (!newPassword || newPassword.length < 6) {
+                if (profileMessage) {
+                    profileMessage.className = 'error';
+                    profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+                }
                 return;
             }
 
             submitButton.textContent = 'Salvando Senha...';
             submitButton.disabled = true;
+            cancelPasswordBtn.style.display = 'none'; // Esconde o botão Cancelar
             if (profileMessage) profileMessage.textContent = '';
 
             try {
@@ -305,15 +307,16 @@ function initializeProfilePage(user, token) {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
+                // Mostra a mensagem de sucesso no lugar do input e botões
+                passwordEditArea.style.display = 'none';
                 if (profileMessage) {
                     profileMessage.className = 'success';
-                    profileMessage.textContent = data.message + ' Sua senha foi alterada.';
+                    profileMessage.textContent = 'Sua senha foi alterada com sucesso!';
                 }
-                // Volta para o estado de exibição
-                setTimeout(() => { // Pequeno delay para o usuário ver a mensagem de sucesso
-                    passwordEditArea.style.display = 'none';
+
+                // Volta para o estado inicial após 2 segundos
+                setTimeout(() => {
                     passwordDisplayArea.style.display = 'block';
-                    document.getElementById('new-password').value = '';
                     if (profileMessage) profileMessage.textContent = '';
                 }, 2000);
 
@@ -322,9 +325,10 @@ function initializeProfilePage(user, token) {
                     profileMessage.className = 'error';
                     profileMessage.textContent = `Erro: ${error.message}`;
                 }
-            } finally {
+                // Em caso de erro, volta para a tela de edição
                 submitButton.textContent = 'Salvar Nova Senha';
                 submitButton.disabled = false;
+                cancelPasswordBtn.style.display = 'inline-block';
             }
         });
     }

@@ -675,5 +675,16 @@ tr.apured .btn-primary {
 }
 /* Garante que a seção de senha mantenha uma altura mínima constante */
 #password-section .form-group {
-    min-height: 120px; /* Ajuste este valor se necessário, mas 120px deve ser suficiente */
+    position: relative; /* Torna-se a referência para a mensagem de feedback */
+    min-height: 120px;
+    padding-bottom: 30px; /* Adiciona espaço extra embaixo para a mensagem */
+}
+
+/* Posiciona a mensagem de feedback absolutamente no fundo do container */
+#profile-message {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    margin-top: 0;
 }
