@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking Geral - Octagon Oracle</title>
+    <title>Ranking - Octagon Oracle</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=5.3">
+    <link rel="stylesheet" href="style.css?v=6.6"> <!-- Use a versão mais recente do seu style.css -->
 </head>
 
 <body id="ranking-page">
@@ -23,16 +23,30 @@
 
     <main class="container">
         <section class="admin-section">
-            <h2>Ranking Geral (Pontuação Total)</h2>
+            <h2>Rankings</h2>
+
+            <!-- ABA DE NAVEGAÇÃO PARA OS RANKINGS -->
+            <div class="tabs">
+                <button class="tab-button active" data-ranking="general">Pontuação Geral</button>
+                <button class="tab-button" data-ranking="accuracy">Ranking de Precisão</button>
+            </div>
+
+            <!-- SELETOR DE EVENTO PARA O RANKING DE PRECISÃO -->
+            <div id="event-selector-container" style="display: none;">
+                <label for="event-select" class="form-label">Filtrar por Evento:</label>
+                <select id="event-select" class="custom-select">
+                    <option value="">Carregando eventos...</option>
+                </select>
+            </div>
+
+            <!-- CONTAINER PARA EXIBIR OS RESULTADOS DOS RANKINGS -->
             <div id="ranking-table-container">
-                <p>Carregando ranking...</p>
+                <p>Carregando rankings...</p>
             </div>
         </section>
     </main>
 
-
-    <!-- Script específico desta página -->
-    <script src="script.js?v=5.3"></script>
+    <script src="script.js?v=6.6"></script> <!-- Use a versão mais recente do seu script.js -->
 </body>
 
 </html>

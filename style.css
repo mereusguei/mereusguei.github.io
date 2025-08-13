@@ -2,7 +2,7 @@
     --bg-color: #0d1117;
     --primary-color: #00f2ff;
     --secondary-color: #ff00c1;
-    --card-bg: rgba(22, 27, 34, 0.6); /* Mantém o background dos elementos internos, como input/botões */
+    --card-bg: rgba(22, 27, 34, 0.6);
     --border-color: rgba(0, 242, 255, 0.2);
     --text-color: #c9d1d9;
     --text-muted: #8b949e;
@@ -603,7 +603,6 @@ tr.apured .btn-primary {
     display: flex;
     flex-direction: column;
     gap: 30px; /* Espaço entre as seções dentro de cada coluna */
-    /* Fundo transparente para permitir a visualização do fundo da página */
     background-color: transparent;
     padding: 30px;
     border: 1px solid var(--border-color);
@@ -692,7 +691,6 @@ tr.apured .btn-primary {
     border: 3px solid var(--primary-color);
     box-shadow: 0 0 15px var(--primary-color);
     object-fit: cover; /* Garante que a imagem cubra a área sem distorcer */
-    /* ADICIONADO: Limita o tamanho da imagem dentro da sua coluna */
     max-width: 100%;
     max-height: 100%;
     display: block; /* Remove espaço extra abaixo da imagem */
@@ -704,7 +702,6 @@ tr.apured .btn-primary {
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    /* Removemos o margin-bottom daqui, pois o gap no .profile-column cuida do espaçamento */
 }
 
 /* O container das ações de foto (botões) */
@@ -747,3 +744,208 @@ tr.apured .btn-primary {
 #cancel-photo-btn {
     margin-top: 0px; /* Pequeno espaçamento adicional */
 }
+
+/* ================== ESTILOS PARA RANKING ================== */
+
+/* Estilos para os botões de aba (geral/precisão) */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    justify-content: center;
+}
+.tab-button {
+    border: 1px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+    padding: 10px 20px;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+.tab-button.active, .tab-button:hover {
+    background: var(--primary-color);
+    color: var(--bg-color);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+/* Estilos para o seletor de evento */
+#event-selector-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.form-label { /* Estilo genérico para rótulos */
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+.custom-select { /* Reutiliza o estilo de select customizado */
+    width: 100%;
+    max-width: 400px; /* Define um limite para o select */
+    margin: 0 auto; /* Centraliza */
+    display: block; /* Necessário para o margin auto funcionar */
+}
+
+/* Estilos para a tabela de ranking */
+#ranking-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+#ranking-table-container th, #ranking-table-container td {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+#ranking-table-container th {
+    background-color: var(--card-bg);
+    font-family: var(--font-primary);
+    color: var(--primary-color);
+    text-align: center; /* Centraliza os cabeçalhos */
+}
+#ranking-table-container td {
+    vertical-align: middle; /* Centraliza o conteúdo verticalmente */
+}
+#ranking-table-container td b {
+    color: var(--primary-color);
+}
+#ranking-table-container tr:nth-child(even) {
+    background-color: rgba(22, 27, 34, 0.3); /* Leve cor de fundo para linhas pares */
+}
+#ranking-table-container tr:hover {
+    background-color: rgba(0, 242, 255, 0.1); /* Efeito hover sutil */
+}
+
+/* Estilos para o conteúdo oculto do ranking de precisão */
+.accuracy-details {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+.accuracy-details span {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+/* Estilos para a página de perfil (seção de ranking já está no layout profile-column) */
+.profile-wrapper {
+    padding: 40px 0;
+    width: 100%;
+}
+.profile-layout {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.profile-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    background-color: transparent;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+.profile-column.column-left {
+    max-width: 48%;
+}
+.profile-column.column-right {
+    max-width: 48%;
+    align-items: center;
+}
+.profile-column .admin-section h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    font-family: var(--font-primary);
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+.profile-column .form-group {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    text-align: center;
+}
+.profile-input {
+    width: 100%; padding: 12px 15px; background: var(--bg-color);
+    border: 1px solid var(--border-color); color: var(--text-color);
+    border-radius: 6px; font-size: 1.1rem; margin-bottom: 10px;
+}
+#password-section-wrapper .form-group {
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.password-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+.password-actions .btn {
+    flex: 1;
+    width: auto;
+}
+.password-actions .success-message, #profile-message {
+    width: 100%;
+    text-align: center;
+    color: var(--primary-color);
+    font-weight: bold;
+    padding: 10px 0;
+    min-height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#profile-pic-preview {
+    width: 120px; height: 120px; border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color);
+    object-fit: cover;
+    max-width: 100%; max-height: 100%;
+    display: block;
+}
+.profile-pic-section {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 20px;
+}
+.profile-pic-action {
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+}
+.tooltip-text {
+    position: absolute;
+    bottom: 100%; left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+    z-index: 10;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    margin-bottom: 10px;
+}
+#change-photo-btn:hover + .tooltip-text {
+    opacity: 1; visibility: visible;
+}
+#cancel-photo-btn {
+    margin-top: 0px;
+}
+/* ================== FIM DOS AJUSTES ESPECÍFICOS DA FOTO DE PERFIL ================== */
