@@ -724,8 +724,9 @@ tr.apured .btn-primary {
     align-items: center;
     justify-content: center;
 }
-/* Garante que ambos os botões da foto de perfil tenham a mesma largura e fiquem alinhados */
+/* Define uma largura fixa e garante o alinhamento de texto para ambos os botões */
 #change-photo-btn, #cancel-photo-btn {
-    width: 200px; /* Define uma largura fixa (ajuste se preferir) */
-    box-sizing: border-box; /* Garante que padding e borda não afetem a largura total */
+    width: 220px; /* Define uma largura fixa e generosa para ambos. Ajuste se necessário. */
+    text-align: center; /* Garante que o texto DENTRO do botão esteja centralizado */
+    box-sizing: border-box; /* Garante consistência no tamanho */
 }
