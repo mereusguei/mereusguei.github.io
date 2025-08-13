@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=6.2">
+    <link rel="stylesheet" href="style.css?v=6.6">
 </head>
 
 <body id="profile-page">
@@ -27,60 +27,66 @@
 
     <main class="container">
         <div class="profile-wrapper">
+
+            <!-- SEÇÃO 1: FOTO DE PERFIL (Título removido) -->
             <section class="admin-section">
-                <h2>Minha Conta</h2>
-
-                <!-- Novo container com Grid para alinhar foto e detalhes -->
-                <div class="profile-content-grid">
-
-                    <!-- Coluna da Esquerda: Foto de Perfil -->
-                    <div class="profile-pic-section">
-                        <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
-                        <div class="profile-pic-action">
-                            <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
-                                style="display: none;">
-                            <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
-                            <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
-                            <button type="button" id="cancel-photo-btn" class="btn btn-danger"
-                                style="display: none;">Reverter</button>
-                        </div>
+                <h2></h2> <!-- Título "Foto de Perfil" removido, mas a tag permanece para manter a estrutura -->
+                <div class="profile-pic-section">
+                    <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
+                    <div class="profile-pic-action">
+                        <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
+                            style="display: none;">
+                        <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
+                        <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
+                        <button type="button" id="cancel-photo-btn" class="btn btn-danger"
+                            style="display: none;">Reverter</button>
                     </div>
-
-                    <!-- Coluna da Direita: Detalhes do Usuário -->
-                    <div class="profile-details-section">
-                        <div class="form-group">
-                            <label>Nome de Usuário</label>
-                            <input type="text" id="username-display" class="profile-input" disabled>
-                        </div>
-
-                        <hr style="border-color: var(--border-color); margin: 20px 0;">
-
-                        <div id="password-section">
-                            <label>Senha</label>
-                            <div id="password-display-area">
-                                <input type="password" class="profile-input" value="********" disabled>
-                                <button type="button" id="show-change-password-btn" class="btn">Alterar Senha</button>
-                            </div>
-                            <div id="password-edit-area" style="display: none;">
-                                <form id="password-form">
-                                    <input type="password" id="new-password" class="profile-input"
-                                        placeholder="Digite a nova senha" required>
-                                    <div class="password-actions">
-                                        <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
-                                        <button type="button" id="cancel-password-btn" class="btn">Cancelar</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div id="profile-message" style="margin-top: 15px; text-align: center;"></div>
-                    </div>
-
                 </div>
             </section>
+
+            <!-- SEÇÃO 2: NOME DE USUÁRIO E SENHA (Agora separadas) -->
+            <section class="admin-section">
+                <h2>Nome de usuário</h2> <!-- Título alterado -->
+
+                <!-- Campo de Nome de Usuário (Label removido) -->
+                <div class="form-group">
+                    <label></label> <!-- Label do Nome de Usuário removido -->
+                    <input type="text" id="username-display" class="profile-input" disabled>
+                    <button type="button" id="change-username-btn" class="btn" disabled
+                        title="A alteração de nome de usuário não está disponível.">Alterar Nome de Usuário</button>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 30px 0;">
+
+                <!-- Seção de Senha (Com novo título e label removido) -->
+                <div id="password-section">
+                    <h2>Senha</h2> <!-- Novo título para a seção de senha -->
+                    <div class="form-group">
+                        <label></label> <!-- Label da Senha removido -->
+                        <div id="password-display-area">
+                            <input type="password" class="profile-input" value="********" disabled>
+                            <button type="button" id="show-change-password-btn" class="btn">Alterar Senha</button>
+                        </div>
+
+                        <div id="password-edit-area" style="display: none;">
+                            <form id="password-form">
+                                <input type="password" id="new-password" class="profile-input"
+                                    placeholder="Digite a nova senha (mín. 6 caracteres)" required>
+                                <div class="password-actions">
+                                    <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
+                                    <button type="button" id="cancel-password-btn" class="btn">Cancelar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div id="profile-message" style="margin-top: 15px; text-align: center;"></div>
+                </div>
+            </section>
+
         </div>
     </main>
 
-    <script src="script.js?v=6.2"></script>
+    <script src="script.js?v=6.6"></script>
 </body>
 
 </html>
