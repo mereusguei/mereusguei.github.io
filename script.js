@@ -473,9 +473,30 @@ function initializeRankingPage(token) {
         }
     }
 
+    // Adicione esta nova função para buscar e exibir as fotos na tabela de ranking
+    function renderUserInRankingTable(user, rowData) {
+        // Obtém a URL da foto do perfil do usuário logado ou usa um placeholder
+        const profilePicUrl = user.profile_picture_url || `https://i.pravatar.cc/45?u=${user.username}`;
+
+        // Constrói o HTML para a célula do usuário com a foto e o nome
+        return `
+        <div class="user-info-cell">
+            <img src="${profilePicUrl}" alt="Foto de Perfil de ${user.username}">
+            <span class="user-name">${user.username}</span>
+        </div>
+    `;
+    }
+
     // Função interna para construir o HTML da tabela
     function buildTableHtml(type, data) {
         if (!rankingContent) return;
+
+        // --- CORREÇÃO: SE FOR RANKING GERAL, BUSCAR DADOS DO USUÁRIO DO LOCALSTORAGE ---
+        // Precisamos dos dados do usuário (principalmente a URL da foto) para renderizar a tabela corretamente.
+        // Assumimos que os dados do usuário logado estão disponíveis em localStorage.
+        const loggedInUser = JSON.parse(localStorage.getItem('user'));
+        // --- FIM DA CORREÇÃO ---
+
         let tableHtml = '<table><thead><tr><th>Posição</th><th>Usuário</th>';
         let valueKey = '';
 
@@ -491,10 +512,23 @@ function initializeRankingPage(token) {
         }
 
         if (data.length === 0) {
-            tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
+            tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
         } else {
             data.forEach((row, index) => {
-                tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
+                // --- MODIFICAÇÃO: AQUI É ONDE CONSTRUIMOS A CÉLULA DO USUÁRIO COM A FOTO ---
+                const userInfoHtml = loggedInUser ?
+                    `<td class="user-info-cell">
+         <img src="${loggedInUser.profile_picture_url || `https://i.pravatar.cc/45?u=${loggedInUser.username}`}" alt="Foto de Perfil de ${loggedInUser.username}">
+         <span class="user-name">${row.username}</span>
+     </td>`
+                    : `<td>${row.username}</td>`; // Caso não haja usuário logado (improvável nesta página, mas por segurança)
+
+                tableHtml += `
+    <tr>
+        <td><b>${index + 1}º</b></td>
+        ${userInfoHtml}
+        <td>${row[valueKey]}</td>
+    </tr>`;
             });
         }
         tableHtml += '</tbody></table>';
