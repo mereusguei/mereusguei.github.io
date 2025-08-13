@@ -85,8 +85,6 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    flex-grow: 1; /* Faz com que ocupem o espaço disponível */
-    width: 100%;
 }
 
 .btn:hover {
@@ -675,8 +673,8 @@ tr.apured .btn-primary {
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
-/* Estilo para os títulos das seções (Nome de usuário e Senha) */
-#password-section h2, .profile-details-section h2 {
+/* Estilo para TODOS os títulos H2 dentro de uma admin-section na página de perfil */
+.profile-wrapper .admin-section h2 {
     text-align: center;
     margin-bottom: 15px;
     font-family: var(--font-primary);
@@ -711,9 +709,9 @@ tr.apured .btn-primary {
     gap: 10px;
     width: 100%;
 }
-/* Estilo unificado para TODOS os botões de ação da senha */
-.password-actions .btn, #show-change-password-btn {
-    flex-grow: 1; /* Faz com que ocupem o espaço disponível */
+/* Estilo unificado para TODOS os botões de ação da senha e nome de usuario */
+.password-actions .btn, #show-change-password-btn, #change-username-btn {
+    flex-grow: 1;
     width: 100%;
 }
 
