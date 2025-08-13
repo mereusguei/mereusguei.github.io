@@ -558,9 +558,7 @@ tr.apured .btn-primary {
 .profile-pic-container { display: flex; align-items: center; gap: 20px; }
 .profile-pic-container img { width: 100px; height: 100px; border-radius: 50%; }
 
-/* ================== ESTILOS FINAIS E COMPLETOS PARA A PÁGINA DE PERFIL ================== */
-
-/* Centraliza o card de perfil na página */
+/* 2.a - Centraliza todo o conteúdo da página de perfil */
 .profile-wrapper {
     display: flex;
     justify-content: center;
@@ -569,10 +567,10 @@ tr.apured .btn-primary {
 }
 .profile-wrapper .admin-section {
     width: 100%;
-    max-width: 600px;
+    max-width: 600px; /* Largura máxima para o card de perfil */
 }
 
-/* Estiliza a seção da foto de perfil */
+/* 2.e - Dá destaque ao avatar */
 .profile-pic-section {
     display: flex;
     flex-direction: column;
@@ -581,39 +579,81 @@ tr.apured .btn-primary {
     margin-bottom: 30px;
 }
 #profile-pic-preview {
-    width: 120px; height: 120px;
+    width: 120px; /* Tamanho aumentado */
+    height: 120px;
     border-radius: 50%;
     border: 3px solid var(--primary-color);
-    box-shadow: 0 0 15px var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color); /* Efeito glow neon */
     object-fit: cover;
 }
 #profile-pic-upload { display: none; }
-.profile-pic-action {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+
+/* 2.b e 2.c - Alinhamento interno e espaçamento */
+.profile-details-section h3 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.profile-details-section .form-group {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Tooltip */
-.tooltip-text {
-    position: absolute; bottom: 100%; left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--card-bg); color: var(--text-color);
-    padding: 8px 12px; border-radius: 6px;
-    border: 1px solid var(--border-color);
-    white-space: nowrap; z-index: 10;
-    opacity: 0; visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    margin-bottom: 10px;
+/* 2.d - Uniformiza botões */
+.profile-pic-action .btn {
+    /* Faz o botão 'Alterar Foto' ter o mesmo estilo do botão principal */
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    border: none;
 }
+.profile-pic-action .btn:hover {
+    background-color: white;
+}
+/* ================== ESTILOS FINAIS PARA A AÇÃO DE FOTO DE PERFIL ================== */
+
+/* Container para os botões de ação da foto */
+.profile-pic-action {
+    position: relative; /* Necessário para o posicionamento do tooltip */
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente */
+    align-items: center;
+    gap: 10px; /* Espaçamento entre os botões */
+}
+
+/* Estilo do Tooltip (texto de ajuda) */
+.tooltip-text {
+    position: absolute;
+    bottom: 100%; /* Posiciona acima do botão 'Alterar Foto' */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    white-space: nowrap; /* Impede que o texto quebre a linha */
+    z-index: 10;
+    
+    /* Animação */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    margin-bottom: 10px; /* Distância do botão */
+}
+
+/* Mostra o tooltip quando o mouse está sobre o botão */
 #change-photo-btn:hover + .tooltip-text {
     opacity: 1;
     visibility: visible;
 }
 
-/* Inputs de perfil genéricos */
+/* Botão de Reverter */
+#cancel-photo-btn {
+    margin-top: 5px; /* Pequeno espaçamento adicional */
+}
+/* ================== ESTILOS FINAIS E CORRIGIDOS PARA A PÁGINA DE PERFIL ================== */
+
+/* 1. Unifica o estilo dos inputs de perfil */
 .profile-input {
     width: 100%;
     padding: 12px 15px;
@@ -622,41 +662,43 @@ tr.apured .btn-primary {
     color: var(--text-color);
     border-radius: 6px;
     font-size: 1.1rem;
-    margin-bottom: 10px;
+    margin-bottom: 10px; /* Garante espaçamento consistente abaixo dos inputs */
 }
 
-/* --- A CORREÇÃO DO "SALTO" ESTÁ AQUI --- */
-
-/* Container geral do grupo de senha */
+/* 2. Garante que o container do form-group para os botões tenha altura consistente */
 #password-section .form-group {
+    /* Mantém uma altura mínima para evitar o "salto" vertical */
+    min-height: 110px; 
     display: flex;
     flex-direction: column;
-    /* Define uma altura mínima fixa para todo o bloco, eliminando o salto */
-    min-height: 125px; 
+    justify-content: flex-start; /* Alinha o conteúdo ao topo */
 }
 
-/* Alinha o conteúdo de cada estado (display e edit) */
-#password-display-area, #password-edit-area {
+/* 3. Garante que os botões dentro do form-group ocupem a mesma largura */
+.form-group > .btn {
     width: 100%;
-    margin-top: auto; /* Empurra o conteúdo para a base do container */
 }
 
-/* Ações do formulário de senha (Salvar/Cancelar) */
+/* 4. Estiliza o container das ações de senha (Salvar/Cancelar) */
 .password-actions {
     display: flex;
     gap: 10px;
-    margin-top: 10px; /* Mantém o espaçamento do input */
-}
-.password-actions .btn {
-    flex-grow: 1;
+    width: 100%; /* Garante que o container ocupe toda a largura */
 }
 
-/* Mensagem de sucesso, que também precisa estar alinhada */
+.password-actions .btn {
+    flex-grow: 1; /* Faz os botões dividirem o espaço igualmente */
+}
+
+/* 5. Estiliza a mensagem de sucesso para ocupar o mesmo espaço vertical que os botões */
 .password-actions .success-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    text-align: center;
-    color: var(--primary-color);
     font-weight: bold;
+    color: var(--primary-color);
     padding: 10px 0;
-    margin-top: 10px;
+    height: 45px; /* Altura aproximada do botão para manter a consistência */
+    box-sizing: border-box; /* Garante que o padding não aumente a altura */
 }
