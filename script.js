@@ -184,7 +184,7 @@ function initializeProfilePage(user, token) {
             cancelPhotoBtn.textContent = 'Cancelar'; // Durante o upload, o botão é 'Cancelar'
             photoStatusText.style.display = 'none';
         } else if (state === 'success') {
-            changePhotoBtn.textContent = 'Foto Atualizada ✔️';
+            changePhotoBtn.textContent = 'Foto Atualizada';
             changePhotoBtn.disabled = true;
             cancelPhotoBtn.textContent = 'Reverter'; // Após o sucesso, o botão é 'Reverter'
             cancelPhotoBtn.style.display = 'inline-block';
