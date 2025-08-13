@@ -605,7 +605,6 @@ tr.apured .btn-primary {
     background-color: var(--primary-color);
     color: var(--bg-color);
     border: none;
-    width: 100%;
 }
 .profile-pic-action .btn:hover {
     background-color: white;
@@ -668,10 +667,9 @@ tr.apured .btn-primary {
     visibility: visible;
 }
 
-/* Botão de Reverter */
+/* Remove a margem extra do botão reverter, pois o 'gap' do flex container já cuida disso */
 #cancel-photo-btn {
-    margin-top: 5px; /* Pequeno espaçamento adicional */
-    width: 100%
+    margin-top: 0; 
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
@@ -725,4 +723,9 @@ tr.apured .btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+/* Garante que ambos os botões da foto de perfil tenham a mesma largura e fiquem alinhados */
+#change-photo-btn, #cancel-photo-btn {
+    width: 200px; /* Define uma largura fixa (ajuste se preferir) */
+    box-sizing: border-box; /* Garante que padding e borda não afetem a largura total */
 }
