@@ -12,7 +12,7 @@
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css?v=6.6">
+    <link rel="stylesheet" href="style.css?v=6.7">
 </head>
 
 <body id="profile-page">
@@ -26,37 +26,18 @@
 
     <main class="container">
         <div class="profile-wrapper">
-            <!-- LAYOUT DE DUAS COLUNAS (INVERTIDO) -->
+            <!-- NOVA ESTRUTURA DE LAYOUT COM DUAS COLUNAS -->
             <div class="profile-layout">
 
-                <!-- COLUNA ESQUERDA: Foto de Perfil -->
+                <!-- COLUNA ESQUERDA: Nome de Usuário e Senha -->
                 <div class="profile-column column-left">
-                    <!-- SEÇÃO 1: FOTO DE PERFIL -->
+                    <!-- SEÇÃO 1: NOME DE USUÁRIO -->
                     <section class="admin-section">
-                        <h2>Foto de Perfil</h2> <!-- Título retornado -->
-                        <div class="profile-pic-section">
-                            <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
-                            <div class="profile-pic-action">
-                                <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
-                                    style="display: none;">
-                                <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
-                                <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou
-                                    .png</small>
-                                <button type="button" id="cancel-photo-btn" class="btn btn-danger"
-                                    style="display: none;">Reverter</button>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+                        <h2>Nome de usuário</h2> <!-- Título alterado -->
 
-                <!-- COLUNA DIREITA: Nome de Usuário e Senha -->
-                <div class="profile-column column-right">
-                    <!-- SEÇÃO 2: NOME DE USUÁRIO -->
-                    <section class="admin-section">
-                        <h2>Nome de usuário</h2>
-
+                        <!-- Campo de Nome de Usuário (Label removido) -->
                         <div class="form-group">
-                            <label></label>
+                            <label></label> <!-- Label do Nome de Usuário removido -->
                             <input type="text" id="username-display" class="profile-input" disabled>
                             <button type="button" id="change-username-btn" class="btn" disabled
                                 title="A alteração de nome de usuário não está disponível.">Alterar Nome de
@@ -66,11 +47,11 @@
 
                     <hr style="border-color: var(--border-color); margin: 30px 0;">
 
-                    <!-- SEÇÃO 3: SENHA -->
+                    <!-- SEÇÃO 2: SENHA -->
                     <section class="admin-section" id="password-section-wrapper">
-                        <h2>Senha</h2>
+                        <h2>Senha</h2> <!-- Novo título para a seção de senha -->
                         <div class="form-group">
-                            <label></label>
+                            <label></label> <!-- Label da Senha removido -->
                             <div id="password-display-area">
                                 <input type="password" class="profile-input" value="********" disabled>
                                 <button type="button" id="show-change-password-btn" class="btn">Alterar Senha</button>
@@ -90,11 +71,31 @@
                         <div id="profile-message" style="margin-top: 15px; text-align: center;"></div>
                     </section>
                 </div>
+
+                <!-- COLUNA DIREITA: Foto de Perfil -->
+                <div class="profile-column column-right">
+                    <!-- SEÇÃO 3: FOTO DE PERFIL -->
+                    <section class="admin-section">
+                        <h2>Foto de Perfil</h2> <!-- Título retornado para a coluna -->
+                        <div class="profile-pic-section">
+                            <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
+                            <div class="profile-pic-action">
+                                <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
+                                    style="display: none;">
+                                <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
+                                <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou
+                                    .png</small>
+                                <button type="button" id="cancel-photo-btn" class="btn btn-danger"
+                                    style="display: none;">Reverter</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     </main>
 
-    <script src="script.js?v=6.6"></script>
+    <script src="script.js?v=6.7"></script>
 </body>
 
 </html>
