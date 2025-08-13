@@ -85,6 +85,8 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
+    flex-grow: 1; /* Faz com que ocupem o espaço disponível */
+    width: 100%;
 }
 
 .btn:hover {
