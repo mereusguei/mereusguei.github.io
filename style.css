@@ -667,9 +667,15 @@ tr.apured .btn-primary {
     visibility: visible;
 }
 
-/* Botão de Reverter */
+/* Define uma largura consistente para ambos os botões de ação da foto */
+#change-photo-btn, #cancel-photo-btn {
+    width: 200px; /* Define uma largura fixa (ajuste se preferir) */
+    text-align: center; /* Garante que o texto dentro do botão esteja centralizado */
+}
+
+/* Opcional: mantém um pequeno espaçamento superior para o botão de reverter */
 #cancel-photo-btn {
-    margin-top: 5px; /* Pequeno espaçamento adicional */
+    margin-top: 5px;
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
@@ -706,8 +712,7 @@ tr.apured .btn-primary {
 .password-actions {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
-    justify-content: center; /* <-- LINHA ADICIONADA */
+    width: 100%;
 }
 /* Estilo unificado para TODOS os botões de ação da senha e nome de usuario */
 .password-actions .btn, #show-change-password-btn, #change-username-btn {
