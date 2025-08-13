@@ -675,10 +675,5 @@ tr.apured .btn-primary {
 }
 /* Garante que a seção de senha mantenha uma altura mínima constante */
 #password-section .form-group {
-    min-height: 120px; /* Garante altura consistente */
-}
-#password-success-message {
-    font-weight: bold;
-    color: var(--primary-color);
-    padding: 10px 0;
+    min-height: 120px; /* Ajuste este valor se necessário, mas 120px deve ser suficiente */
 }

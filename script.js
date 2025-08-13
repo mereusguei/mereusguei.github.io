@@ -260,12 +260,11 @@ function initializeProfilePage(user, token) {
         }
     });
 
-    // --- NOVA E COMPLETA LÓGICA PARA ALTERAÇÃO DE SENHA ---
+    // --- NOVA LÓGICA PARA ALTERAÇÃO DE SENHA ---
     if (showChangePasswordBtn) {
         showChangePasswordBtn.addEventListener('click', () => {
             passwordDisplayArea.style.display = 'none';
             passwordEditArea.style.display = 'block';
-            if (profileMessage) profileMessage.textContent = '';
         });
     }
 
@@ -274,6 +273,7 @@ function initializeProfilePage(user, token) {
             passwordEditArea.style.display = 'none';
             passwordDisplayArea.style.display = 'block';
             document.getElementById('new-password').value = '';
+            if (profileMessage) profileMessage.textContent = '';
         });
     }
 
@@ -283,18 +283,17 @@ function initializeProfilePage(user, token) {
             const submitButton = passwordForm.querySelector('button[type="submit"]');
             const newPassword = document.getElementById('new-password').value;
 
-            if (!newPassword || newPassword.length < 6) {
-                if (profileMessage) {
-                    profileMessage.className = 'error';
-                    profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
-                }
+            if (!newPassword) {
+                if (profileMessage) profileMessage.textContent = 'Digite a nova senha para salvá-la.';
+                return;
+            }
+            if (newPassword.length < 6) {
+                if (profileMessage) profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
                 return;
             }
 
-            // Inicia o estado de salvamento
-            submitButton.textContent = 'Salvando...';
+            submitButton.textContent = 'Salvando Senha...';
             submitButton.disabled = true;
-            passwordActions.style.display = 'none'; // Esconde todos os botões
             if (profileMessage) profileMessage.textContent = '';
 
             try {
@@ -306,20 +305,16 @@ function initializeProfilePage(user, token) {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error);
 
-                // Mostra a mensagem de sucesso
-                passwordSuccessMessage.textContent = 'Sua senha foi alterada com sucesso!';
-                passwordSuccessMessage.style.display = 'block';
-
-                // Volta para o estado inicial após 2 segundos
-                setTimeout(() => {
-                    passwordSuccessMessage.style.display = 'none';
+                if (profileMessage) {
+                    profileMessage.className = 'success';
+                    profileMessage.textContent = data.message + ' Sua senha foi alterada.';
+                }
+                // Volta para o estado de exibição
+                setTimeout(() => { // Pequeno delay para o usuário ver a mensagem de sucesso
                     passwordEditArea.style.display = 'none';
                     passwordDisplayArea.style.display = 'block';
                     document.getElementById('new-password').value = '';
-                    // Restaura o estado original dos botões
-                    submitButton.textContent = 'Salvar Nova Senha';
-                    submitButton.disabled = false;
-                    passwordActions.style.display = 'flex';
+                    if (profileMessage) profileMessage.textContent = '';
                 }, 2000);
 
             } catch (error) {
@@ -327,10 +322,9 @@ function initializeProfilePage(user, token) {
                     profileMessage.className = 'error';
                     profileMessage.textContent = `Erro: ${error.message}`;
                 }
-                // Em caso de erro, restaura os botões para que o usuário possa tentar de novo
+            } finally {
                 submitButton.textContent = 'Salvar Nova Senha';
                 submitButton.disabled = false;
-                passwordActions.style.display = 'flex';
             }
         });
     }
