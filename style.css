@@ -404,7 +404,7 @@ tr.apured .btn-primary {
     background-color: #dc3545;
     border-color: #dc3545;
     color: white;
-    margin-left: 5px;
+    margin-left: 0px;
 }
 .accordion-event > summary {
     display: flex;
