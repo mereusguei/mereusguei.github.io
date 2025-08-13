@@ -166,6 +166,7 @@ function initializeProfilePage(user, token) {
     const passwordDisplayArea = document.getElementById('password-display-area');
     const passwordEditArea = document.getElementById('password-edit-area');
     const passwordForm = document.getElementById('password-form');
+    const passwordActions = document.querySelector('.password-actions'); // Container dos botões de senha
     const cancelPasswordBtn = document.getElementById('cancel-password-btn');
 
     let photoBeforeEdit = user.profile_picture_url || `https://i.pravatar.cc/150?u=${user.username}`;
@@ -260,74 +261,76 @@ function initializeProfilePage(user, token) {
         }
     });
 
-    // --- NOVA LÓGICA PARA ALTERAÇÃO DE SENHA ---
-    if (showChangePasswordBtn) {
-        showChangePasswordBtn.addEventListener('click', () => {
+    // --- NOVA LÓGICA DE ESTADOS PARA A SEÇÃO DE SENHA ---
+    function setPasswordUIState(state, message = '') {
+        if (!passwordDisplayArea || !passwordEditArea || !passwordActions || !profileMessage) return;
+
+        if (state === 'display') {
+            passwordDisplayArea.style.display = 'block';
+            passwordEditArea.style.display = 'none';
+            profileMessage.textContent = '';
+        } else if (state === 'edit') {
             passwordDisplayArea.style.display = 'none';
             passwordEditArea.style.display = 'block';
-        });
+            passwordActions.innerHTML = `
+                <button type="submit" class="btn btn-primary">Salvar Nova Senha</button>
+                <button type="button" id="cancel-password-btn-inner" class="btn">Cancelar</button>
+            `;
+            // Re-adiciona o listener do novo botão cancelar
+            document.getElementById('cancel-password-btn-inner')?.addEventListener('click', () => setPasswordUIState('display'));
+        } else if (state === 'loading') {
+            passwordActions.innerHTML = `<button type="button" class="btn btn-primary" disabled>Salvando Senha...</button>`;
+        } else if (state === 'success') {
+            passwordActions.innerHTML = `<p class="success-message">${message}</p>`;
+            setTimeout(() => {
+                setPasswordUIState('display');
+            }, 2000); // Volta ao estado inicial após 2 segundos
+        }
     }
 
-    if (cancelPasswordBtn) {
-        cancelPasswordBtn.addEventListener('click', () => {
-            passwordEditArea.style.display = 'none';
-            passwordDisplayArea.style.display = 'block';
+    // --- LISTENERS DOS BOTÕES DE SENHA ---
+    showChangePasswordBtn?.addEventListener('click', () => {
+        setPasswordUIState('edit');
+    });
+
+    // O botão 'cancel' original é substituído, então usamos o listener no formulário
+    passwordEditArea?.addEventListener('click', (e) => {
+        if (e.target.id === 'cancel-password-btn') {
+            setPasswordUIState('display');
+        }
+    });
+
+    passwordForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newPassword = document.getElementById('new-password').value;
+
+        if (!newPassword || newPassword.length < 6) {
+            profileMessage.className = 'error';
+            profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
+            return;
+        }
+
+        setPasswordUIState('loading');
+
+        try {
+            const response = await fetch(`${API_URL}/api/users/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+
             document.getElementById('new-password').value = '';
-            if (profileMessage) profileMessage.textContent = '';
-        });
-    }
+            setPasswordUIState('success', 'Sua senha foi alterada com sucesso!');
 
-    if (passwordForm) {
-        passwordForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitButton = passwordForm.querySelector('button[type="submit"]');
-            const newPassword = document.getElementById('new-password').value;
-
-            if (!newPassword) {
-                if (profileMessage) profileMessage.textContent = 'Digite a nova senha para salvá-la.';
-                return;
-            }
-            if (newPassword.length < 6) {
-                if (profileMessage) profileMessage.textContent = 'A senha deve ter no mínimo 6 caracteres.';
-                return;
-            }
-
-            submitButton.textContent = 'Salvando Senha...';
-            submitButton.disabled = true;
-            if (profileMessage) profileMessage.textContent = '';
-
-            try {
-                const response = await fetch(`${API_URL}/api/users/profile`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ newPassword })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error);
-
-                if (profileMessage) {
-                    profileMessage.className = 'success';
-                    profileMessage.textContent = data.message + ' Sua senha foi alterada.';
-                }
-                // Volta para o estado de exibição
-                setTimeout(() => { // Pequeno delay para o usuário ver a mensagem de sucesso
-                    passwordEditArea.style.display = 'none';
-                    passwordDisplayArea.style.display = 'block';
-                    document.getElementById('new-password').value = '';
-                    if (profileMessage) profileMessage.textContent = '';
-                }, 2000);
-
-            } catch (error) {
-                if (profileMessage) {
-                    profileMessage.className = 'error';
-                    profileMessage.textContent = `Erro: ${error.message}`;
-                }
-            } finally {
-                submitButton.textContent = 'Salvar Nova Senha';
-                submitButton.disabled = false;
-            }
-        });
-    }
+        } catch (error) {
+            profileMessage.className = 'error';
+            profileMessage.textContent = `Erro: ${error.message}`;
+            // Em caso de erro, volta para o modo de edição para o usuário tentar novamente
+            setPasswordUIState('edit');
+        }
+    });
 }
 
 function initializeEventPage(user, token) {

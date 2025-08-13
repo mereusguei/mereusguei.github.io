@@ -675,5 +675,17 @@ tr.apured .btn-primary {
 }
 /* Garante que a seção de senha mantenha uma altura mínima constante */
 #password-section .form-group {
-    min-height: 120px; /* Ajuste este valor se necessário, mas 120px deve ser suficiente */
+    min-height: 100px; /* Ajuste se necessário */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+/* Nova regra para a mensagem de sucesso */
+.password-actions .success-message {
+    width: 100%;
+    text-align: center;
+    color: var(--primary-color);
+    font-weight: bold;
+    padding: 10px 0;
 }
