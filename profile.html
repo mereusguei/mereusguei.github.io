@@ -13,7 +13,7 @@
         rel="stylesheet">
 
     <!-- LINHA ADICIONADA AQUI -->
-    <link rel="stylesheet" href="style.css?v=6.4">
+    <link rel="stylesheet" href="style.css?v=6.1">
 </head>
 
 <body id="profile-page">
@@ -33,18 +33,14 @@
                 <h2></h2> <!-- Título "Foto de Perfil" removido, mas a tag permanece para manter a estrutura -->
                 <div class="profile-pic-section">
                     <img id="profile-pic-preview" src="https://i.pravatar.cc/150" alt="Foto de Perfil">
-
-                    <!-- Container Apenas para o botão principal e o tooltip -->
                     <div class="profile-pic-action">
                         <input type="file" id="profile-pic-upload" accept="image/png, image/jpeg"
                             style="display: none;">
                         <button type="button" id="change-photo-btn" class="btn">Alterar Foto</button>
                         <small id="photo-status-text" class="tooltip-text">Selecione uma imagem .jpg ou .png</small>
+                        <button type="button" id="cancel-photo-btn" class="btn btn-danger"
+                            style="display: none;">Reverter</button>
                     </div>
-
-                    <!-- O botão Reverter agora está separado -->
-                    <button type="button" id="cancel-photo-btn" class="btn btn-danger"
-                        style="display: none; margin-top: 10px;">Reverter</button>
                 </div>
             </section>
 
@@ -90,7 +86,7 @@
         </div>
     </main>
 
-    <script src="script.js?v=6.4"></script>
+    <script src="script.js?v=6.1"></script>
 </body>
 
 </html>

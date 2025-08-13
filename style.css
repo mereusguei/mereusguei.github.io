@@ -636,11 +636,8 @@ tr.apured .btn-primary {
 }
 #profile-pic-upload { display: none; }
 .profile-pic-action {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* O gap foi removido daqui */
+    position: relative; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
 }
 
 /* Estilo do Tooltip (texto de ajuda) */
@@ -672,7 +669,7 @@ tr.apured .btn-primary {
 
 /* Botão de Reverter */
 #cancel-photo-btn {
-    margin-top: 25px; /* Pequeno espaçamento adicional */
+    margin-top: 5px; /* Pequeno espaçamento adicional */
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
