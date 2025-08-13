@@ -673,3 +673,7 @@ tr.apured .btn-primary {
 .password-actions .btn {
     flex-grow: 1;
 }
+/* Garante que a seção de senha mantenha uma altura mínima constante */
+#password-section .form-group {
+    min-height: 120px; /* Ajuste este valor se necessário, mas 120px deve ser suficiente */
+}
