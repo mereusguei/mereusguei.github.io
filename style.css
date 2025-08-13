@@ -747,7 +747,7 @@ tr.apured .btn-primary {
 
 /* ================== ESTILOS ATUALIZADOS PARA RANKING ================== */
 
-/* REMOVIDOS ESTILOS RELACIONADOS A ABAS E SELETOR DE EVENTO, POIS NÃO SERÃO MAIS USADOS */
+/* REMOVIDOS ESTILOS RELACIONADOS A ABAS E SELETOR DE EVENTO */
 
 /* Ajustes para a Tabela de Ranking Geral */
 #ranking-table-container table {
@@ -756,7 +756,7 @@ tr.apured .btn-primary {
     margin-top: 20px;
 }
 #ranking-table-container th, #ranking-table-container td {
-    padding: 12px 15px;
+    padding: 15px 15px; /* AUMENTADO O PADDING VERTICAL */
     border: 1px solid var(--border-color);
     text-align: left;
 }
@@ -766,16 +766,33 @@ tr.apured .btn-primary {
     color: var(--primary-color);
     text-align: center; /* Centraliza os cabeçalhos */
 }
-/* Ajustes para as células de dados na tabela */
+
+/* Ajuste para as células de dados na tabela */
 #ranking-table-container td {
     vertical-align: middle; /* Centraliza o conteúdo verticalmente */
 }
-/* Adiciona a coluna de Foto de Perfil do Usuário */
-#ranking-table-container td.user-profile-col { /* Nova classe para a célula da foto */
-    width: 60px; /* Define uma largura fixa para a célula da foto */
-    text-align: center; /* Centraliza a foto na célula */
+
+/* Coluna da Posição */
+#ranking-table-container th:nth-child(1),
+#ranking-table-container td:nth-child(1) {
+    width: 80px; /* Largura fixa para a coluna de posição */
+    text-align: center; /* Centraliza o texto na coluna */
 }
-#ranking-table-container td.user-profile-col img {
+
+/* Coluna do Usuário */
+#ranking-table-container th:nth-child(2) {
+    text-align: left; /* Título do usuário alinhado à esquerda */
+}
+/* Ajustes para a célula que contém a foto e o nome do usuário */
+#ranking-table-container td:nth-child(2) {
+    padding: 0; /* Remove padding padrão da TD para controlar com o flexbox interno */
+    display: flex;
+    align-items: center; /* Centraliza verticalmente foto e nome */
+    gap: 15px; /* Espaço entre foto e nome */
+    /* Permite que a célula se expanda, mas não menos que o necessário para o conteúdo */
+    min-width: 200px; /* Garante um espaço mínimo para o nome */
+}
+#ranking-table-container td:nth-child(2) img {
     width: 45px; /* Tamanho da foto */
     height: 45px; /* Tamanho da foto */
     border-radius: 50%;
@@ -783,51 +800,25 @@ tr.apured .btn-primary {
     border: 2px solid var(--primary-color); /* Borda Neon */
     box-shadow: 0 0 8px var(--primary-color); /* Sombra Neon */
 }
-/* Estilos para a coluna do Nome do Usuário */
-#ranking-table-container td.user-name-col {
-    font-size: 1.1rem; /* Aumenta o tamanho da fonte do nome */
+#ranking-table-container td:nth-child(2) .user-name { /* Estilos para o nome do usuário */
+    font-size: 1.1rem; /* Aumenta o tamanho da fonte */
     color: var(--text-color);
-    white-space: nowrap; /* Evita quebras de linha no nome */
-}
-/* Combina a célula da foto com a célula do nome para um visual unificado */
-.user-info-cell {
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Espaço entre a foto e o nome */
+    font-family: var(--font-secondary); /* Garante a fonte correta */
 }
 
-/* Ajuste na linha onde a foto e o nome estão juntos */
-#ranking-table-container td:nth-child(2) { /* Assumindo que a coluna do usuário é a segunda */
-    /* Remove o padding e alinhamento default para controlar com o flexbox */
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Espaço entre foto e nome */
+/* Coluna da Pontuação */
+#ranking-table-container th:nth-child(3) {
+    width: 120px; /* Largura fixa para a coluna de pontuação */
+    text-align: center; /* Centraliza o cabeçalho da pontuação */
 }
-
-#ranking-table-container td:nth-child(2) img {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--primary-color);
-    box-shadow: 0 0 8px var(--primary-color);
-}
-
-#ranking-table-container td:nth-child(2) span { /* Onde o nome do usuário está */
-    font-size: 1.1rem;
-    color: var(--text-color);
-}
-
-
-/* Ajusta o estilo da célula da pontuação */
-#ranking-table-container td:nth-child(3) { /* Assumindo que a pontuação é a terceira coluna */
-    font-family: var(--font-primary);
-    font-size: 1.2rem;
+#ranking-table-container td:nth-child(3) {
+    font-family: var(--font-primary); /* Usa a fonte Orbitron para a pontuação */
+    font-size: 1.2rem; /* Aumenta o tamanho da fonte */
     color: var(--primary-color);
     font-weight: bold;
     text-align: center; /* Centraliza a pontuação */
 }
+
 #ranking-table-container td b {
     color: var(--primary-color);
 }
