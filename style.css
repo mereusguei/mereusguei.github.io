@@ -673,47 +673,19 @@ tr.apured .btn-primary {
 .password-actions .btn {
     flex-grow: 1;
 }
-/* Container geral para o grupo de senha */
+/* Garante que a seção de senha mantenha uma altura mínima constante */
 #password-section .form-group {
-    /* Mantém o container posicionado, mas deixa a altura ser definida pelos filhos */
-    position: relative;
-    padding-bottom: 50px; /* Cria um espaço reservado na base para os botões e mensagens */
-}
-
-/* Área que mostra o botão "Alterar Senha" */
-#password-display-area {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-}
-
-/* Área que mostra os campos de edição */
-#password-edit-area {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-}
-
-/* Container para os botões "Salvar" e "Cancelar" */
-.password-actions {
+    min-height: 100px; /* Ajuste se necessário */
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-.password-actions .btn {
-    flex-grow: 1;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
-/* Mensagem de sucesso (que substitui os botões) */
+/* Nova regra para a mensagem de sucesso */
 .password-actions .success-message {
     width: 100%;
     text-align: center;
     color: var(--primary-color);
     font-weight: bold;
-    height: 42px; /* Altura aproximada de um botão para evitar salto */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 10px 0;
 }
