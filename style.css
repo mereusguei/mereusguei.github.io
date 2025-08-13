@@ -651,9 +651,7 @@ tr.apured .btn-primary {
 #cancel-photo-btn {
     margin-top: 5px; /* Pequeno espaçamento adicional */
 }
-/* ================== ESTILOS FINAIS E CORRIGIDOS PARA A PÁGINA DE PERFIL ================== */
-
-/* 1. Unifica o estilo dos inputs de perfil */
+/* ================== ESTILOS FINAIS PARA A NOVA PÁGINA DE PERFIL ================== */
 .profile-input {
     width: 100%;
     padding: 12px 15px;
@@ -662,43 +660,60 @@ tr.apured .btn-primary {
     color: var(--text-color);
     border-radius: 6px;
     font-size: 1.1rem;
-    margin-bottom: 10px; /* Garante espaçamento consistente abaixo dos inputs */
+    margin-bottom: 10px;
 }
-
-/* 2. Garante que o container do form-group para os botões tenha altura consistente */
-#password-section .form-group {
-    /* Mantém uma altura mínima para evitar o "salto" vertical */
-    min-height: 110px; 
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* Alinha o conteúdo ao topo */
-}
-
-/* 3. Garante que os botões dentro do form-group ocupem a mesma largura */
-.form-group > .btn {
+.profile-details-section .form-group .btn {
     width: 100%;
 }
-
-/* 4. Estiliza o container das ações de senha (Salvar/Cancelar) */
 .password-actions {
     display: flex;
     gap: 10px;
-    width: 100%; /* Garante que o container ocupe toda a largura */
+    margin-top: 10px;
 }
-
 .password-actions .btn {
-    flex-grow: 1; /* Faz os botões dividirem o espaço igualmente */
+    flex-grow: 1;
+}
+/* Container geral para o grupo de senha */
+#password-section .form-group {
+    /* Mantém o container posicionado, mas deixa a altura ser definida pelos filhos */
+    position: relative;
+    padding-bottom: 50px; /* Cria um espaço reservado na base para os botões e mensagens */
 }
 
-/* 5. Estiliza a mensagem de sucesso para ocupar o mesmo espaço vertical que os botões */
+/* Área que mostra o botão "Alterar Senha" */
+#password-display-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+/* Área que mostra os campos de edição */
+#password-edit-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+/* Container para os botões "Salvar" e "Cancelar" */
+.password-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.password-actions .btn {
+    flex-grow: 1;
+}
+
+/* Mensagem de sucesso (que substitui os botões) */
 .password-actions .success-message {
+    width: 100%;
+    text-align: center;
+    color: var(--primary-color);
+    font-weight: bold;
+    height: 42px; /* Altura aproximada de um botão para evitar salto */
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    font-weight: bold;
-    color: var(--primary-color);
-    padding: 10px 0;
-    height: 45px; /* Altura aproximada do botão para manter a consistência */
-    box-sizing: border-box; /* Garante que o padding não aumente a altura */
 }
