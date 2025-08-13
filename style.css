@@ -652,6 +652,25 @@ tr.apured .btn-primary {
     margin-top: 5px; /* Pequeno espaçamento adicional */
 }
 /* ================== ESTILOS FINAIS PARA A NOVA PÁGINA DE PERFIL ================== */
+/* Container geral do grupo do formulário de senha */
+#password-section .form-group {
+    display: flex;
+    flex-direction: column;
+    /* Define uma altura mínima para o container inteiro, acomodando a maior versão (a de edição) */
+    min-height: 140px; 
+}
+
+/* Estiliza a área de exibição (senha mascarada + botão 'Alterar') */
+#password-display-area {
+    margin-top: auto; /* Truque de flexbox: empurra para o fundo, alinhando com a área de edição */
+}
+
+/* Estiliza a área de edição (input + 2 botões) */
+#password-edit-area {
+    margin-top: auto; /* Também empurra para o fundo para manter o alinhamento */
+}
+
+/* Garante que os inputs tenham a mesma altura e espaçamento */
 .profile-input {
     width: 100%;
     padding: 12px 15px;
@@ -662,30 +681,30 @@ tr.apured .btn-primary {
     font-size: 1.1rem;
     margin-bottom: 10px;
 }
+
+/* Estiliza os botões dentro da seção de perfil */
 .profile-details-section .form-group .btn {
     width: 100%;
+    margin-top: 10px; /* Adiciona um espaçamento consistente acima dos botões */
 }
+
+/* Container para os botões de Salvar/Cancelar */
 .password-actions {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
-}
-.password-actions .btn {
-    flex-grow: 1;
-}
-/* Garante que a seção de senha mantenha uma altura mínima constante */
-#password-section .form-group {
-    min-height: 100px; /* Ajuste se necessário */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    margin-top: 0; /* Remove a margem extra para alinhar melhor */
 }
 
-/* Nova regra para a mensagem de sucesso */
+.password-actions .btn {
+    flex-grow: 1;
+    margin-top: 0; /* Remove a margem extra para alinhar melhor */
+}
+
 .password-actions .success-message {
     width: 100%;
     text-align: center;
     color: var(--primary-color);
     font-weight: bold;
     padding: 10px 0;
+    margin-top: 10px;
 }
