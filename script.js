@@ -491,11 +491,8 @@ function initializeRankingPage(token) {
     function buildTableHtml(type, data) {
         if (!rankingContent) return;
 
-        // --- CORREÇÃO: SE FOR RANKING GERAL, BUSCAR DADOS DO USUÁRIO DO LOCALSTORAGE ---
-        // Precisamos dos dados do usuário (principalmente a URL da foto) para renderizar a tabela corretamente.
-        // Assumimos que os dados do usuário logado estão disponíveis em localStorage.
-        const loggedInUser = JSON.parse(localStorage.getItem('user'));
-        // --- FIM DA CORREÇÃO ---
+        // REMOVIDO: O trecho de busca do usuário logado aqui, pois não será usado para todos os usuários do ranking.
+        // const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
         let tableHtml = '<table><thead><tr><th>Posição</th><th>Usuário</th>';
         let valueKey = '';
@@ -503,32 +500,39 @@ function initializeRankingPage(token) {
         if (type === 'general') {
             tableHtml += '<th>Pontuação Total</th></tr></thead><tbody>';
             valueKey = 'total_points';
-        } else if (type === 'event') {
-            tableHtml += '<th>Pontos no Evento</th></tr></thead><tbody>';
-            valueKey = 'event_points';
-        } else {
+        }
+        // A condição 'else if (type === 'event')' foi removida pois estamos apenas com ranking geral.
+        else {
             rankingContent.innerHTML = '<p>Tipo de ranking inválido.</p>';
             return;
         }
 
         if (data.length === 0) {
-            tableHtml += `<tr><td><b>${index + 1}º</b></td><td>${row.username}</td><td>${row[valueKey]}</td></tr>`;
+            tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
         } else {
             data.forEach((row, index) => {
-                // --- MODIFICAÇÃO: AQUI É ONDE CONSTRUIMOS A CÉLULA DO USUÁRIO COM A FOTO ---
-                const userInfoHtml = loggedInUser ?
-                    `<td class="user-info-cell">
-         <img src="${loggedInUser.profile_picture_url || `https://i.pravatar.cc/45?u=${loggedInUser.username}`}" alt="Foto de Perfil de ${loggedInUser.username}">
-         <span class="user-name">${row.username}</span>
-     </td>`
-                    : `<td>${row.username}</td>`; // Caso não haja usuário logado (improvável nesta página, mas por segurança)
+                // --- MODIFICAÇÃO PRINCIPAL AQUI ---
+                // Para exibir a foto correta de CADA usuário, precisaríamos que o 'row' (que vem da API)
+                // contivesse a informação da foto de perfil. Como isso não está vindo, usaremos o pravatar.cc
+                // baseado no username de cada row, que é a forma mais simples sem mexer na API.
+                // Se a API retornar uma URL de foto, você adaptaria esta linha para usar essa URL.
+
+                const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
+
+                const userInfoHtml = `
+                <div class="user-info-cell">
+                    <img src="${userProfilePic}" alt="Foto de Perfil de ${row.username}">
+                    <span class="user-name">${row.username}</span>
+                </div>
+            `;
+                // --- FIM DA MODIFICAÇÃO ---
 
                 tableHtml += `
-    <tr>
-        <td><b>${index + 1}º</b></td>
-        ${userInfoHtml}
-        <td>${row[valueKey]}</td>
-    </tr>`;
+                <tr>
+                    <td><b>${index + 1}º</b></td>
+                    <td>${userInfoHtml}</td> <!-- Usando o userInfoHtml construído -->
+                    <td>${row[valueKey]}</td>
+                </tr>`;
             });
         }
         tableHtml += '</tbody></table>';
