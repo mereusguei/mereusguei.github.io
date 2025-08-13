@@ -667,9 +667,9 @@ tr.apured .btn-primary {
     visibility: visible;
 }
 
-/* Remove a margem extra do botão reverter, pois o 'gap' do flex container já cuida disso */
+/* Botão de Reverter */
 #cancel-photo-btn {
-    margin-top: 0; 
+    margin-top: 5px; /* Pequeno espaçamento adicional */
 }
 /* --- SEÇÃO DE NOME DE USUÁRIO E SENHA --- */
 
@@ -723,10 +723,4 @@ tr.apured .btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-/* Define uma largura fixa e garante o alinhamento de texto para ambos os botões */
-#change-photo-btn, #cancel-photo-btn {
-    width: 220px; /* Define uma largura fixa e generosa para ambos. Ajuste se necessário. */
-    text-align: center; /* Garante que o texto DENTRO do botão esteja centralizado */
-    box-sizing: border-box; /* Garante consistência no tamanho */
 }
