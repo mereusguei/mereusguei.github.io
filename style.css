@@ -706,7 +706,8 @@ tr.apured .btn-primary {
 .password-actions {
     display: flex;
     gap: 10px;
-    width: 100%;
+    margin-top: 10px;
+    justify-content: center; /* <-- LINHA ADICIONADA */
 }
 /* Estilo unificado para TODOS os botões de ação da senha e nome de usuario */
 .password-actions .btn, #show-change-password-btn, #change-username-btn {
