@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Octagon Oracle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -31,6 +32,8 @@
 
         .form-group {
             margin-bottom: 20px;
+            position: relative;
+            /* Para posicionar o ícone de olho */
         }
 
         .form-group label {
@@ -45,6 +48,8 @@
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 4px;
+            padding-right: 30px;
+            /* Espaço para o ícone/checkbox */
         }
 
         .auth-container .btn {
@@ -64,6 +69,27 @@
             color: #ff4d4d;
             text-align: center;
             margin-bottom: 15px;
+        }
+
+        /* Estilos para mostrar/ocultar senha */
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            /* Alinha verticalmente */
+            right: 10px;
+            /* Alinha à direita */
+            transform: translateY(-50%);
+            /* Centraliza verticalmente */
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.9em;
+            user-select: none;
+            /* Impede a seleção do texto do ícone */
+        }
+
+        .password-toggle i {
+            /* Se você usar ícones de font-awesome ou similar */
+            color: var(--primary-color);
         }
     </style>
 </head>
@@ -91,6 +117,10 @@
             <div class="form-group">
                 <label for="password">Senha</label>
                 <input type="password" id="password" required>
+                <!-- Adicionado para mostrar/ocultar senha -->
+                <span class="password-toggle" id="togglePasswordRegister" data-toggle="password">
+                    <i class="fas fa-eye"></i> <!-- Ícone de olho aberto -->
+                </span>
             </div>
             <button type="submit" class="btn btn-primary">Cadastrar</button>
         </form>
@@ -98,7 +128,7 @@
             <p>Já tem uma conta? <a href="login.html">Faça Login</a></p>
         </div>
     </div>
-    <script src="auth.js?v=5.3"></script>
+    <script src="auth.js?v=5.4"></script>
 </body>
 
 </html>
