@@ -8,46 +8,32 @@ const errorMessageDiv = document.getElementById('error-message');
 // --- Nova Lógica para Mostrar/Ocultar Senha ---
 
 // Função para alternar a visibilidade da senha
-const togglePasswordVisibility = (passwordInputId, toggleElementId) => {
+const setupPasswordToggle = (passwordInputId, toggleElementId) => {
     const passwordInput = document.getElementById(passwordInputId);
-    const togglePassword = document.getElementById(toggleElementId);
+    const toggleElement = document.getElementById(toggleElementId);
 
-    if (togglePassword && passwordInput) {
-        togglePassword.addEventListener('click', () => {
-            // Alterna o tipo do input entre 'password' e 'text'
+    if (passwordInput && toggleElement) {
+        toggleElement.addEventListener('click', () => {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
 
             // Altera o ícone
             if (type === 'text') {
-                togglePassword.innerHTML = '<i class="fas fa-eye-slash"></i>'; // Ícone de olho fechado
+                toggleElement.innerHTML = '<i class="fas fa-eye-slash"></i>'; // Ícone de olho fechado
             } else {
-                togglePassword.innerHTML = '<i class="fas fa-eye"></i>'; // Ícone de olho aberto
+                toggleElement.innerHTML = '<i class="fas fa-eye"></i>'; // Ícone de olho aberto
             }
         });
     }
 };
 
-// Chama a função para os campos de senha
-// Para a página de Login
-if (document.getElementById('password')) { // Verifica se o elemento existe na página atual
-    togglePasswordVisibility('password', 'togglePasswordLogin');
-}
-
-// Para a página de Cadastro
-if (document.getElementById('password')) { // Verifica se o elemento existe na página atual (mesmo ID, mas pode ser diferente em cada página)
-    // Precisamos garantir que estamos selecionando o elemento correto se os IDs forem genéricos.
-    // Como os formulários são diferentes, os IDs dos campos de senha são os mesmos, mas os toggles têm IDs diferentes.
-    // Vamos refinar isso para garantir que funcione corretamente.
-
-    // Se estiver na página de cadastro:
-    if (registerForm) {
-        togglePasswordVisibility('password', 'togglePasswordRegister');
-    }
-    // Se estiver na página de login:
-    if (loginForm) {
-        togglePasswordVisibility('password', 'togglePasswordLogin');
-    }
+// Chama a função para os campos de senha, dependendo da página
+if (registerForm) {
+    // Se a página for de Cadastro
+    setupPasswordToggle('password', 'togglePasswordRegister');
+} else if (loginForm) {
+    // Se a página for de Login
+    setupPasswordToggle('password', 'togglePasswordLogin');
 }
 
 

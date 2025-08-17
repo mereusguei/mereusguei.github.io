@@ -14,7 +14,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=5.3">
     <style>
-        /* Reutilizando os mesmos estilos do login.html */
+        /* Estilos específicos para a página de auth */
         .auth-container {
             max-width: 400px;
             margin: 100px auto;
@@ -33,7 +33,7 @@
         .form-group {
             margin-bottom: 20px;
             position: relative;
-            /* Para posicionar o ícone de olho */
+            /* Essencial para posicionar o ícone */
         }
 
         .form-group label {
@@ -41,15 +41,18 @@
             margin-bottom: 5px;
         }
 
-        .form-group input {
+        .form-group input[type="password"],
+        /* Aplicar padding apenas em inputs de senha */
+        .form-group input[type="email"],
+        .form-group input[type="text"] {
+            /* Pode ser necessário para outros campos se usar o mesmo estilo */
             width: 100%;
             padding: 10px;
             background: var(--bg-color);
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 4px;
-            padding-right: 30px;
-            /* Espaço para o ícone/checkbox */
+            /* padding-right: 30px; // Remover este, pois o ícone está posicionado de forma diferente agora */
         }
 
         .auth-container .btn {
@@ -74,21 +77,25 @@
         /* Estilos para mostrar/ocultar senha */
         .password-toggle {
             position: absolute;
-            top: 50%;
-            /* Alinha verticalmente */
-            right: 10px;
-            /* Alinha à direita */
+            top: 60%;
+            /* Ajustado para melhor centralização vertical */
+            right: 12px;
+            /* Ajustado para melhor alinhamento */
             transform: translateY(-50%);
-            /* Centraliza verticalmente */
+            /* Mantém a centralização */
             cursor: pointer;
             color: var(--text-color);
-            font-size: 0.9em;
+            font-size: 1.1em;
+            /* Ícone um pouco maior */
             user-select: none;
-            /* Impede a seleção do texto do ícone */
+            display: flex;
+            /* Usa flexbox para centralizar o ícone se houver padding/margin */
+            align-items: center;
+            height: 100%;
+            /* Para que o translateY funcione corretamente */
         }
 
         .password-toggle i {
-            /* Se você usar ícones de font-awesome ou similar */
             color: var(--primary-color);
         }
     </style>
@@ -128,7 +135,7 @@
             <p>Já tem uma conta? <a href="login.html">Faça Login</a></p>
         </div>
     </div>
-    <script src="auth.js?v=5.4"></script>
+    <script src="auth.js?v=5.5"></script>
 </body>
 
 </html>
