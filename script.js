@@ -333,7 +333,7 @@ function initializeProfilePage(user, token) {
     });
 }
 
-function initializeEventPage(user, token) {
+async function initializeEventPage(user, token) { // <<-- FUNÇÃO AGORA É ASSÍNCRONA
     const mainContent = document.querySelector('.container');
     if (!mainContent) return;
 
@@ -344,8 +344,39 @@ function initializeEventPage(user, token) {
         return;
     }
 
+    // <<-- NOVA LÓGICA PARA BUSCAR O PRÓXIMO EVENTO DINAMICAMENTE -->>
     const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('eventId') || '1'; // Pega o ID do evento da URL, default para '1'
+    let eventId = urlParams.get('eventId');
+
+    // Se não houver eventId na URL, busca o próximo evento futuro
+    if (!eventId) {
+        try {
+            const response = await fetch(`${API_URL}/api/events?status=upcoming`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) {
+                throw new Error('Não foi possível buscar os próximos eventos.');
+            }
+            const upcomingEvents = await response.json();
+
+            if (upcomingEvents.length > 0) {
+                // Pega o ID do primeiro evento da lista (o mais próximo)
+                eventId = upcomingEvents[0].id;
+            } else {
+                // Caso não haja nenhum evento futuro cadastrado
+                mainContent.innerHTML = `<div class="event-header"><h2>Nenhum evento futuro encontrado.</h2><p>Volte mais tarde ou confira os <a href="events.html">eventos encerrados</a>.</p></div>`;
+                mainContent.classList.remove('content-hidden');
+                return;
+            }
+        } catch (error) {
+            console.error("Erro ao buscar próximo evento:", error);
+            mainContent.innerHTML = `<h2 style="color:red;">Erro ao carregar o próximo evento. Tente novamente mais tarde.</h2>`;
+            mainContent.classList.remove('content-hidden');
+            return;
+        }
+    }
+    // <<-- FIM DA NOVA LÓGICA -->>
+
 
     // Lógica de invalidação de cache
     const isInvalidated = localStorage.getItem('paymentStatusChanged') === 'true' || localStorage.getItem('dataCacheInvalidated') === 'true';
