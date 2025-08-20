@@ -436,6 +436,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const allEventsData = allEventsDetails.map((details, index) => ({
             eventId: eventsList[index].id,
             eventName: details.eventName,
+            eventDate: details.eventDate, // <-- ADICIONADO
+            picksDeadline: details.picksDeadline, // <-- ADICIONADO
+            card_image_url: details.card_image_url, // <-- ADICIONADO
             fights: details.fights,
             realFotnFightId: details.realFotnFightId,
             realPotnFighterName: details.realPotnFighterName
