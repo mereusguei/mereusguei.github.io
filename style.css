@@ -828,3 +828,24 @@ tr.apured .btn-primary {
 #ranking-table-container tr:hover {
     background-color: rgba(0, 242, 255, 0.1); /* Efeito hover sutil */
 }
+
+/* <<-- NOVO ESTILO PARA O BADGE VIP NA INDEX.HTML -->> */
+.vip-badge {
+    padding: 20px;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    background: linear-gradient(45deg, rgba(0, 242, 255, 0.1), rgba(255, 0, 193, 0.1));
+    box-shadow: 0 0 20px var(--primary-color);
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.vip-badge h3 {
+    font-family: var(--font-primary);
+    color: var(--primary-color);
+    text-shadow: 0 0 10px var(--primary-color);
+    margin-bottom: 10px;
+}
+.vip-badge p {
+    color: var(--text-color);
+}

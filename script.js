@@ -1,6 +1,6 @@
 // =================== CÓDIGO FINAL E UNIFICADO PARA script.js ===================
 
-const API_URL = 'https://site-palpites-pagos.vercel.app'; // Nota: O URL fornecido tem um typo "palites" em vez de "palpites". Presumi que seja o correto.
+const API_URL = 'https://site-palpites-pagos.vercel.app';
 
 // Credenciais do Cloudinary para o upload da foto de perfil
 const CLOUDINARY_CLOUD_NAME = 'dkqxyj4te';
@@ -95,12 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Falha ao salvar palpite.');
 
-                // Atualiza o estado local dos palpites com os dados retornados pela API
                 eventData.userPicks[fightId] = data.pick;
-
                 alert('Palpite salvo com sucesso!');
-                loadFights(); // Recarrega os cards para refletir o palpite salvo
-                if (modal) modal.classList.remove('active'); // Fecha o modal
+                loadFights();
+                if (modal) modal.classList.remove('active');
             } catch (error) {
                 alert(`Erro ao salvar palpite: ${error.message}`);
             }
@@ -126,15 +124,12 @@ function initializeNavigation(user, token) {
                         <a href="profile.html">Minha Conta</a>
                         <button id="logout-btn">Sair</button>
                     </div>
-                </div>
-            `;
-            // Adiciona listener para o menu dropdown
+                </div>`;
             document.getElementById('user-profile-menu')?.addEventListener('click', (e) => {
                 if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
                     e.currentTarget.classList.toggle('active');
                 }
             });
-            // Adiciona listener para o botão de sair
             document.getElementById('logout-btn')?.addEventListener('click', () => {
                 localStorage.clear();
                 sessionStorage.clear();
@@ -145,8 +140,7 @@ function initializeNavigation(user, token) {
                 <div class="auth-buttons">
                     <a href="login.html" class="btn">Login</a>
                     <a href="register.html" class="btn btn-primary">Cadastro</a>
-                </div>
-            `;
+                </div>`;
         }
     }
 }
@@ -333,37 +327,27 @@ function initializeProfilePage(user, token) {
     });
 }
 
-async function initializeEventPage(user, token) { // <<-- FUNÇÃO AGORA É ASSÍNCRONA
+async function initializeEventPage(user, token) {
     const mainContent = document.querySelector('.container');
     if (!mainContent) return;
 
-    // Protege a página caso o usuário não esteja logado
     if (!user || !token) {
         mainContent.innerHTML = `<div class="auth-container" style="text-align: center;"><h2>Bem-vindo!</h2><p>Faça login ou cadastre-se para participar.</p></div>`;
-        mainContent.classList.remove('content-hidden'); // Revela o conteúdo
+        mainContent.classList.remove('content-hidden');
         return;
     }
 
-    // <<-- NOVA LÓGICA PARA BUSCAR O PRÓXIMO EVENTO DINAMICAMENTE -->>
     const urlParams = new URLSearchParams(window.location.search);
     let eventId = urlParams.get('eventId');
 
-    // Se não houver eventId na URL, busca o próximo evento futuro
     if (!eventId) {
         try {
-            const response = await fetch(`${API_URL}/api/events?status=upcoming`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) {
-                throw new Error('Não foi possível buscar os próximos eventos.');
-            }
+            const response = await fetch(`${API_URL}/api/events?status=upcoming`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Não foi possível buscar os próximos eventos.');
             const upcomingEvents = await response.json();
-
             if (upcomingEvents.length > 0) {
-                // Pega o ID do primeiro evento da lista (o mais próximo)
                 eventId = upcomingEvents[0].id;
             } else {
-                // Caso não haja nenhum evento futuro cadastrado
                 mainContent.innerHTML = `<div class="event-header"><h2>Nenhum evento futuro encontrado.</h2><p>Volte mais tarde ou confira os <a href="events.html">eventos encerrados</a>.</p></div>`;
                 mainContent.classList.remove('content-hidden');
                 return;
@@ -375,27 +359,19 @@ async function initializeEventPage(user, token) { // <<-- FUNÇÃO AGORA É ASS�
             return;
         }
     }
-    // <<-- FIM DA NOVA LÓGICA -->>
 
-
-    // Lógica de invalidação de cache
     const isInvalidated = localStorage.getItem('paymentStatusChanged') === 'true' || localStorage.getItem('dataCacheInvalidated') === 'true';
     if (isInvalidated) {
-        sessionStorage.removeItem(`eventDataCache-${eventId}`); // Remove cache específico do evento
-        localStorage.removeItem('paymentStatusChanged'); // Limpa flags de invalidação
+        sessionStorage.removeItem(`eventDataCache-${eventId}`);
+        localStorage.removeItem('paymentStatusChanged');
         localStorage.removeItem('dataCacheInvalidated');
     }
 
-    // Tenta carregar dados do cache
     const cachedData = sessionStorage.getItem(`eventDataCache-${eventId}`);
-    const parsedCachedData = cachedData ? JSON.parse(cachedData) : null;
-
-    if (parsedCachedData) {
-        loadEventPageContent(eventId, token, parsedCachedData.hasPaid); // Usa dados do cache
+    if (cachedData) {
+        loadEventPageContent(eventId, token, JSON.parse(cachedData).hasPaid);
     } else {
-        // Se não há cache ou ele foi invalidado, busca o status de pagamento
         checkPaymentStatus(eventId, token).then(hasPaid => {
-            // Salva os novos dados no cache
             sessionStorage.setItem(`eventDataCache-${eventId}`, JSON.stringify({ eventId, hasPaid }));
             loadEventPageContent(eventId, token, hasPaid);
         }).catch(error => {
@@ -407,11 +383,10 @@ async function initializeEventPage(user, token) { // <<-- FUNÇÃO AGORA É ASS�
 }
 
 function initializeEventsListPage(token) {
-    if (!token) { window.location.href = 'login.html'; return; } // Protege a página
+    if (!token) { window.location.href = 'login.html'; return; }
 
     const eventsGrid = document.getElementById('events-grid-container');
 
-    // Função interna para carregar a lista de eventos (futuros ou passados)
     async function loadEvents(status) {
         try {
             eventsGrid.innerHTML = '<p style="text-align: center;">Carregando eventos...</p>';
@@ -426,11 +401,9 @@ function initializeEventsListPage(token) {
                     const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
                     const eventLink = `index.html?eventId=${event.id}`;
                     let timerHtml = '';
-                    // Exibe o timer apenas para o primeiro evento futuro
                     if (status === 'upcoming' && index === 0) {
                         const countdownId = `event-countdown-${event.id}`;
                         timerHtml = `<div class="event-card-timer"><strong id="${countdownId}">--:--:--</strong></div>`;
-                        // Inicia o countdown após um pequeno atraso para garantir que o elemento exista
                         setTimeout(() => startCountdown(event.picks_deadline, countdownId), 0);
                     }
                     eventsHtml += `
@@ -444,8 +417,7 @@ function initializeEventsListPage(token) {
                                     <p>${eventDate}</p>
                                 </div>
                             </div>
-                        </a>
-                    `;
+                        </a>`;
                 });
             }
             eventsGrid.innerHTML = eventsHtml;
@@ -454,7 +426,6 @@ function initializeEventsListPage(token) {
         }
     }
 
-    // Adiciona listeners aos botões das abas para carregar eventos futuros/passados
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             document.querySelector('.tab-button.active')?.classList.remove('active');
@@ -463,124 +434,86 @@ function initializeEventsListPage(token) {
         });
     });
 
-    loadEvents('upcoming'); // Carrega os eventos futuros por padrão
+    loadEvents('upcoming');
 }
 
+// <<-- FUNÇÃO DO RANKING TOTALMENTE REESCRITA -->>
 function initializeRankingPage(token) {
-    if (!token) { window.location.href = 'login.html'; return; } // Protege a página
+    if (!token) { window.location.href = 'login.html'; return; }
 
     const rankingContent = document.getElementById('ranking-table-container');
     const eventSelectorContainer = document.getElementById('event-selector-container');
     const eventSelect = document.getElementById('event-select');
-    let allEvents = []; // Armazena os eventos para popular o dropdown
+    let allEvents = []; // Armazena todos os eventos (futuros e passados)
 
-    // Função interna para carregar e exibir a tabela de ranking
-    function loadRankingTable(type, eventId = null) {
-        let url = `${API_URL}/api/rankings/`;
+    // Função para carregar e exibir a tabela de ranking
+    async function loadRankingTable(type) {
+        let url = '';
+        rankingContent.innerHTML = '<p>Carregando ranking...</p>';
+
         if (type === 'general') {
-            url += 'general';
-        } else if (type === 'event' && eventId) {
-            url += `event/${eventId}`;
-        } else {
-            if (rankingContent) rankingContent.innerHTML = '<p>Selecione um evento para ver o ranking.</p>';
-            return;
+            url = `${API_URL}/api/rankings/general`;
+        } else if (type === 'vip') {
+            const eventId = eventSelect.value;
+            if (!eventId) {
+                rankingContent.innerHTML = '<p style="text-align: center;">Por favor, selecione um evento para ver o Ranking VIP.</p>';
+                return;
+            }
+            url = `${API_URL}/api/rankings/vip/${eventId}`;
         }
 
         try {
-            rankingContent.innerHTML = '<p>Carregando ranking...</p>';
-            fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(response => {
-                    if (!response.ok) throw new Error('Falha ao carregar ranking.');
-                    return response.json();
-                })
-                .then(data => {
-                    buildTableHtml(type, data);
-                })
-                .catch(error => {
-                    rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
-                });
+            const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar ranking.');
+            const data = await response.json();
+            buildTableHtml(data);
         } catch (error) {
-            rankingContent.innerHTML = `<p style="color:red;">Erro ao buscar dados: ${error.message}</p>`;
+            rankingContent.innerHTML = `<p style="color:red; text-align: center;">${error.message}</p>`;
         }
     }
 
-    // Adicione esta nova função para buscar e exibir as fotos na tabela de ranking
-    function renderUserInRankingTable(user, rowData) {
-        // Obtém a URL da foto do perfil do usuário logado ou usa um placeholder
-        const profilePicUrl = user.profile_picture_url || `https://i.pravatar.cc/45?u=${user.username}`;
-
-        // Constrói o HTML para a célula do usuário com a foto e o nome
-        return `
-        <div class="user-info-cell">
-            <img src="${profilePicUrl}" alt="Foto de Perfil de ${user.username}">
-            <span class="user-name">${user.username}</span>
-        </div>
-    `;
-    }
-
-    // Função interna para construir o HTML da tabela
-    function buildTableHtml(type, data) {
+    // Função para construir o HTML da tabela (reutilizável)
+    function buildTableHtml(data) {
         if (!rankingContent) return;
-
-        const loggedInUser = JSON.parse(localStorage.getItem('user'));
-
-        let tableHtml = '';
-        let valueKey = '';
-
-        if (type === 'general') {
-            tableHtml += `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Pos.</th>
-                        <th>Usuário</th>
-                        <th>Pts.</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-            valueKey = 'total_points';
-        } else {
-            rankingContent.innerHTML = '<p>Tipo de ranking inválido.</p>';
+        if (data.length === 0) {
+            rankingContent.innerHTML = '<p style="text-align:center;">Nenhuma pontuação registrada para esta seleção.</p>';
             return;
         }
 
-        if (data.length === 0) {
-            tableHtml += '<tr><td colspan="3" style="text-align:center;">Nenhuma pontuação registrada.</td></tr>';
-        } else {
-            data.forEach((row, index) => {
-                const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
+        let tableHtml = `
+            <table>
+                <thead>
+                    <tr><th>Pos.</th><th>Usuário</th><th>Pts.</th></tr>
+                </thead>
+                <tbody>`;
 
-                // --- AJUSTE PARA CENTRALIZAR E AUMENTAR O NOME NA COLUNA USUÁRIO ---
-                const userInfoHtml = `
+        data.forEach((row, index) => {
+            const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
+            const userInfoHtml = `
                 <div class="user-info-cell">
                     <img src="${userProfilePic}" alt="Foto de Perfil de ${row.username}">
                     <span class="user-name">${row.username}</span>
-                </div>
-            `;
-                // --- FIM DO AJUSTE ---
-
-                tableHtml += `
+                </div>`;
+            tableHtml += `
                 <tr>
                     <td><b>${index + 1}º</b></td>
-                    <td class="user-cell-content">${userInfoHtml}</td> <!-- Adicionada classe para facilitar estilo -->
-                    <td>${row[valueKey]}</td>
+                    <td class="user-cell-content">${userInfoHtml}</td>
+                    <td>${row.total_points}</td>
                 </tr>`;
-            });
-        }
+        });
         tableHtml += '</tbody></table>';
         rankingContent.innerHTML = tableHtml;
     }
 
-    // Função para carregar os eventos no dropdown
+    // Função para carregar os eventos no dropdown (agora busca todos)
     async function loadEventsForSelector() {
         try {
-            const response = await fetch(`${API_URL}/api/events?status=upcoming`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!response.ok) throw new Error('Falha ao carregar eventos para o ranking.');
+            // Fetch sem filtro de status para pegar todos os eventos
+            const response = await fetch(`${API_URL}/api/events`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao carregar eventos.');
             allEvents = await response.json();
 
             if (eventSelect) {
-                // Limpa opções existentes (caso haja recarregamento)
                 eventSelect.innerHTML = '<option value="">Selecione um Evento...</option>';
                 allEvents.forEach(event => {
                     const option = document.createElement('option');
@@ -588,35 +521,25 @@ function initializeRankingPage(token) {
                     option.textContent = event.name;
                     eventSelect.appendChild(option);
                 });
-                // Carrega o ranking do primeiro evento se houver
-                if (allEvents.length > 0) {
-                    loadRankingTable('event', allEvents[0].id);
-                } else {
-                    if (rankingContent) rankingContent.innerHTML = '<p>Nenhum evento encontrado para exibir ranking.</p>';
-                }
             }
         } catch (error) {
-            console.error("Erro ao carregar eventos para o ranking:", error);
-            if (rankingContent) rankingContent.innerHTML = `<p style="color:red;">${error.message}</p>`;
+            console.error("Erro ao carregar eventos:", error);
         }
     }
 
-    // Adiciona listeners aos botões das abas (geral vs. evento)
+    // Adiciona listeners aos botões das abas
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             document.querySelector('.tab-button.active')?.classList.remove('active');
             button.classList.add('active');
             const rankingType = button.dataset.ranking;
 
-            if (rankingType === 'event') {
-                if (eventSelectorContainer) eventSelectorContainer.style.display = 'block';
-                if (eventSelect && eventSelect.value) {
-                    loadRankingTable('event', eventSelect.value);
-                } else if (allEvents.length > 0) { // Caso o dropdown já esteja populado mas nada foi selecionado
-                    loadRankingTable('event', allEvents[0].id);
-                }
+            if (rankingType === 'vip') {
+                eventSelectorContainer.style.display = 'block';
+                // Carrega o ranking VIP se um evento já estiver selecionado, ou mostra a mensagem
+                loadRankingTable('vip');
             } else {
-                if (eventSelectorContainer) eventSelectorContainer.style.display = 'none';
+                eventSelectorContainer.style.display = 'none';
                 loadRankingTable('general');
             }
         });
@@ -625,18 +548,18 @@ function initializeRankingPage(token) {
     // Adiciona listener para mudança no dropdown de evento
     if (eventSelect) {
         eventSelect.addEventListener('change', () => {
-            loadRankingTable('event', eventSelect.value);
+            loadRankingTable('vip');
         });
     }
 
     // Inicia o carregamento
-    loadEventsForSelector();
+    loadEventsForSelector(); // Popula o dropdown em segundo plano
     loadRankingTable('general'); // Carrega o ranking geral por padrão
 }
 
+
 // --- FUNÇÕES AUXILIARES ---
 
-// Verifica o status de pagamento de um evento
 async function checkPaymentStatus(eventId, token) {
     try {
         const response = await fetch(`${API_URL}/api/payment-status/${eventId}`, {
@@ -646,24 +569,20 @@ async function checkPaymentStatus(eventId, token) {
         return data.hasPaid;
     } catch (error) {
         console.error('Erro ao verificar pagamento:', error);
-        return false; // Assume não pago em caso de erro
+        return false;
     }
 }
 
-// Inicia o processo de pagamento
 async function handlePayment(eventId, token) {
     try {
         const response = await fetch(`${API_URL}/api/create-payment`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ eventId })
         });
         const data = await response.json();
         if (data.checkoutUrl) {
-            window.location.href = data.checkoutUrl; // Redireciona para a página de pagamento
+            window.location.href = data.checkoutUrl;
         } else {
             throw new Error('Não foi possível obter o link de pagamento.');
         }
@@ -672,21 +591,20 @@ async function handlePayment(eventId, token) {
     }
 }
 
-// Carrega e renderiza o conteúdo da página de detalhes do evento
+// <<-- LÓGICA DE CARREGAMENTO DA PÁGINA DE EVENTO ATUALIZADA -->>
 async function loadEventPageContent(eventId, token, hasPaid) {
     const mainContent = document.querySelector('.container');
+    const paymentSection = document.getElementById('payment-section');
+
     try {
         const response = await fetch(`${API_URL}/api/events/${eventId}`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (!response.ok) throw new Error('Falha ao carregar dados do evento.');
-        eventData = await response.json(); // Armazena dados do evento globalmente
+        eventData = await response.json();
 
-        // Preenche os campos de palpites bônus se o usuário já fez
         const fotnSelect = document.getElementById('fight-of-night');
         const potnSelect = document.getElementById('performance-of-night');
         const saveBonusBtn = document.getElementById('save-bonus-picks-btn');
-
         if (eventData.userBonusPicks) {
-            // Usa setTimeout para garantir que os <options> já foram criados
             setTimeout(() => {
                 if (fotnSelect && eventData.userBonusPicks.fight_of_the_night_fight_id) {
                     fotnSelect.value = eventData.userBonusPicks.fight_of_the_night_fight_id;
@@ -694,57 +612,44 @@ async function loadEventPageContent(eventId, token, hasPaid) {
                 if (potnSelect && eventData.userBonusPicks.performance_of_the_night_fighter_name) {
                     potnSelect.value = eventData.userBonusPicks.performance_of_the_night_fighter_name;
                 }
-            }, 100); // Pequeno delay
+            }, 100);
+            if (saveBonusBtn) saveBonusBtn.textContent = 'Editar Palpites Bônus';
+        }
 
+        const eventHeader = document.querySelector('.event-header h2');
+        if (eventHeader) eventHeader.textContent = eventData.eventName;
+        startCountdown(eventData.picksDeadline, 'countdown');
+
+        // Lutas e palpites bônus são carregados para todos
+        loadFights();
+        populateBonusPicks(eventData.fights);
+
+        const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
+        if (saveBonusBtnContainer) {
+            saveBonusBtnContainer.style.display = 'block';
             if (saveBonusBtn) {
-                saveBonusBtn.textContent = 'Editar Palpites Bônus';
+                saveBonusBtn.addEventListener('click', () => handleSaveBonusPicks(eventId, token));
             }
         }
 
-        // Atualiza o título do evento e inicia o contador regressivo
-        const eventHeader = document.querySelector('.event-header h2');
-        if (eventHeader) eventHeader.textContent = eventData.eventName;
-        // Assumindo que há um elemento com id="countdown" na página
-        startCountdown(eventData.picksDeadline, 'countdown');
-
-        if (hasPaid) { // Se o usuário pagou
-            loadFights(); // Carrega os cards de luta
-            populateBonusPicks(eventData.fights); // Preenche os selects de bônus
-
-            const saveBonusBtnContainer = document.getElementById('save-bonus-btn-container');
-            if (saveBonusBtnContainer) {
-                saveBonusBtnContainer.style.display = 'block'; // Torna visível o container do botão
-                // Adiciona listener ao botão de salvar palpites bônus
-                if (saveBonusBtn) {
-                    saveBonusBtn.addEventListener('click', () => {
-                        handleSaveBonusPicks(eventId, token);
-                    });
-                }
-            }
-        } else { // Se o usuário não pagou
-            const paymentSection = document.getElementById('payment-section');
-            if (paymentSection) {
-                const formattedPrice = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(eventData.entry_price));
-                paymentSection.innerHTML = `
-                    <button id="pay-btn" class="btn btn-primary btn-save-all">
-                        Liberar Palpites para "${eventData.eventName}" (${formattedPrice})
-                    </button>
-                `;
-                document.getElementById('pay-btn')?.addEventListener('click', () => handlePayment(eventId, token));
-            }
-            const fightGrid = document.getElementById('fight-card-grid');
-            if (fightGrid) fightGrid.innerHTML = '<p style="text-align:center; font-size: 1.2rem; padding: 40px 0;">Pague a taxa de entrada para visualizar e fazer seus palpites.</p>';
-            const bonusSection = document.querySelector('.bonus-picks-section');
-            if (bonusSection) bonusSection.style.display = 'none'; // Esconde a seção de bônus
+        // A seção de pagamento agora decide o que mostrar com base no status 'hasPaid'
+        if (hasPaid) {
+            paymentSection.innerHTML = `<div class="vip-badge"><h3>⭐ PARABÉNS, VOCÊ É VIP NESTE EVENTO! ⭐</h3><p>Seus palpites contarão para o Ranking VIP.</p></div>`;
+        } else {
+            const formattedPrice = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(eventData.entry_price));
+            paymentSection.innerHTML = `
+                <button id="pay-btn" class="btn btn-primary btn-save-all">
+                    Tornar-se VIP para "${eventData.eventName}" (${formattedPrice})
+                </button>
+                <p style="margin-top: 10px; color: var(--text-muted);">Pague para participar do Ranking VIP e concorrer aos prêmios.</p>
+            `;
+            document.getElementById('pay-btn')?.addEventListener('click', () => handlePayment(eventId, token));
         }
 
     } catch (error) {
         if (mainContent) mainContent.innerHTML = `<h2 style="color:red;">${error.message}</h2>`;
     } finally {
-        // Revela o conteúdo principal após o carregamento (mesmo que haja erros)
-        if (mainContent) {
-            mainContent.classList.remove('content-hidden');
-        }
+        if (mainContent) mainContent.classList.remove('content-hidden');
     }
 }
 

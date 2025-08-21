@@ -10,7 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.1">
+    <link rel="stylesheet" href="style.css?v=8.2">
 </head>
 
 <body id="ranking-page">
@@ -23,18 +23,31 @@
 
     <main class="container">
         <section class="admin-section">
-            <h2>Ranking Geral</h2> <!-- Título simplificado, sem menção a "Precisão" -->
+            <h2 id="ranking-title">Ranking</h2>
 
-            <!-- REMOVIDO O CONTAINER DE ABAS E SELETOR DE EVENTO, FICANDO APENAS A TABELA -->
+            <!-- <<-- NOVA ESTRUTURA DE ABAS -->> -->
+            <div class="tabs" style="justify-content: center; margin-bottom: 20px;">
+                <button class="tab-button active" data-ranking="general">Ranking Geral</button>
+                <button class="tab-button" data-ranking="vip">Ranking VIP</button>
+            </div>
 
-            <!-- CONTAINER PARA EXIBIR OS RESULTADOS DO RANKING GERAL -->
+            <!-- <<-- NOVO SELETOR DE EVENTOS (PARA O RANKING VIP) -->> -->
+            <div id="event-selector-container" style="display: none; max-width: 500px; margin: 0 auto 30px auto;">
+                <label for="event-select" style="display: block; margin-bottom: 10px; text-align: center;">Selecione o
+                    Evento para ver o Ranking VIP:</label>
+                <select id="event-select" class="custom-select">
+                    <option value="">Carregando eventos...</option>
+                </select>
+            </div>
+
+            <!-- CONTAINER PARA EXIBIR A TABELA DE RANKING -->
             <div id="ranking-table-container">
                 <p>Carregando ranking...</p>
             </div>
         </section>
     </main>
 
-    <script src="script.js?v=8.1"></script>
+    <script src="script.js?v=8.2"></script>
 </body>
 
 </html>
