@@ -176,7 +176,7 @@ body {
 .fighters {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    /* align-items: center;  <-- REMOVIDO DAQUI */
     margin-bottom: 20px;
 }
 
@@ -205,6 +205,10 @@ body {
     font-family: var(--font-primary);
     font-size: 2rem;
     color: var(--secondary-color);
+    /* ADIÇÃO PARA CORRIGIR O ALINHAMENTO */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .pick-status {
