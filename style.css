@@ -204,7 +204,8 @@ body {
     flex-direction: column;
     justify-content: center;
 }
-.fighter span {
+/* AQUI ESTÁ A CORREÇÃO: Adicionado ">" para afetar apenas o span do recorde (filho direto), e não o span do sobrenome. */
+.fighter > span {
     font-size: 0.9rem;
     color: var(--text-muted);
     height: 1.2em;
