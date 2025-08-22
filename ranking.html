@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.4">
+    <link rel="stylesheet" href="style.css?v=8.5">
 </head>
 
 <body id="ranking-page">
@@ -25,17 +25,17 @@
     <main class="container">
         <section class="admin-section">
 
-            <!-- Container para o Título e Botão Voltar -->
+            <div class="tabs" style="justify-content: center; margin-bottom: 20px;">
+                <button class="tab-button active" data-ranking="general">Ranking Geral</button>
+                <button class="tab-button" data-ranking="vip">Ranking VIP</button>
+            </div>
+
+            <!-- Container para o Título e Botão Voltar (AGORA POSICIONADO AQUI) -->
             <div class="ranking-view-header">
                 <button id="back-to-events-btn" class="btn" style="display: none;">
                     <i class="fas fa-arrow-left"></i> VOLTAR
                 </button>
                 <h2 id="ranking-title"></h2>
-            </div>
-
-            <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
-                <button class="tab-button active" data-ranking="general">Ranking Geral</button>
-                <button class="tab-button" data-ranking="vip">Ranking VIP</button>
             </div>
 
             <!-- Container para a grade de eventos VIP, inicialmente escondido -->
@@ -51,7 +51,7 @@
         </section>
     </main>
 
-    <script src="script.js?v=8.4"></script>
+    <script src="script.js?v=8.5"></script>
 </body>
 
 </html>

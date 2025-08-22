@@ -465,11 +465,13 @@ tr.apured .btn-primary {
 }
 
 /* Novo Layout (Layout de Lista Centralizada) */
+/* ESTA REGRA CENTRALIZA A GRADE DE EVENTOS NO DESKTOP E MOBILE */
 .events-grid {
     display: flex; /* Usa Flexbox para alinhamento */
     flex-direction: column; /* Organiza os itens em uma coluna (um abaixo do outro) */
     align-items: center; /* Centraliza os cards na página */
     gap: 20px; /* Mantém o espaçamento entre os cards */
+    width: 100%; /* Garante que a área de flexbox ocupe o espaço disponível */
 }
 .event-card-link {
     text-decoration: none;
@@ -857,8 +859,8 @@ tr.apured .btn-primary {
     display: flex;
     align-items: center;
     position: relative; /* Contexto para o título absoluto */
-    min-height: 45px; /* Evita que a página salte */
-    margin-bottom: 20px;
+    min-height: 45px; /* Evita que a página salte quando o botão aparece/desaparece */
+    margin-bottom: 20px; /* Espaçamento entre este header e o conteúdo abaixo */
 }
 
 .ranking-view-header #ranking-title {
