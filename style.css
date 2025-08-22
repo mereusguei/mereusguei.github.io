@@ -182,6 +182,7 @@ body {
 
 .fighter {
     text-align: center;
+    flex: 1; /* CORREÇÃO: Garante que os containers dos lutadores tenham a mesma largura, centralizando o "VS". */
 }
 .fighter img {
     width: 80px;
@@ -322,6 +323,8 @@ body {
     border: 2px solid transparent;
     border-radius: 8px;
     transition: all 0.3s ease;
+    flex: 1; /* CORREÇÃO: Garante que os containers dos lutadores tenham a mesma largura, centralizando o "VS". */
+    text-align: center; /* CORREÇÃO: Alinha o conteúdo (imagem, nome) ao centro. */
 }
 .fighter-option:hover {
     background: rgba(0, 242, 255, 0.1);
@@ -339,7 +342,6 @@ body {
 .fighter-option h4 {
     text-align: center;
     margin-top: 10px;
-    min-height: 2.5em; /* CORREÇÃO: Garante altura consistente para alinhar o VS no modal */
 }
 .vs-text {
     font-family: var(--font-primary);
