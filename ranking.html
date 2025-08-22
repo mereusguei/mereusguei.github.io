@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking - Octagon Oracle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.2">
+    <link rel="stylesheet" href="style.css?v=8.3">
 </head>
 
 <body id="ranking-page">
@@ -25,29 +26,29 @@
         <section class="admin-section">
             <h2 id="ranking-title">Ranking</h2>
 
-            <!-- <<-- NOVA ESTRUTURA DE ABAS -->> -->
-            <div class="tabs" style="justify-content: center; margin-bottom: 20px;">
+            <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
                 <button class="tab-button active" data-ranking="general">Ranking Geral</button>
                 <button class="tab-button" data-ranking="vip">Ranking VIP</button>
             </div>
 
-            <!-- <<-- NOVO SELETOR DE EVENTOS (PARA O RANKING VIP) -->> -->
-            <div id="event-selector-container" style="display: none; max-width: 500px; margin: 0 auto 30px auto;">
-                <label for="event-select" style="display: block; margin-bottom: 10px; text-align: center;">Selecione o
-                    Evento para ver o Ranking VIP:</label>
-                <select id="event-select" class="custom-select">
-                    <option value="">Carregando eventos...</option>
-                </select>
+            <!-- Botão VOLTAR, inicialmente escondido -->
+            <button id="back-to-events-btn" class="btn" style="display: none; margin-bottom: 20px;">
+                <i class="fas fa-arrow-left"></i> VOLTAR
+            </button>
+
+            <!-- Container para a grade de eventos VIP, inicialmente escondido -->
+            <div id="vip-event-grid-container" class="events-grid" style="display: none;">
+                <!-- Eventos VIP serão inseridos aqui pelo JS -->
             </div>
 
-            <!-- CONTAINER PARA EXIBIR A TABELA DE RANKING -->
+            <!-- CONTAINER para a tabela de ranking -->
             <div id="ranking-table-container">
                 <p>Carregando ranking...</p>
             </div>
         </section>
     </main>
 
-    <script src="script.js?v=8.2"></script>
+    <script src="script.js?v=8.3"></script>
 </body>
 
 </html>

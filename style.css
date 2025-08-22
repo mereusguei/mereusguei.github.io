@@ -849,3 +849,19 @@ tr.apured .btn-primary {
 .vip-badge p {
     color: var(--text-color);
 }
+
+/* <<-- AJUSTES DE ESTILO PARA RANKING.HTML -->> */
+.tabs {
+    border-bottom: none; /* Remove a linha debaixo das abas */
+}
+
+#back-to-events-btn {
+    display: flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    width: fit-content; /* Botão se ajusta ao conteúdo */
+    margin-right: auto; /* Alinha à esquerda */
+}
+
+#back-to-events-btn i {
+    margin-right: 8px; /* Espaço entre o ícone e o texto */
+}

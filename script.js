@@ -13,10 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
-    // Inicializa a navegação que roda em todas as páginas
     initializeNavigation(user, token);
 
-    // Chama a função de inicialização específica da página atual
     const pageId = document.body.id;
     if (pageId === 'event-page') {
         initializeEventPage(user, token);
@@ -28,9 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeProfilePage(user, token);
     }
 
-    // --- DELEGAÇÃO DE EVENTOS PARA ELEMENTOS DINÂMICOS E GERAIS ---
-
-    // Delegação de eventos para botões de palpite (na página de eventos)
     const fightCardGrid = document.getElementById('fight-card-grid');
     if (fightCardGrid) {
         fightCardGrid.addEventListener('click', (e) => {
@@ -42,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Lógica para fechar o modal de palpite
     const modal = document.getElementById('pick-modal');
     if (modal) {
         modal.querySelector('.close-modal')?.addEventListener('click', () => modal.classList.remove('active'));
@@ -51,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Interação do modal: seleção de lutador
     document.querySelectorAll('.fighter-option').forEach(div => {
         div.addEventListener('click', () => {
             document.querySelectorAll('.fighter-option').forEach(d => d.classList.remove('selected'));
@@ -61,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Interação do modal: seleção de método
     document.querySelectorAll('.method-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
@@ -72,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Lógica de submit do formulário do modal de palpite
     const pickForm = document.getElementById('pick-form');
     if (pickForm) {
         pickForm.addEventListener('submit', async (e) => {
@@ -80,12 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const fightId = parseInt(document.getElementById('fight-id').value);
             const winnerName = document.getElementById('winner').value;
             const methodBtn = document.querySelector('.method-btn.selected');
-
             if (!winnerName || !methodBtn) return alert('Selecione o vencedor e o método.');
-
             const method = methodBtn.dataset.method;
             let details = (method === 'Decision') ? pickForm.querySelector('[name="decision-type"]').value : `Round ${pickForm.querySelector('[name="round"]').value}`;
-
             try {
                 const response = await fetch(`${API_URL}/api/picks`, {
                     method: 'POST',
@@ -94,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Falha ao salvar palpite.');
-
                 eventData.userPicks[fightId] = data.pick;
                 alert('Palpite salvo com sucesso!');
                 loadFights();
@@ -441,25 +428,25 @@ function initializeEventsListPage(token) {
 function initializeRankingPage(token) {
     if (!token) { window.location.href = 'login.html'; return; }
 
-    const rankingContent = document.getElementById('ranking-table-container');
-    const eventSelectorContainer = document.getElementById('event-selector-container');
-    const eventSelect = document.getElementById('event-select');
-    let allEvents = []; // Armazena todos os eventos (futuros e passados)
+    const rankingTitle = document.getElementById('ranking-title');
+    const rankingTableContainer = document.getElementById('ranking-table-container');
+    const vipEventGridContainer = document.getElementById('vip-event-grid-container');
+    const backToEventsBtn = document.getElementById('back-to-events-btn');
+    let allEvents = [];
 
-    // Função para carregar e exibir a tabela de ranking
-    async function loadRankingTable(type) {
+    async function loadRankingTable(type, eventId = null, eventName = '') {
         let url = '';
-        rankingContent.innerHTML = '<p>Carregando ranking...</p>';
+        rankingTableContainer.innerHTML = '<p>Carregando ranking...</p>';
 
         if (type === 'general') {
             url = `${API_URL}/api/rankings/general`;
-        } else if (type === 'vip') {
-            const eventId = eventSelect.value;
-            if (!eventId) {
-                rankingContent.innerHTML = '<p style="text-align: center;">Por favor, selecione um evento para ver o Ranking VIP.</p>';
-                return;
-            }
+            rankingTitle.textContent = "Ranking Geral";
+        } else if (type === 'vip' && eventId) {
             url = `${API_URL}/api/rankings/vip/${eventId}`;
+            rankingTitle.textContent = `Ranking VIP - ${eventName}`;
+        } else {
+            rankingTableContainer.innerHTML = '';
+            return;
         }
 
         try {
@@ -468,93 +455,111 @@ function initializeRankingPage(token) {
             const data = await response.json();
             buildTableHtml(data);
         } catch (error) {
-            rankingContent.innerHTML = `<p style="color:red; text-align: center;">${error.message}</p>`;
+            rankingTableContainer.innerHTML = `<p style="color:red; text-align: center;">${error.message}</p>`;
         }
     }
 
-    // Função para construir o HTML da tabela (reutilizável)
     function buildTableHtml(data) {
-        if (!rankingContent) return;
         if (data.length === 0) {
-            rankingContent.innerHTML = '<p style="text-align:center;">Nenhuma pontuação registrada para esta seleção.</p>';
+            rankingTableContainer.innerHTML = '<p style="text-align:center;">Nenhuma pontuação registrada para esta seleção.</p>';
             return;
         }
-
-        let tableHtml = `
-            <table>
-                <thead>
-                    <tr><th>Pos.</th><th>Usuário</th><th>Pts.</th></tr>
-                </thead>
-                <tbody>`;
-
+        let tableHtml = `<table><thead><tr><th>Pos.</th><th>Usuário</th><th>Pts.</th></tr></thead><tbody>`;
         data.forEach((row, index) => {
             const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
-            const userInfoHtml = `
-                <div class="user-info-cell">
-                    <img src="${userProfilePic}" alt="Foto de Perfil de ${row.username}">
-                    <span class="user-name">${row.username}</span>
-                </div>`;
             tableHtml += `
                 <tr>
                     <td><b>${index + 1}º</b></td>
-                    <td class="user-cell-content">${userInfoHtml}</td>
+                    <td class="user-cell-content">
+                        <div class="user-info-cell">
+                            <img src="${userProfilePic}" alt="Foto de ${row.username}">
+                            <span class="user-name">${row.username}</span>
+                        </div>
+                    </td>
                     <td>${row.total_points}</td>
                 </tr>`;
         });
         tableHtml += '</tbody></table>';
-        rankingContent.innerHTML = tableHtml;
+        rankingTableContainer.innerHTML = tableHtml;
     }
 
-    // Função para carregar os eventos no dropdown (agora busca todos)
-    async function loadEventsForSelector() {
+    async function loadAllEvents() {
         try {
-            // Fetch sem filtro de status para pegar todos os eventos
             const response = await fetch(`${API_URL}/api/events`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao carregar eventos.');
             allEvents = await response.json();
-
-            if (eventSelect) {
-                eventSelect.innerHTML = '<option value="">Selecione um Evento...</option>';
-                allEvents.forEach(event => {
-                    const option = document.createElement('option');
-                    option.value = event.id;
-                    option.textContent = event.name;
-                    eventSelect.appendChild(option);
-                });
-            }
         } catch (error) {
             console.error("Erro ao carregar eventos:", error);
+            vipEventGridContainer.innerHTML = `<p style="color:red;">Não foi possível carregar os eventos.</p>`;
         }
     }
 
-    // Adiciona listeners aos botões das abas
+    function displayVipEventGrid() {
+        vipEventGridContainer.innerHTML = ''; // Limpa
+        if (allEvents.length === 0) {
+            vipEventGridContainer.innerHTML = '<p>Nenhum evento encontrado.</p>';
+            return;
+        }
+
+        allEvents.forEach(event => {
+            const eventDate = new Date(event.event_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+            const cardHtml = `
+                <div class="event-card-link" data-event-id="${event.id}" data-event-name="${event.name}" style="cursor: pointer;">
+                    <div class="event-card">
+                        <img src="${event.card_image_url || 'https://via.placeholder.com/400x200'}" class="event-card-bg" alt="${event.name}">
+                        <div class="event-card-info">
+                            <h3>${event.name}</h3>
+                            <p>${eventDate}</p>
+                        </div>
+                    </div>
+                </div>`;
+            vipEventGridContainer.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+
+    function showView(view) {
+        if (view === 'general') {
+            rankingTitle.textContent = "Ranking Geral";
+            rankingTableContainer.style.display = 'block';
+            vipEventGridContainer.style.display = 'none';
+            backToEventsBtn.style.display = 'none';
+            loadRankingTable('general');
+        } else if (view === 'vip-events') {
+            rankingTitle.textContent = "Ranking VIP";
+            rankingTableContainer.style.display = 'none';
+            vipEventGridContainer.style.display = 'block';
+            backToEventsBtn.style.display = 'none';
+            displayVipEventGrid();
+        } else if (view === 'vip-table') {
+            rankingTableContainer.style.display = 'block';
+            vipEventGridContainer.style.display = 'none';
+            backToEventsBtn.style.display = 'block';
+        }
+    }
+
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', () => {
             document.querySelector('.tab-button.active')?.classList.remove('active');
             button.classList.add('active');
             const rankingType = button.dataset.ranking;
-
-            if (rankingType === 'vip') {
-                eventSelectorContainer.style.display = 'block';
-                // Carrega o ranking VIP se um evento já estiver selecionado, ou mostra a mensagem
-                loadRankingTable('vip');
-            } else {
-                eventSelectorContainer.style.display = 'none';
-                loadRankingTable('general');
-            }
+            showView(rankingType === 'general' ? 'general' : 'vip-events');
         });
     });
 
-    // Adiciona listener para mudança no dropdown de evento
-    if (eventSelect) {
-        eventSelect.addEventListener('change', () => {
-            loadRankingTable('vip');
-        });
-    }
+    vipEventGridContainer.addEventListener('click', (e) => {
+        const card = e.target.closest('.event-card-link');
+        if (card) {
+            const eventId = card.dataset.eventId;
+            const eventName = card.dataset.eventName;
+            showView('vip-table');
+            loadRankingTable('vip', eventId, eventName);
+        }
+    });
 
-    // Inicia o carregamento
-    loadEventsForSelector(); // Popula o dropdown em segundo plano
-    loadRankingTable('general'); // Carrega o ranking geral por padrão
+    backToEventsBtn.addEventListener('click', () => showView('vip-events'));
+
+    loadAllEvents();
+    showView('general');
 }
 
 
