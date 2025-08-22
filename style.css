@@ -73,6 +73,7 @@ body {
     height: 40px;
     border-radius: 50%;
     border: 2px solid var(--primary-color);
+    object-fit: cover; /* CORREÇÃO: Garante que a foto não fique achatada */
 }
 
 /* Botões */
@@ -192,6 +193,7 @@ body {
 .fighter h4 {
     margin-top: 10px;
     font-size: 1.1rem;
+    min-height: 2.5em; /* CORREÇÃO: Garante altura consistente para nomes em 1 ou 2 linhas, alinhando os cards e o "VS" */
 }
 .fighter span {
     font-size: 0.9rem;
@@ -210,6 +212,7 @@ body {
 .pick-status .palpite-feito {
     color: var(--primary-color);
     font-weight: bold;
+    margin-bottom: 20px; /* CORREÇÃO: Adiciona espaço abaixo, para não colar no botão */
 }
 
 /* Bonus Picks */
@@ -331,6 +334,7 @@ body {
     width: 100px;
     height: 100px;
     border-radius: 50%;
+    object-fit: cover; /* CORREÇÃO: Garante que a foto no modal não fique achatada */
 }
 .fighter-option h4 {
     text-align: center;
