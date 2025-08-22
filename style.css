@@ -211,9 +211,8 @@ body {
 }
 
 .fighter-lastname {
-    font-weight: 400;
-    font-size: 0.95em;
-    color: var(--text-muted);
+    font-size: 1em; /* Alterado para ter o mesmo tamanho do nome */
+    color: #FFD700; /* Alterado para cor dourada */
 }
 
 .vs {
@@ -227,7 +226,7 @@ body {
 
 .pick-status {
     text-align: center;
-    min-height: 95px;
+    height: 100px; /* Alterado de min-height para height para alinhar perfeitamente os botões */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
