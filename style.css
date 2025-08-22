@@ -103,6 +103,23 @@ body {
     box-shadow: 0 0 20px var(--primary-color);
 }
 
+/* Estilo para botões e selects desabilitados quando o prazo encerra */
+.btn:disabled, .btn[disabled],
+.custom-select:disabled, .custom-select[disabled] {
+    background-color: transparent;
+    border-color: var(--text-muted);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
+.btn:disabled:hover, .btn[disabled]:hover {
+    background-color: transparent;
+    color: var(--text-muted);
+    box-shadow: none;
+}
+
 /* Event Header */
 .event-header {
     text-align: center;

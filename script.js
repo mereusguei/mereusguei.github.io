@@ -697,11 +697,14 @@ function loadFights() {
         return;
     }
 
+    const isDeadlinePassed = new Date() > new Date(eventData.picksDeadline);
+
     eventData.fights.forEach(fight => {
         const pick = eventData.userPicks && eventData.userPicks[fight.id]; // Verifica se há palpite para esta luta
 
         const buttonText = pick ? 'Alterar Palpite' : 'Fazer Palpite';
         const buttonClass = pick ? 'btn-edit-pick' : 'btn-pick';
+        const disabledAttribute = isDeadlinePassed ? 'disabled' : '';
 
         let pickDisplay = '';
         if (pick) {
@@ -709,7 +712,10 @@ function loadFights() {
                 `Decisão ${pick.predicted_details}` :
                 `${pick.predicted_method} no ${pick.predicted_details}`;
             pickDisplay = `<p class="palpite-feito">Seu palpite: ${pick.predicted_winner_name} por ${methodDisplay}</p>`;
+        } else if (isDeadlinePassed) {
+            pickDisplay = `<p>Prazo para palpites encerrado.</p>`;
         }
+
 
         const fightCard = `
             <div class="fight-card" data-fight-id="${fight.id}">
@@ -728,7 +734,7 @@ function loadFights() {
                 </div>
                 <div class="pick-status">
                     ${pickDisplay}
-                    <button class="btn ${buttonClass}">${buttonText}</button>
+                    <button class="btn ${buttonClass}" ${disabledAttribute}>${buttonText}</button>
                 </div>
             </div>
         `;
@@ -752,10 +758,13 @@ function startCountdown(deadline, elementId) {
         if (distance < 0) {
             clearInterval(interval);
             countdownElement.innerHTML = "PRAZO ENCERRADO";
-            // Desabilita botões relevantes na página de evento principal
+            // Desabilita botões e selects relevantes na página de evento principal
             if (document.body.id === 'event-page') {
-                document.querySelectorAll('.btn-pick, .btn-edit-pick, .btn-save-all').forEach(btn => {
+                document.querySelectorAll('.btn-pick, .btn-edit-pick, #save-bonus-picks-btn').forEach(btn => {
                     if (btn) btn.disabled = true;
+                });
+                document.querySelectorAll('#fight-of-night, #performance-of-night').forEach(select => {
+                    if (select) select.disabled = true;
                 });
             }
         } else {
