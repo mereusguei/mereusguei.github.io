@@ -211,8 +211,8 @@ body {
 }
 
 .fighter-lastname {
-    font-size: 1em; /* Alterado para ter o mesmo tamanho do nome */
-    color: #FFD700; /* Alterado para cor dourada */
+    font-size: 1em; /* Garante que o sobrenome tenha o mesmo tamanho do nome */
+    color: #FFD700; /* Define a cor dourada para o sobrenome */
 }
 
 .vs {
