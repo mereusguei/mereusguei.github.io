@@ -527,7 +527,7 @@ function initializeRankingPage(token) {
         } else if (view === 'vip-events') {
             rankingTitle.textContent = ""; // Título removido
             rankingTableContainer.style.display = 'none';
-            vipEventGridContainer.style.display = 'block';
+            vipEventGridContainer.style.display = 'flex'; // <-- ALTERAÇÃO APLICADA AQUI
             backToEventsBtn.style.display = 'none';
             displayVipEventGrid();
         } else if (view === 'vip-table') {
