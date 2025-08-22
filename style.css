@@ -176,7 +176,7 @@ body {
 .fighters {
     display: flex;
     justify-content: space-between;
-    /* align-items: center;  <-- REMOVIDO DAQUI */
+    align-items: flex-start; /* <<-- ALTERAÇÃO 1: Alinha os itens ao topo para controlar a posição do VS. */
     margin-bottom: 20px;
 }
 
@@ -205,10 +205,10 @@ body {
     font-family: var(--font-primary);
     font-size: 2rem;
     color: var(--secondary-color);
-    /* ADIÇÃO PARA CORRIGIR O ALINHAMENTO */
+    /* <<-- ALTERAÇÃO 2: Novas regras para centralizar o 'VS' na altura da imagem. */
+    height: 80px; /* Mesma altura da imagem do lutador. */
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; /* Centraliza verticalmente o texto 'VS' dentro da sua nova altura. */
 }
 
 .pick-status {
