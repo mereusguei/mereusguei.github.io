@@ -339,6 +339,7 @@ body {
 .fighter-option h4 {
     text-align: center;
     margin-top: 10px;
+    min-height: 2.5em; /* CORREÇÃO: Garante altura consistente para alinhar o VS no modal */
 }
 .vs-text {
     font-family: var(--font-primary);
