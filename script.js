@@ -8,7 +8,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'ejlzebde';
 
 let eventData = {}; // Variável global para armazenar dados do evento
 
-// --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGINA CARREGA ---
+// --- FUNÇÃO PRINCIPAL QUE RODA QUANDO A PÁGGámINA CARREGA ---
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
@@ -685,6 +685,18 @@ async function handleSaveBonusPicks(eventId, token) {
     }
 }
 
+// ** INÍCIO DA CORREÇÃO **
+// Função para formatar o nome do lutador em duas linhas
+// Foi movida para fora de 'loadFights' para que 'openPickModal' também possa usá-la.
+const formatFighterName = (name) => {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length > 1) {
+        return `${parts[0]}<br><span class="fighter-lastname">${parts.slice(1).join(' ')}</span>`;
+    }
+    return name;
+};
+
 // Desenha os cards de luta na página de evento
 function loadFights() {
     const fightCardGrid = document.getElementById('fight-card-grid');
@@ -696,16 +708,6 @@ function loadFights() {
         fightCardGrid.innerHTML = '<p>Nenhuma luta encontrada para este evento.</p>';
         return;
     }
-
-    // Função para formatar o nome do lutador em duas linhas
-    const formatFighterName = (name) => {
-        if (!name) return '';
-        const parts = name.trim().split(/\s+/);
-        if (parts.length > 1) {
-            return `${parts[0]}<br><span class="fighter-lastname">${parts.slice(1).join(' ')}</span>`;
-        }
-        return name;
-    };
 
     const isDeadlinePassed = new Date() > new Date(eventData.picksDeadline);
 
@@ -859,11 +861,13 @@ function openPickModal(fightId) {
     if (modalTitle) modalTitle.textContent = `Palpite para: ${fight.fighter1_name} vs ${fight.fighter2_name}`;
 
     if (fighter1Div) {
-        fighter1Div.innerHTML = `<img src="${fight.fighter1_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter1_name}"><h4>${fight.fighter1_name}</h4>`;
+        // AQUI ESTÁ A CORREÇÃO: Usando a função 'formatFighterName' para o modal também.
+        fighter1Div.innerHTML = `<img src="${fight.fighter1_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter1_name}"><h4>${formatFighterName(fight.fighter1_name)}</h4>`;
         fighter1Div.dataset.fighterName = fight.fighter1_name;
     }
     if (fighter2Div) {
-        fighter2Div.innerHTML = `<img src="${fight.fighter2_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter2_name}"><h4>${fight.fighter2_name}</h4>`;
+        // AQUI ESTÁ A CORREÇÃO: Usando a função 'formatFighterName' para o modal também.
+        fighter2Div.innerHTML = `<img src="${fight.fighter2_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter2_name}"><h4>${formatFighterName(fight.fighter2_name)}</h4>`;
         fighter2Div.dataset.fighterName = fight.fighter2_name;
     }
 
