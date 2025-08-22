@@ -747,8 +747,6 @@ tr.apured .btn-primary {
 
 /* ================== ESTILOS ATUALIZADOS PARA RANKING ================== */
 
-/* REMOVIDOS ESTILOS RELACIONADOS A ABAS E SELETOR DE EVENTO */
-
 /* Ajustes para a Tabela de Ranking Geral */
 #ranking-table-container table {
     width: 100%;
@@ -850,18 +848,38 @@ tr.apured .btn-primary {
     color: var(--text-color);
 }
 
-/* <<-- AJUSTES DE ESTILO PARA RANKING.HTML -->> */
+/* <<-- AJUSTES DE ESTILO PARA RANKING.HTML (NOVA ESTRUTURA) -->> */
 .tabs {
     border-bottom: none; /* Remove a linha debaixo das abas */
 }
 
-#back-to-events-btn {
-    display: flex; /* Para alinhar ícone e texto */
+.ranking-view-header {
+    display: flex;
     align-items: center;
-    width: fit-content; /* Botão se ajusta ao conteúdo */
-    margin-right: auto; /* Alinha à esquerda */
+    position: relative; /* Contexto para o título absoluto */
+    min-height: 45px; /* Evita que a página salte */
+    margin-bottom: 20px;
 }
 
-#back-to-events-btn i {
-    margin-right: 8px; /* Espaço entre o ícone e o texto */
+.ranking-view-header #ranking-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    font-family: var(--font-primary);
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.ranking-view-header #back-to-events-btn {
+    position: relative;
+    z-index: 1; /* Coloca o botão acima do título caso haja sobreposição */
+    display: flex;
+    align-items: center;
+}
+
+.ranking-view-header #back-to-events-btn i {
+    margin-right: 8px;
 }

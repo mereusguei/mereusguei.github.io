@@ -424,7 +424,7 @@ function initializeEventsListPage(token) {
     loadEvents('upcoming');
 }
 
-// <<-- FUNÇÃO DO RANKING TOTALMENTE REESCRITA -->>
+// <<-- FUNÇÃO DO RANKING TOTALMENTE REESCRITA E AJUSTADA -->>
 function initializeRankingPage(token) {
     if (!token) { window.location.href = 'login.html'; return; }
 
@@ -440,10 +440,10 @@ function initializeRankingPage(token) {
 
         if (type === 'general') {
             url = `${API_URL}/api/rankings/general`;
-            rankingTitle.textContent = "Ranking Geral";
+            rankingTitle.textContent = ""; // Título removido
         } else if (type === 'vip' && eventId) {
             url = `${API_URL}/api/rankings/vip/${eventId}`;
-            rankingTitle.textContent = `Ranking VIP - ${eventName}`;
+            rankingTitle.textContent = eventName; // Mostra apenas o nome do evento
         } else {
             rankingTableContainer.innerHTML = '';
             return;
@@ -519,13 +519,13 @@ function initializeRankingPage(token) {
 
     function showView(view) {
         if (view === 'general') {
-            rankingTitle.textContent = "Ranking Geral";
+            rankingTitle.textContent = ""; // Título removido
             rankingTableContainer.style.display = 'block';
             vipEventGridContainer.style.display = 'none';
             backToEventsBtn.style.display = 'none';
             loadRankingTable('general');
         } else if (view === 'vip-events') {
-            rankingTitle.textContent = "Ranking VIP";
+            rankingTitle.textContent = ""; // Título removido
             rankingTableContainer.style.display = 'none';
             vipEventGridContainer.style.display = 'block';
             backToEventsBtn.style.display = 'none';

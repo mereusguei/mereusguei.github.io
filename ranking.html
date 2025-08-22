@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.3">
+    <link rel="stylesheet" href="style.css?v=8.4">
 </head>
 
 <body id="ranking-page">
@@ -24,19 +24,22 @@
 
     <main class="container">
         <section class="admin-section">
-            <h2 id="ranking-title">Ranking</h2>
+
+            <!-- Container para o Título e Botão Voltar -->
+            <div class="ranking-view-header">
+                <button id="back-to-events-btn" class="btn" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> VOLTAR
+                </button>
+                <h2 id="ranking-title"></h2>
+            </div>
 
             <div class="tabs" style="justify-content: center; margin-bottom: 40px;">
                 <button class="tab-button active" data-ranking="general">Ranking Geral</button>
                 <button class="tab-button" data-ranking="vip">Ranking VIP</button>
             </div>
 
-            <!-- Botão VOLTAR, inicialmente escondido -->
-            <button id="back-to-events-btn" class="btn" style="display: none; margin-bottom: 20px;">
-                <i class="fas fa-arrow-left"></i> VOLTAR
-            </button>
-
             <!-- Container para a grade de eventos VIP, inicialmente escondido -->
+            <!-- A classe 'events-grid' garante que o layout e espaçamento sejam os mesmos do events.html -->
             <div id="vip-event-grid-container" class="events-grid" style="display: none;">
                 <!-- Eventos VIP serão inseridos aqui pelo JS -->
             </div>
@@ -48,7 +51,7 @@
         </section>
     </main>
 
-    <script src="script.js?v=8.3"></script>
+    <script src="script.js?v=8.4"></script>
 </body>
 
 </html>
