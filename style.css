@@ -176,13 +176,16 @@ body {
 .fighters {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* <<-- ALTERAÇÃO 1: Alinha os itens ao topo para controlar a posição do VS. */
+    align-items: flex-start;
     margin-bottom: 20px;
 }
 
 .fighter {
     text-align: center;
-    flex: 1; /* CORREÇÃO: Garante que os containers dos lutadores tenham a mesma largura, centralizando o "VS". */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .fighter img {
     width: 80px;
@@ -190,14 +193,26 @@ body {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--text-muted);
+    margin-bottom: 8px;
 }
 .fighter h4 {
-    margin-top: 10px;
+    margin-top: 4px;
     font-size: 1.1rem;
-    min-height: 2.5em; /* CORREÇÃO: Garante altura consistente para nomes em 1 ou 2 linhas, alinhando os cards e o "VS" */
+    line-height: 1.3;
+    min-height: 2.8em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .fighter span {
     font-size: 0.9rem;
+    color: var(--text-muted);
+    height: 1.2em;
+}
+
+.fighter-lastname {
+    font-weight: 400;
+    font-size: 0.95em;
     color: var(--text-muted);
 }
 
@@ -205,20 +220,49 @@ body {
     font-family: var(--font-primary);
     font-size: 2rem;
     color: var(--secondary-color);
-    /* <<-- ALTERAÇÃO 2: Novas regras para centralizar o 'VS' na altura da imagem. */
-    height: 80px; /* Mesma altura da imagem do lutador. */
+    height: 80px; 
     display: flex;
-    align-items: center; /* Centraliza verticalmente o texto 'VS' dentro da sua nova altura. */
+    align-items: center;
 }
 
 .pick-status {
     text-align: center;
+    min-height: 95px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
-.pick-status .palpite-feito {
+
+.pick-message {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.palpite-feito {
     color: var(--primary-color);
     font-weight: bold;
-    margin-bottom: 20px; /* CORREÇÃO: Adiciona espaço abaixo, para não colar no botão */
 }
+
+.prompt-pick {
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.prompt-pick .arrow {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.prazo-encerrado {
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
 
 /* Bonus Picks */
 .bonus-picks-section {

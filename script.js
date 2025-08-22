@@ -697,10 +697,20 @@ function loadFights() {
         return;
     }
 
+    // Função para formatar o nome do lutador em duas linhas
+    const formatFighterName = (name) => {
+        if (!name) return '';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length > 1) {
+            return `${parts[0]}<br><span class="fighter-lastname">${parts.slice(1).join(' ')}</span>`;
+        }
+        return name;
+    };
+
     const isDeadlinePassed = new Date() > new Date(eventData.picksDeadline);
 
     eventData.fights.forEach(fight => {
-        const pick = eventData.userPicks && eventData.userPicks[fight.id]; // Verifica se há palpite para esta luta
+        const pick = eventData.userPicks && eventData.userPicks[fight.id];
 
         const buttonText = pick ? 'Alterar Palpite' : 'Fazer Palpite';
         const buttonClass = pick ? 'btn-edit-pick' : 'btn-pick';
@@ -711,25 +721,28 @@ function loadFights() {
             const methodDisplay = pick.predicted_method === 'Decision' ?
                 `Decisão ${pick.predicted_details}` :
                 `${pick.predicted_method} no ${pick.predicted_details}`;
-            pickDisplay = `<p class="palpite-feito">Seu palpite: ${pick.predicted_winner_name} por ${methodDisplay}</p>`;
-        } else if (isDeadlinePassed) {
-            pickDisplay = `<p>Prazo para palpites encerrado.</p>`;
+            pickDisplay = `<p class="pick-message palpite-feito">Seu palpite: ${pick.predicted_winner_name} por ${methodDisplay}</p>`;
+        } else {
+            if (isDeadlinePassed) {
+                pickDisplay = `<p class="pick-message prazo-encerrado">Prazo para palpites encerrado.</p>`;
+            } else {
+                pickDisplay = `<p class="pick-message prompt-pick">Faça seu palpite<br><span class="arrow">↓</span></p>`;
+            }
         }
-
 
         const fightCard = `
             <div class="fight-card" data-fight-id="${fight.id}">
                 <div class="fighters">
                     <div class="fighter">
                         <img src="${fight.fighter1_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter1_name}">
-                        <h4>${fight.fighter1_name}</h4>
                         <span>${fight.fighter1_record || ''}</span>
+                        <h4>${formatFighterName(fight.fighter1_name)}</h4>
                     </div>
                     <span class="vs">VS</span>
                     <div class="fighter">
                         <img src="${fight.fighter2_img || 'https://via.placeholder.com/80'}" alt="${fight.fighter2_name}">
-                        <h4>${fight.fighter2_name}</h4>
                         <span>${fight.fighter2_record || ''}</span>
+                        <h4>${formatFighterName(fight.fighter2_name)}</h4>
                     </div>
                 </div>
                 <div class="pick-status">
