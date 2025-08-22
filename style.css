@@ -210,15 +210,9 @@ body {
     height: 1.2em;
 }
 
-.fighter-firstname {
-    /* O primeiro nome herda a cor padrão do h4 (branco/--text-color) */
-    color: inherit; 
-}
-
 .fighter-lastname {
-    font-weight: inherit; /* Herda o peso da fonte do h4 */
-    font-size: 1em; /* Garante que tenha o mesmo tamanho do nome */
-    color: #FFD700; /* Cor dourada (#FFD700 é o código padrão para ouro) */
+    font-size: 1em; /* Alterado para ter o mesmo tamanho do nome */
+    color: #FFD700; /* Alterado para cor dourada */
 }
 
 .vs {
