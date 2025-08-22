@@ -767,6 +767,13 @@ tr.apured .btn-primary {
     text-align: center; /* Centraliza os cabeçalhos */
 }
 
+/* Célula de Título do Evento na Tabela */
+#ranking-table-container th.table-event-title {
+    font-size: 1.8rem;
+    padding: 20px;
+}
+
+
 /* Ajuste para as células de dados na tabela */
 #ranking-table-container td {
     vertical-align: middle; /* Centraliza o conteúdo verticalmente */
@@ -853,35 +860,29 @@ tr.apured .btn-primary {
 /* <<-- AJUSTES DE ESTILO PARA RANKING.HTML (NOVA ESTRUTURA) -->> */
 .tabs {
     border-bottom: none; /* Remove a linha debaixo das abas */
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 
-.ranking-view-header {
-    display: flex;
-    align-items: center;
-    position: relative; /* Contexto para o título absoluto */
-    min-height: 45px; /* Evita que a página salte quando o botão aparece/desaparece */
-    margin-bottom: 20px; /* Espaçamento entre este header e o conteúdo abaixo */
-}
-
-.ranking-view-header #ranking-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 0;
-    padding: 0;
-    white-space: nowrap;
-    font-family: var(--font-primary);
-    font-size: 1.8rem;
-    color: var(--primary-color);
-}
-
-.ranking-view-header #back-to-events-btn {
+.ranking-controls-container {
     position: relative;
-    z-index: 1; /* Coloca o botão acima do título caso haja sobreposição */
     display: flex;
+    justify-content: center;
     align-items: center;
+    width: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    min-height: 45px; /* Previne pulos de layout */
 }
 
-.ranking-view-header #back-to-events-btn i {
+.ranking-controls-container #back-to-events-btn {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    z-index: 2; /* Garante que o botão fique acima das abas se houver sobreposição */
+}
+
+.ranking-controls-container #back-to-events-btn i {
     margin-right: 8px;
 }

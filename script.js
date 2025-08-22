@@ -428,7 +428,6 @@ function initializeEventsListPage(token) {
 function initializeRankingPage(token) {
     if (!token) { window.location.href = 'login.html'; return; }
 
-    const rankingTitle = document.getElementById('ranking-title');
     const rankingTableContainer = document.getElementById('ranking-table-container');
     const vipEventGridContainer = document.getElementById('vip-event-grid-container');
     const backToEventsBtn = document.getElementById('back-to-events-btn');
@@ -440,10 +439,8 @@ function initializeRankingPage(token) {
 
         if (type === 'general') {
             url = `${API_URL}/api/rankings/general`;
-            rankingTitle.textContent = ""; // Título removido
         } else if (type === 'vip' && eventId) {
             url = `${API_URL}/api/rankings/vip/${eventId}`;
-            rankingTitle.textContent = eventName; // Mostra apenas o nome do evento
         } else {
             rankingTableContainer.innerHTML = '';
             return;
@@ -453,18 +450,24 @@ function initializeRankingPage(token) {
             const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao carregar ranking.');
             const data = await response.json();
-            buildTableHtml(data);
+            buildTableHtml(data, eventName);
         } catch (error) {
             rankingTableContainer.innerHTML = `<p style="color:red; text-align: center;">${error.message}</p>`;
         }
     }
 
-    function buildTableHtml(data) {
+    function buildTableHtml(data, eventName = '') {
         if (data.length === 0) {
             rankingTableContainer.innerHTML = '<p style="text-align:center;">Nenhuma pontuação registrada para esta seleção.</p>';
             return;
         }
-        let tableHtml = `<table><thead><tr><th>Pos.</th><th>Usuário</th><th>Pts.</th></tr></thead><tbody>`;
+
+        let tableHtml = `<table><thead>`;
+        if (eventName) {
+            tableHtml += `<tr><th colspan="3" class="table-event-title">${eventName}</th></tr>`;
+        }
+        tableHtml += `<tr><th>Pos.</th><th>Usuário</th><th>Pts.</th></tr></thead><tbody>`;
+
         data.forEach((row, index) => {
             const userProfilePic = row.profile_picture_url || `https://i.pravatar.cc/45?u=${row.username}`;
             tableHtml += `
@@ -519,15 +522,13 @@ function initializeRankingPage(token) {
 
     function showView(view) {
         if (view === 'general') {
-            rankingTitle.textContent = ""; // Título removido
             rankingTableContainer.style.display = 'block';
             vipEventGridContainer.style.display = 'none';
             backToEventsBtn.style.display = 'none';
             loadRankingTable('general');
         } else if (view === 'vip-events') {
-            rankingTitle.textContent = ""; // Título removido
             rankingTableContainer.style.display = 'none';
-            vipEventGridContainer.style.display = 'flex'; // <-- ALTERAÇÃO APLICADA AQUI
+            vipEventGridContainer.style.display = 'flex';
             backToEventsBtn.style.display = 'none';
             displayVipEventGrid();
         } else if (view === 'vip-table') {

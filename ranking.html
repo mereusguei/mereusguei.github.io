@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8.9">
+    <link rel="stylesheet" href="style.css?v=9.1">
 </head>
 
 <body id="ranking-page">
@@ -25,24 +25,18 @@
     <main class="container">
         <section class="admin-section">
 
-            <!-- h2 vazio adicionado para corresponder ao espaçamento de events.html -->
-            <h2 style="text-align: center;"></h2>
-
-            <div class="tabs" style="justify-content: center; margin-bottom: 20px;">
-                <button class="tab-button active" data-ranking="general">Ranking Geral</button>
-                <button class="tab-button" data-ranking="vip">Ranking VIP</button>
-            </div>
-
-            <!-- Container para o Título e Botão Voltar -->
-            <div class="ranking-view-header">
+            <!-- Container para o Botão Voltar e as Abas -->
+            <div class="ranking-controls-container">
                 <button id="back-to-events-btn" class="btn" style="display: none;">
                     <i class="fas fa-arrow-left"></i> VOLTAR
                 </button>
-                <h2 id="ranking-title"></h2>
+                <div class="tabs" style="justify-content: center;">
+                    <button class="tab-button active" data-ranking="general">Ranking Geral</button>
+                    <button class="tab-button" data-ranking="vip">Ranking VIP</button>
+                </div>
             </div>
 
             <!-- Container para a grade de eventos VIP -->
-            <!-- A estrutura agora é idêntica à de events.html, garantindo a centralização -->
             <div id="vip-event-grid-container" class="events-grid" style="display: none;">
                 <!-- Eventos VIP serão inseridos aqui pelo JS -->
             </div>
@@ -54,7 +48,7 @@
         </section>
     </main>
 
-    <script src="script.js?v=8.9"></script>
+    <script src="script.js?v=9.1"></script>
 </body>
 
 </html>
