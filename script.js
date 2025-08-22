@@ -702,7 +702,8 @@ function loadFights() {
         if (!name) return '';
         const parts = name.trim().split(/\s+/);
         if (parts.length > 1) {
-            return `${parts[0]}<br><span class="fighter-lastname">${parts.slice(1).join(' ')}</span>`;
+            // CORREÇÃO: Envolve o primeiro nome em um span para estilização consistente
+            return `<span class="fighter-firstname">${parts[0]}</span><br><span class="fighter-lastname">${parts.slice(1).join(' ')}</span>`;
         }
         return name;
     };
